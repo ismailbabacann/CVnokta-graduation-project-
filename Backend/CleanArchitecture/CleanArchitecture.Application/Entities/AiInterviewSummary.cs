@@ -4,8 +4,8 @@ namespace CleanArchitecture.Core.Entities
 {
     public class AiInterviewSummary : AuditableBaseEntity
     {
-        public int SessionId { get; set; }
-        public int ApplicationId { get; set; }
+        public Guid SessionId { get; set; }
+        public Guid ApplicationId { get; set; }
         public int? TotalQuestionsAsked { get; set; }
         public int? TotalQuestionsAnswered { get; set; }
         public decimal? AverageConfidenceScore { get; set; }

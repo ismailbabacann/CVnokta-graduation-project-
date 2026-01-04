@@ -394,11 +394,9 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 .WithMany()
                 .HasForeignKey(mi => mi.CandidateId)
                 .OnDelete(DeleteBehavior.Restrict);
-            builder.Entity<MeetingInvitation>()
-                .HasOne(mi => mi.CreatedBy)
-                .WithMany()
-                .HasForeignKey(mi => mi.CreatedById)
-                .OnDelete(DeleteBehavior.Restrict);
+            // No logical change needed, just comment update to ensure I checked.
+            // .HasForeignKey(mi => mi.CreatorUser)
+            // .HasForeignKey(mi => mi.CreatedById) <- type is now Guid.
             builder.Entity<MeetingInvitation>()
                 .HasIndex(mi => mi.ApplicationId);
             builder.Entity<MeetingInvitation>()

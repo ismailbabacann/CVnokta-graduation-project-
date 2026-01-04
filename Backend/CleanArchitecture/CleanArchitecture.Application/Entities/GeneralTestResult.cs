@@ -4,8 +4,8 @@ namespace CleanArchitecture.Core.Entities
 {
     public class GeneralTestResult : AuditableBaseEntity
     {
-        public int ApplicationId { get; set; }
-        public int StageId { get; set; }
+        public Guid ApplicationId { get; set; }
+        public Guid StageId { get; set; }
         public string TestName { get; set; }
         public int? TotalQuestions { get; set; }
         public int? CorrectAnswers { get; set; }

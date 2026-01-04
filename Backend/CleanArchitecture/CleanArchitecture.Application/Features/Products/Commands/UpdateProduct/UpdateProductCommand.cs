@@ -5,24 +5,26 @@ using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
+using System;
+
 namespace CleanArchitecture.Core.Features.Products.Commands.UpdateProduct
 {
-    public class UpdateProductCommand : IRequest<int>
+    public class UpdateProductCommand : IRequest<Guid>
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
 
         public string Barcode { get; set; }
         public string Description { get; set; }
         public decimal Rate { get; set; }
-        public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, int>
+        public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Guid>
         {
             private readonly IProductRepositoryAsync _productRepository;
             public UpdateProductCommandHandler(IProductRepositoryAsync productRepository)
             {
                 _productRepository = productRepository;
             }
-            public async Task<int> Handle(UpdateProductCommand command, CancellationToken cancellationToken)
+            public async Task<Guid> Handle(UpdateProductCommand command, CancellationToken cancellationToken)
             {
                 var product = await _productRepository.GetByIdAsync(command.Id);
 

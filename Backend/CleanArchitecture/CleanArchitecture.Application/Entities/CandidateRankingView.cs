@@ -4,9 +4,9 @@ namespace CleanArchitecture.Core.Entities
 {
     public class CandidateRankingView : BaseEntity
     {
-        public int JobPostingId { get; set; }
-        public int CandidateId { get; set; }
-        public int ApplicationId { get; set; }
+        public Guid JobPostingId { get; set; }
+        public Guid CandidateId { get; set; }
+        public Guid ApplicationId { get; set; }
         public string CandidateFullName { get; set; }
         public decimal? CvAnalysisScore { get; set; }
         public decimal? GeneralTestScore { get; set; }

@@ -4,7 +4,7 @@ namespace CleanArchitecture.Core.Entities
 {
     public class CvUpload : AuditableBaseEntity
     {
-        public int CandidateId { get; set; }
+        public Guid CandidateId { get; set; }
         public string FileName { get; set; }
         public string FilePath { get; set; }
         public int? FileSize { get; set; }

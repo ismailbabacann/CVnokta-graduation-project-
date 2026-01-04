@@ -4,9 +4,9 @@ namespace CleanArchitecture.Core.Entities
 {
     public class JobApplication : AuditableBaseEntity
     {
-        public int JobPostingId { get; set; }
-        public int CandidateId { get; set; }
-        public int? CvId { get; set; }
+        public Guid JobPostingId { get; set; }
+        public Guid CandidateId { get; set; }
+        public Guid? CvId { get; set; }
         public string CoverLetter { get; set; }
         public string ApplicationStatus { get; set; }
         public DateTime AppliedAt { get; set; }

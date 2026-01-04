@@ -11,7 +11,7 @@ namespace CleanArchitecture.Core.Entities
         public decimal? SalaryMin { get; set; }
         public decimal? SalaryMax { get; set; }
         public string Location { get; set; }
-        public int HiringManagerId { get; set; }
+        public Guid HiringManagerId { get; set; }
         public string Status { get; set; }
         public DateTime PostedDate { get; set; }
         public DateTime? ClosingDate { get; set; }
