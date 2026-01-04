@@ -4,7 +4,7 @@ namespace CleanArchitecture.Core.Entities
 {
     public class AiInterviewQa : AuditableBaseEntity
     {
-        public int SessionId { get; set; }
+        public Guid SessionId { get; set; }
         public int QuestionSequence { get; set; }
         public string QuestionCategory { get; set; }
         public string QuestionText { get; set; }

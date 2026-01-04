@@ -4,8 +4,8 @@ namespace CleanArchitecture.Core.Entities
 {
     public class FinalEvaluationScore : AuditableBaseEntity
     {
-        public int ApplicationId { get; set; }
-        public int JobPostingId { get; set; }
+        public Guid ApplicationId { get; set; }
+        public Guid JobPostingId { get; set; }
         public decimal? CvAnalysisScore { get; set; }
         public decimal? GeneralTestScore { get; set; }
         public decimal? AiInterviewScore { get; set; }
@@ -13,7 +13,7 @@ namespace CleanArchitecture.Core.Entities
         public decimal? WeightedFinalScore { get; set; }
         public int? RankPosition { get; set; }
         public string EvaluationStatus { get; set; }
-        public int? EvaluatedById { get; set; }
+        public Guid? EvaluatedById { get; set; }
         public string EvaluationNotes { get; set; }
         public DateTime? EvaluatedAt { get; set; }
         public virtual JobApplication JobApplication { get; set; }

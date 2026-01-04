@@ -72,8 +72,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("Department")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("InEvaluation")
                         .HasColumnType("int");
@@ -106,11 +106,9 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.AiInterviewQa", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AiEvaluationNotes")
                         .HasColumnType("nvarchar(max)");
@@ -153,8 +151,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("QuestionText")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("SessionId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -167,18 +165,16 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.AiInterviewSession", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AiAgentVersion")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("ApplicationId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
@@ -189,14 +185,14 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CvId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("CvId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("DurationSeconds")
                         .HasColumnType("int");
 
-                    b.Property<int>("JobPostingId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("JobPostingId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
@@ -211,8 +207,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                         .HasColumnType("nvarchar(20)")
                         .HasDefaultValue("PENDING");
 
-                    b.Property<int>("StageId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("StageId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime2");
@@ -236,14 +232,12 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.AiInterviewSummary", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApplicationId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal?>("AverageConfidenceScore")
                         .HasColumnType("decimal(18,2)");
@@ -278,8 +272,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("Recommendations")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("SessionId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Strengths")
                         .HasColumnType("nvarchar(max)");
@@ -315,14 +309,12 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.ApplicationStage", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApplicationId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
@@ -336,8 +328,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<bool?>("IsPassed")
                         .HasColumnType("bit");
 
-                    b.Property<int>("JobPostingId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("JobPostingId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
@@ -348,8 +340,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ReviewerId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("ReviewerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("StageStatus")
                         .IsRequired()
@@ -383,11 +375,9 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.CandidateProfile", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
@@ -429,8 +419,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("Summary")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -445,8 +435,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<decimal?>("AiInterviewScore")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("ApplicationId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ApplicationStatus")
                         .HasColumnType("nvarchar(max)");
@@ -454,8 +444,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("CandidateFullName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CandidateId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("CandidateId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal?>("CvAnalysisScore")
                         .HasColumnType("decimal(18,2)");
@@ -466,11 +456,11 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<decimal?>("GeneralTestScore")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("JobPostingId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("JobPostingId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("LastUpdated")
                         .HasColumnType("datetime2");
@@ -485,11 +475,9 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.CvAnalysisResult", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("AnalysisDate")
                         .HasColumnType("datetime2");
@@ -497,11 +485,11 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<decimal?>("AnalysisScore")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("AnalyzedById")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("AnalyzedById")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("ApplicationId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
@@ -509,8 +497,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CvId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("CvId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal?>("EducationMatchScore")
                         .HasColumnType("decimal(18,2)");
@@ -539,8 +527,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("ReviewerNotes")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("StageId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("StageId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -559,14 +547,12 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.CvUpload", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CandidateId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("CandidateId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
@@ -614,22 +600,26 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.EventLog", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<int>("AggregateId")
-                        .HasColumnType("int");
+                    b.Property<string>("AggregateId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EventData")
                         .HasColumnType("nvarchar(max)");
@@ -639,8 +629,14 @@ namespace CleanArchitecture.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -657,17 +653,15 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.FinalEvaluationScore", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal?>("AiInterviewScore")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("ApplicationId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
@@ -681,8 +675,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<DateTime?>("EvaluatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("EvaluatedById")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("EvaluatedById")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("EvaluationNotes")
                         .HasColumnType("nvarchar(max)");
@@ -700,8 +694,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<decimal?>("HrAssessmentScore")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("JobPostingId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("JobPostingId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
@@ -733,14 +727,12 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.GeneralTestResult", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApplicationId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("CorrectAnswers")
                         .HasColumnType("int");
@@ -766,8 +758,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<decimal?>("Score")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("StageId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("StageId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("TestDate")
                         .HasColumnType("datetime2");
@@ -795,11 +787,9 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.JobApplication", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ApplicationStatus")
                         .IsRequired()
@@ -811,8 +801,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<DateTime>("AppliedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CandidateId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("CandidateId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CoverLetter")
                         .HasColumnType("nvarchar(max)");
@@ -823,11 +813,11 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("CvId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("CvId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("JobPostingId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("JobPostingId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
@@ -854,11 +844,9 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.JobPosting", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("ClosingDate")
                         .HasColumnType("datetime2");
@@ -874,8 +862,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("HiringManagerId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("HiringManagerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("JobDescription")
                         .IsRequired()
@@ -931,26 +919,30 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.MeetingInvitation", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("AcceptedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("ApplicationId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("CandidateId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("CandidateId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CreatedById")
-                        .HasColumnType("int");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CreatorUserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("DurationMinutes")
                         .HasColumnType("int");
@@ -962,8 +954,8 @@ namespace CleanArchitecture.Infrastructure.Migrations
                         .HasColumnType("nvarchar(30)")
                         .HasDefaultValue("PENDING");
 
-                    b.Property<int>("JobPostingId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("JobPostingId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
@@ -1001,7 +993,7 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
                     b.HasIndex("CandidateId");
 
-                    b.HasIndex("CreatedById");
+                    b.HasIndex("CreatorUserId");
 
                     b.HasIndex("InvitationStatus");
 
@@ -1014,11 +1006,9 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.User", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
@@ -1533,11 +1523,9 @@ namespace CleanArchitecture.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("CleanArchitecture.Core.Entities.User", "CreatedBy")
+                    b.HasOne("CleanArchitecture.Core.Entities.User", "CreatorUser")
                         .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("CreatorUserId");
 
                     b.HasOne("CleanArchitecture.Core.Entities.JobPosting", "JobPosting")
                         .WithMany()
@@ -1547,7 +1535,7 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
                     b.Navigation("CandidateProfile");
 
-                    b.Navigation("CreatedBy");
+                    b.Navigation("CreatorUser");
 
                     b.Navigation("JobApplication");
 

@@ -7,15 +7,17 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using System;
+
 namespace CleanArchitecture.Core.Features.Categories.Commands.CreateCategory
 {
-    public class CreateCategoryCommand : IRequest<int>
+    public class CreateCategoryCommand : IRequest<Guid>
     {
         public string Name { get; set; }
         public string Description { get; set; }
     }
 
-    public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, int>
+    public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, Guid>
     {
         private readonly ICategoryRepositoryAsync _categoryRepositoryAsync;
 
@@ -28,7 +30,7 @@ namespace CleanArchitecture.Core.Features.Categories.Commands.CreateCategory
         }
 
 
-        public async Task<int> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+        public async Task<Guid> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
         {
             var newCategory = new Category
             {
