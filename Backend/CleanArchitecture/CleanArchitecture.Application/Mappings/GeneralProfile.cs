@@ -19,18 +19,25 @@ namespace CleanArchitecture.Core.Mappings
             CreateMap<GetAllProductsQuery, GetAllProductsParameter>();
             CreateMap<GetAllCategoriesQuery, GetAllCategoriesParameter>();
             CreateMap<Category, GetAllCategoriesViewModel>().ReverseMap();
-            
+
             // JobPostings
-            CreateMap<CreateJobPostingCommand, JobPosting>();
-            
+            // Benefits, Status, IsDraft, PostedDate, HiringManagerId are set manually in the handler.
+            CreateMap<CreateJobPostingCommand, JobPosting>()
+                .ForMember(dest => dest.Benefits,       opt => opt.Ignore())
+                .ForMember(dest => dest.Status,         opt => opt.Ignore())
+                .ForMember(dest => dest.IsDraft,        opt => opt.Ignore())
+                .ForMember(dest => dest.PostedDate,     opt => opt.Ignore())
+                .ForMember(dest => dest.HiringManagerId, opt => opt.Ignore());
+
             // Candidates
             CreateMap<CreateCandidateProfileCommand, CandidateProfile>();
-            
+
             // Applications
             CreateMap<SubmitJobApplicationCommand, JobApplication>();
-            
+
             // Interviews
             CreateMap<StartAiInterviewCommand, AiInterviewSession>();
         }
     }
 }
+

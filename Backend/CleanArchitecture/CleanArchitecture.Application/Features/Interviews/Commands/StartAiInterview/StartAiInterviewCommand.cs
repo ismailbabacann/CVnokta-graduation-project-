@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Interviews.Commands.StartAiInterview
 {
-    // Adayın AI mülakat oturumunu başlatmasını sağlar.
+    // Allows a candidate to start an AI interview session.
     public class StartAiInterviewCommand : IRequest<Guid>
     {
         public Guid ApplicationId { get; set; }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Applications.Queries.GetApplicationDetail
 {
-    // Tek bir başvurunun detaylarını (CV, Test Sonuçları, Mülakat Durumu vb.) getirir.
+    // Returns the details of a single application (CV, Test Results, Interview Status, etc.).
     public class GetApplicationDetailQuery : IRequest<ApplicationDetailViewModel>
     {
         public Guid ApplicationId { get; set; }

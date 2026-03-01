@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Applications.Commands.SubmitJobApplication
 {
-    // Adayın bir iş ilanına başvurmasını sağlar.
+    // Allows a candidate to apply for a job posting.
     public class SubmitJobApplicationCommand : IRequest<Guid>
     {
         public Guid JobPostingId { get; set; }

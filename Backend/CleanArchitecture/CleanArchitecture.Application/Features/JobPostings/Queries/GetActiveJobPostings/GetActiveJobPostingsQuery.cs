@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetActiveJobPostings
 {
-    // Adayların başvurabileceği aktif iş ilanlarını listeler.
+    // Lists active job postings that candidates can apply to.
     public class GetActiveJobPostingsQuery : IRequest<IEnumerable<ActiveJobPostingsView>>
     {
         // Filters can be added here

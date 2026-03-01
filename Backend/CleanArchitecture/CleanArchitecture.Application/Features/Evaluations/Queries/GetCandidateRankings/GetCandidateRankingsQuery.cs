@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetCandidateRankings
 {
-    // Belirli bir iş ilanı için adayların başarı sıralamasını (View üzerinden) getirir.
+    // Returns the candidate success rankings (via View) for a specific job posting.
     public class GetCandidateRankingsQuery : IRequest<IEnumerable<CandidateRankingView>>
     {
         public Guid JobPostingId { get; set; }

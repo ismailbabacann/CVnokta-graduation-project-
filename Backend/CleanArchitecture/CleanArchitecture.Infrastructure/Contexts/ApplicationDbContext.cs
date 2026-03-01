@@ -119,25 +119,62 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 .HasKey(jp => jp.Id);
             builder.Entity<JobPosting>()
                 .Property(jp => jp.JobTitle).IsRequired().HasMaxLength(255);
-            builder.Entity<JobPosting>()
-                .Property(jp => jp.JobDescription).IsRequired();
+
+            // --- Basic Information ---
             builder.Entity<JobPosting>()
                 .Property(jp => jp.Department).IsRequired().HasMaxLength(100);
             builder.Entity<JobPosting>()
                 .Property(jp => jp.Location).HasMaxLength(255);
             builder.Entity<JobPosting>()
-                .Property(jp => jp.Status).IsRequired().HasMaxLength(20).HasDefaultValue("DRAFT");
+                .Property(jp => jp.WorkType).HasMaxLength(50);  // "FullTime" | "PartTime" | ...
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.WorkModel).HasMaxLength(50); // "Remote" | "Hybrid" | "OnSite"
+
+            // --- Job Details ---
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.AboutCompany).HasColumnType("nvarchar(max)");
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.Responsibilities).HasColumnType("nvarchar(max)");
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.RequiredQualifications).HasColumnType("nvarchar(max)");
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.RequiredSkills).HasColumnType("nvarchar(max)");
+
+            // --- AI Settings ---
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.AiScanEnabled).HasDefaultValue(false);
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.MinMatchScore).HasDefaultValue(70);
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.AutoEmailEnabled).HasDefaultValue(false);
+
+            // --- Benefits ---
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.Benefits).HasMaxLength(1000);
+
+            // --- Status ---
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.Status).IsRequired().HasMaxLength(20).HasDefaultValue("Draft");
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.IsDraft).HasDefaultValue(true);
+
+            // --- İlişki ---
             builder.Entity<JobPosting>()
                 .HasOne(jp => jp.HiringManager)
                 .WithMany()
                 .HasForeignKey(jp => jp.HiringManagerId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // --- İndeksler ---
             builder.Entity<JobPosting>()
                 .HasIndex(jp => jp.Status);
             builder.Entity<JobPosting>()
                 .HasIndex(jp => jp.PostedDate);
             builder.Entity<JobPosting>()
                 .HasIndex(jp => jp.HiringManagerId);
+            builder.Entity<JobPosting>()
+                .HasIndex(jp => jp.IsDraft);
+
 
             // CvUpload Configuration
             builder.Entity<CvUpload>()

@@ -4,5 +4,43 @@
         <name>CleanArchitecture.WebApi</name>
     </assembly>
     <members>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.Create(CleanArchitecture.Core.Features.JobPostings.Commands.CreateJobPosting.CreateJobPostingCommand)">
+            <summary>
+            Yeni bir iş ilanı oluşturur.
+            SaveAsDraft = true → Taslak Olarak Kaydet
+            SaveAsDraft = false → Yayınla
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.Publish(System.Guid)">
+            <summary>
+            Taslak bir ilanı yayına alır.
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.UpdateStatus(System.Guid,CleanArchitecture.Core.Features.JobPostings.Commands.UpdateJobPostingStatus.UpdateJobPostingStatusCommand)">
+            <summary>
+            İlanın durumunu değiştirir (Active ↔ Closed).
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetById(System.Guid)">
+            <summary>
+            Tek bir iş ilanının tüm detaylarını getirir (düzenleme / önizleme).
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetMine(System.String)">
+            <summary>
+            Oturum açmış İK kullanıcısının ilanlarını listeler
+            (aktif + taslak). statusFilter: All | Active | Draft | Closed
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetActive">
+            <summary>
+            Adayların görebileceği aktif iş ilanlarını listeler.
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetStats">
+            <summary>
+            İK paneli için ilanları başvuru istatistikleriyle getirir.
+            </summary>
+        </member>
     </members>
 </doc>

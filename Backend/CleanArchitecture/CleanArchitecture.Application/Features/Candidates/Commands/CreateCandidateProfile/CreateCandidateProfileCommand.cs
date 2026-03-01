@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Candidates.Commands.CreateCandidateProfile
 {
-    // Adayın yeni bir profil oluşturmasını sağlar.
+    // Allows a candidate to create a new profile.
     public class CreateCandidateProfileCommand : IRequest<Guid>
     {
         public string FullName { get; set; }

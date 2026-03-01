@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Candidates.Commands.UploadCv
 {
-    // Adayın CV dosyasını sisteme yüklemesini sağlar.
+    // Allows a candidate to upload their CV file to the system.
     public class UploadCvCommand : IRequest<string>
     {
         public Guid CandidateId { get; set; } // Updated to Guid
