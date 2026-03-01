@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Interviews.Commands.SubmitAiInterviewAnswer
 {
-    // Adayın mülakat sorusuna verdiği cevabı (metin veya ses dosyası yolu) kaydeder.
+    // Saves the candidate's answer to an interview question (text or audio file path).
     public class SubmitAiInterviewAnswerCommand : IRequest<bool>
     {
         public Guid SessionId { get; set; }

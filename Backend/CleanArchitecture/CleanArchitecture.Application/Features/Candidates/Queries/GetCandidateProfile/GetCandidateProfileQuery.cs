@@ -7,7 +7,7 @@ using System;
 
 namespace CleanArchitecture.Core.Features.Candidates.Queries.GetCandidateProfile
 {
-    // Adayın kendi profil bilgilerini görmesini sağlar.
+    // Displays the candidate's own profile information.
     public class GetCandidateProfileQuery : IRequest<CandidateProfile>
     {
         public Guid UserId { get; set; }

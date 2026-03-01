@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Interviews.Commands.CompleteAiInterview
 {
-    // Mülakatı sonlandırır ve AI özet çıkarıcısını tetikler.
+    // Finalizes the interview and triggers the AI summary generator.
     public class CompleteAiInterviewCommand : IRequest<bool>
     {
         public Guid SessionId { get; set; }

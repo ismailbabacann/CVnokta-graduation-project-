@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetFinalScorecard
 {
-    // Adayın CV, Test ve Mülakat puanlarının toplandığı nihai değerlendirme kartını getirir.
+    // Returns the final evaluation scorecard summarizing a candidate's CV, Test, and Interview scores.
     public class GetFinalScorecardQuery : IRequest<FinalEvaluationScore>
     {
         public Guid ApplicationId { get; set; }

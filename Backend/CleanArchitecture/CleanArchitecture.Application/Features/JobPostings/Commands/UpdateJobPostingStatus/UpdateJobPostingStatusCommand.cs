@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.JobPostings.Commands.UpdateJobPostingStatus
 {
-    // İK'nın bir ilanı aktif veya pasif duruma getirmesini sağlar.
+    // Allows HR users to set a job posting to active or closed status.
     public class UpdateJobPostingStatusCommand : IRequest<bool>
     {
         public Guid Id { get; set; }

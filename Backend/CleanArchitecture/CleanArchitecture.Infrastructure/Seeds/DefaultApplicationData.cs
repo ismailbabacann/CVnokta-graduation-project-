@@ -71,17 +71,24 @@ namespace CleanArchitecture.Infrastructure.Seeds
                 {
                     Id = Guid.NewGuid(),
                     JobTitle = "Senior Backend Developer",
-                    JobDescription = "We are looking for an experienced .NET Developer...",
+                    AboutCompany = "We are a leading tech company focused on innovation.",
+                    Responsibilities = "Develop and maintain .NET Core applications, collaborate with teams.",
+                    RequiredQualifications = ".NET Core, C#, SQL, Azure, CQRS",
                     Department = "Engineering",
-                    RequiredSkills = ".NET Core, C#, SQL, Azure, CQRS",
+                    WorkType = "FullTime",
+                    WorkModel = "Remote",
                     SalaryMin = 50000,
                     SalaryMax = 80000,
                     Location = "Remote / Istanbul",
                     HiringManagerId = recruiterId, // Guid
                     Status = "Active",
+                    IsDraft = false,
                     PostedDate = DateTime.UtcNow,
                     ClosingDate = DateTime.UtcNow.AddMonths(1),
                     TotalPositions = 1,
+                    AiScanEnabled = false,
+                    MinMatchScore = 70,
+                    AutoEmailEnabled = false,
                     CreatedBy = recruiterId.ToString(),
                     Created = DateTime.UtcNow
                 };

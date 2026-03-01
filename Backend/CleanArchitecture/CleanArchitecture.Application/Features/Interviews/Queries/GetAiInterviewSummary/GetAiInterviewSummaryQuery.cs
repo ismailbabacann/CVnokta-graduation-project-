@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Interviews.Queries.GetAiInterviewSummary
 {
-    // Tamamlanan mülakatın AI tarafından çıkarılan özetini ve puanlarını getirir.
+    // Returns the AI-generated summary and scores for a completed interview.
     public class GetAiInterviewSummaryQuery : IRequest<AiInterviewSummary>
     {
         public Guid SessionId { get; set; }

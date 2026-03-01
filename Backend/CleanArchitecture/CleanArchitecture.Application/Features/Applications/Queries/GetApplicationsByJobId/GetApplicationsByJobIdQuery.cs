@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Applications.Queries.GetApplicationsByJobId
 {
-    // İK'nın belirli bir ilana gelen tüm başvuruları listelemesini sağlar.
+    // Allows HR to list all applications received for a specific job posting.
     public class GetApplicationsByJobIdQuery : IRequest<IEnumerable<JobApplication>>
     {
         public Guid JobPostingId { get; set; }

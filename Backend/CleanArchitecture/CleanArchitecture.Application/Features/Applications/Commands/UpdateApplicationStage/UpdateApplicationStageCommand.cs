@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Applications.Commands.UpdateApplicationStage
 {
-    // İK'nın başvuruyu bir sonraki aşamaya (örn: Mülakat) taşımasını sağlar.
+    // Allows HR to move an application to the next stage (e.g.: Interview).
     public class UpdateApplicationStageCommand : IRequest<bool>
     {
         public Guid ApplicationId { get; set; }
