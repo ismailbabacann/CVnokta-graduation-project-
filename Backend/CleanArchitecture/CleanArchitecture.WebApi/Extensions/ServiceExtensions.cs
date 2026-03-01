@@ -31,12 +31,12 @@ namespace CleanArchitecture.WebApi.Extensions
                 });
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
+                    Description = "JWT Authorization header using the Bearer scheme. Just paste your token below (no 'Bearer' prefix needed).",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer",
-                    BearerFormat = "JWT",
-                    Description = "Input your Bearer token in this format - Bearer {your token here} to access this API",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT"
                 });
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
@@ -47,10 +47,7 @@ namespace CleanArchitecture.WebApi.Extensions
                             {
                                 Type = ReferenceType.SecurityScheme,
                                 Id = "Bearer",
-                            },
-                            Scheme = "Bearer",
-                            Name = "Bearer",
-                            In = ParameterLocation.Header,
+                            }
                         }, new List<string>()
                     },
                 });

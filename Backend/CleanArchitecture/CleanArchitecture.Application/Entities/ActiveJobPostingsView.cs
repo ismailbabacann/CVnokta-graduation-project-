@@ -4,7 +4,7 @@ namespace CleanArchitecture.Core.Entities
 {
     public class ActiveJobPostingsView : BaseEntity
     {
-        public int JobPostingId { get; set; }
+        public Guid JobPostingId { get; set; }
         public string JobTitle { get; set; }
         public string Department { get; set; }
         public DateTime? PostingDate { get; set; }

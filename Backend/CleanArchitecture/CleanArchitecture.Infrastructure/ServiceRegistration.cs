@@ -16,7 +16,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System;
+using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CleanArchitecture.Infrastructure
 {
@@ -24,6 +26,9 @@ namespace CleanArchitecture.Infrastructure
     {
         public static void AddPersistenceInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            // Clear default JWT claim type mapping to prevent claim name mangling
+            System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
             if (configuration.GetValue<bool>("UseInMemoryDatabase"))
             {
                 services.AddDbContext<ApplicationDbContext>(options =>
@@ -53,6 +58,7 @@ namespace CleanArchitecture.Infrastructure
                 {
                     o.RequireHttpsMetadata = false;
                     o.SaveToken = false;
+                    o.MapInboundClaims = false;
                     o.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
@@ -62,10 +68,21 @@ namespace CleanArchitecture.Infrastructure
                         ClockSkew = TimeSpan.Zero,
                         ValidIssuer = configuration["JWTSettings:Issuer"],
                         ValidAudience = configuration["JWTSettings:Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWTSettings:Key"]))
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWTSettings:Key"])),
+                        RoleClaimType = "role"
                     };
                     o.Events = new JwtBearerEvents()
                     {
+                        OnMessageReceived = context =>
+                        {
+                            // Swagger may send token without "Bearer " prefix; extract it manually
+                            var authHeader = context.Request.Headers["Authorization"].ToString();
+                            if (!string.IsNullOrEmpty(authHeader) && !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                            {
+                                context.Token = authHeader;
+                            }
+                            return Task.CompletedTask;
+                        },
                         OnAuthenticationFailed = c =>
                         {
                             c.NoResult();
