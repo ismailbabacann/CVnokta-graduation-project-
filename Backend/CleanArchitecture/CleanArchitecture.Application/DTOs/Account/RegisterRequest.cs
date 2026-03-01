@@ -24,5 +24,11 @@ namespace CleanArchitecture.Core.DTOs.Account
         [Required]
         [Compare("Password")]
         public string ConfirmPassword { get; set; }
+
+        /// <summary>
+        /// Optional. Accepted values: Basic | HiringManager | SuperAdmin
+        /// Defaults to "Basic" if not provided.
+        /// </summary>
+        public string UserRole { get; set; } = "Basic";
     }
 }

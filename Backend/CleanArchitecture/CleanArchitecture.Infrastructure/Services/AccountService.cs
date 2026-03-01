@@ -95,7 +95,15 @@ namespace CleanArchitecture.Infrastructure.Services
                 var result = await _userManager.CreateAsync(user, request.Password);
                 if (result.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(user, Roles.Basic.ToString());
+                    // Use the requested role; fall back to Basic if not provided or invalid
+                    var roleName = !string.IsNullOrWhiteSpace(request.UserRole)
+                        ? request.UserRole
+                        : Roles.Basic.ToString();
+
+                    if (!await _roleManager.RoleExistsAsync(roleName))
+                        throw new ApiException($"Role '{roleName}' does not exist. Accepted values: Basic, HiringManager, SuperAdmin.");
+
+                    await _userManager.AddToRoleAsync(user, roleName);
                     var verificationUri = await SendVerificationEmail(user, origin);
                     //TODO: Attach Email Service here and configure it via appsettings
                     //await _emailService.SendAsync(new Core.DTOs.Email.EmailRequest() { From = "mail@codewithmukesh.com", To = user.Email, Body = $"Please confirm your account by visiting this URL {verificationUri}", Subject = "Confirm Registration" });
@@ -121,7 +129,7 @@ namespace CleanArchitecture.Infrastructure.Services
 
             for (int i = 0; i < roles.Count; i++)
             {
-                roleClaims.Add(new Claim("roles", roles[i]));
+                roleClaims.Add(new Claim("role", roles[i]));
             }
 
             string ipAddress = IpHelper.GetIpAddress();

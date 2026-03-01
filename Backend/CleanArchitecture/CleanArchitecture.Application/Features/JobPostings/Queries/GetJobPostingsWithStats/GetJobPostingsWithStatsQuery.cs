@@ -17,7 +17,7 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetJobPostingsWith
 
     public class JobPostingStatsViewModel 
     {
-        public int JobId { get; set; }
+        public Guid JobId { get; set; }
         public string Title { get; set; }
         public int AppliedCount { get; set; }
         public int InterviewCount { get; set; }
