@@ -16,7 +16,7 @@ function Header() {
           <div className={styles.logoIconContainer}>
             <span className={styles.logoIcon}>h</span>
           </div>
-          <h1 className={styles.logoText}>cv nokta</h1>
+          <h1 className={styles.logoText}>hr.ai</h1>
         </div>
 
         <nav className={styles.nav}>

@@ -5,13 +5,15 @@ import Footer from './Components/Footer/Footer.js';
 import JobView from './Pages/JobView/JobView.js';
 import ApplicationForm from './Pages/ApplicationForm/ApplicationForm.js';
 import Mainpage from './Pages/Mainpage/Mainpage.js';
+import JobList from './Pages/JobList/JobList.js';
 import './App.css';
 
 function App() {
   const navigate = useNavigate();
   const [selectedJob, setSelectedJob] = useState(null);
 
-  const job = {
+  // Default detailed job info used for JobView
+  const defaultDetailedJob = {
     id: 1,
     position: 'Security Engineer - Identity and Access Management',
     location: 'İstanbul / Maslak',
@@ -23,36 +25,45 @@ function App() {
     responsibilities: [
       'IDM/IGA ve PAM çözümleri, mimarileri ve çerçeveleri tasarlayın, geliştirin ve uygulayın',
       'Kullanıcı yaşam döngüsü yönetimi, kimlik doğrulama ve yetkilendirme dahil olmak üzere kimlik ve erişim yönetimi sistemlerini tasarlayın, konuşlandırın ve yönetin',
-      'Oturum yönetimi, izleme ve kimlik bilgisi kasası dahil olmak üzere Ayrıcalıklı Erişim Yönetimi (PAM) çözümlerini uygulayın ve yönetin',
-      'Sistem yöneticileri ve uygulama sahipleri ile birlikte çalışarak IDM/IGA/PAM çözümlerini entegre edin',
-      'OAuth2, OIDC ve SAML protokollerini kullanarak Tek Oturum Açma (SSO) çözümleri uygulayın',
-      'Çok faktörlü kimlik doğrulama (MFA) çözümleri uygulayın',
-      'Güçlü gizli yönetim çözümlerini konuşlandırın ve yönetin',
-      'Ortaya çıkan IDM/IGA/PAM teknolojileri ve endüstri trendleri hakkında güncel kalın',
-      'BDDK düzenlemeleri ile uyumluluğu sağlayın'
+      'Oturum yönetimi, izleme ve kimlik bilgisi kasası dahil olmak üzere Ayrıcalıklı Erişim Yönetimi (PAM) çözümlerini uygulayın ve yönetin'
     ],
     qualifications: [
       'IDM/IGA çözümlerinin tasarımı, mimarisi, geliştirilmesi ve uygulanmasında kanıtlanmış deneyim',
-      'IDM/IGA ilkeleri, standartları ve çerçeveleri hakkında güçlü anlayış (örn. SAML, OAuth2, JWT, LDAP, OpenID Connect)',
-      'Web erişim yönetimi, dijital imzalar ve sertifika yönetimi konusunda derinlemesine bilgi',
-      'Otomasyon için komut dosyası/programlama dil yeterliği (örn. Java, PowerShell, JavaScript, Python)',
-      'Bulut ortamlarında IDM/IGA entegrasyonu deneyimi (örn. AWS, Azure)',
-      'Gizli yönetim çözümlerini uygulama ve yönetme konusunda uygulamalı deneyim',
       'Güçlü analitik ve problem çözme becerileri',
       'Mükemmel iletişim ve kişilerarası beceriler'
     ],
     benefits: [
-      { title: '🏠 Esnek Hibrit Çalışma', description: 'Esneklik ve takım bağlılığı arasında doğru dengeyi bulmanıza yardımcı olan bir program' },
-      { title: '💰 Esnek Fayda Bütçesi', description: 'Günlük yemek ödenĞinizi ayarlayın, sağlık sigortası paketinizi seçin' },
-      { title: '❤️ Sağlık Desteği', description: 'Konuma dayalı şirket içi doktorlar, psikolog ve diyetisyen desteği' },
-      { title: '📚 Eğitim Bütçesi', description: 'Yıllık bütçenizi seçtiğiniz herhangi bir eğitim veya konferans için kullanın' },
-      { title: '🌍 Küresel Takım', description: 'Berlin, Amsterdam, Dubai ve daha birçok yerdeki global meslektaşlarımızla işbirliği yapın' },
-      { title: '⬆️ Kariyer Büyümesi', description: 'Anlamlı zorluklar alın ve uzman rehberliği desteğiyle büyüyün' }
+      { title: '🏠 Esnek Hibrit Çalışma', description: 'Esneklik ve takım bağlılığı arasında doğru dengeyi bulmanıza yardımcı olan bir program' }
     ]
   };
 
+  // Dummy list of jobs for the Job List page mapping the design graphic
+  const jobs = [
+    {
+      id: 1, // Re-routing to the detailed dummy job
+      position: 'Web Developer',
+      type: 'Full Time',
+      location: 'Hyderabad',
+      description: 'A Web Developer is a professional who is responsible for the design and construction of websites. They ensure that sites meet user expectations by ensuring they look good, run smoothly and offer easy access points with no loading issues between pages or error messages.'
+    },
+    {
+      id: 2,
+      position: 'Data Analyst',
+      type: 'Part Time',
+      location: 'Mumbai',
+      description: 'Data analysts generate reports and present findings to aid decision-making. Specialized tasks include data visualization, statistical analysis, and predictive modeling.'
+    },
+    {
+      id: 3,
+      position: 'DevOps Engineer',
+      type: 'Full Time',
+      location: 'Mumbai',
+      description: 'A Dev-Ops engineer is an IT generalist who should have a wide-ranging knowledge of both development and operations, including coding, infrastructure management, system administration, and Dev-Ops tool chains.'
+    }
+  ];
+
   const handleApplyClick = () => {
-    setSelectedJob(job);
+    setSelectedJob(defaultDetailedJob);
     navigate('/apply');
     window.scrollTo(0, 0);
   };
@@ -67,8 +78,9 @@ function App() {
       <main className="main">
         <Routes>
           <Route path="/" element={<Mainpage />} />
-          <Route path="/jobs" element={<JobView job={job} onApply={handleApplyClick} />} />
-          <Route path="/apply" element={<ApplicationForm job={job} onBack={handleBack} />} />
+          <Route path="/jobs" element={<JobList jobs={jobs} />} />
+          <Route path="/jobs/:id" element={<JobView job={defaultDetailedJob} onApply={handleApplyClick} />} />
+          <Route path="/apply" element={<ApplicationForm job={defaultDetailedJob} onBack={handleBack} />} />
         </Routes>
       </main>
       <Footer />
