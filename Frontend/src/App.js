@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import Header from './Components/Header/Header.js';
 import Footer from './Components/Footer/Footer.js';
 import JobView from './Pages/JobView/JobView.js';
 import ApplicationForm from './Pages/ApplicationForm/ApplicationForm.js';
+import Mainpage from './Pages/Mainpage/Mainpage.js';
 import './App.css';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('jobview');
+  const navigate = useNavigate();
   const [selectedJob, setSelectedJob] = useState(null);
 
   const job = {
@@ -51,23 +53,23 @@ function App() {
 
   const handleApplyClick = () => {
     setSelectedJob(job);
-    setCurrentPage('application');
+    navigate('/apply');
     window.scrollTo(0, 0);
   };
 
   const handleBack = () => {
-    setCurrentPage('jobview');
+    navigate('/jobs');
   };
 
   return (
     <div className="app">
       <Header />
       <main className="main">
-        {currentPage === 'jobview' ? (
-          <JobView job={job} onApply={handleApplyClick} />
-        ) : (
-          <ApplicationForm job={job} onBack={handleBack} />
-        )}
+        <Routes>
+          <Route path="/" element={<Mainpage />} />
+          <Route path="/jobs" element={<JobView job={job} onApply={handleApplyClick} />} />
+          <Route path="/apply" element={<ApplicationForm job={job} onBack={handleBack} />} />
+        </Routes>
       </main>
       <Footer />
     </div>
