@@ -26,14 +26,30 @@ function Header() {
           >
             Home
           </button>
+
+          <button
+            className={styles.navLink}
+            onClick={() => {
+              navigate('/');
+              setTimeout(() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }), 100);
+            }}
+          >
+            About Us
+          </button>
+          <button
+            className={styles.navLink}
+            onClick={() => {
+              navigate('/');
+              setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100);
+            }}
+          >
+            FAQ
+          </button>
           <button
             className={`${styles.navLink} ${location.pathname === '/jobs' ? styles.active : ''}`}
             onClick={() => navigate('/jobs')}
           >
             All Jobs
-          </button>
-          <button className={styles.navLink}>
-            Dashboard
           </button>
         </nav>
 
