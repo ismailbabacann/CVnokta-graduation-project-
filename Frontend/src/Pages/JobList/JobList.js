@@ -9,7 +9,7 @@ function JobList({ jobs }) {
     return (
         <div className="job-list-page">
             <div className="job-list-header">
-                <h2>Join Our Team</h2>
+                <h2>Our Companies Needs You</h2>
             </div>
 
             <div className="job-list">
