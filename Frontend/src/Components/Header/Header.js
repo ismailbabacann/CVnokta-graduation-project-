@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './Header.module.css';
 
-function Header() {
+function Header({ user }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -54,8 +54,20 @@ function Header() {
         </nav>
 
         <div className={styles.authButtons}>
-          <button className={styles.loginBtn}>Login</button>
-          <button className={styles.signupBtn}>Sign Up</button>
+          {user ? (
+            <button className={styles.signupBtn} onClick={() => navigate('/')}>
+              Hesabım
+            </button>
+          ) : (
+            <>
+              <button className={styles.loginBtn} onClick={() => navigate('/login')}>
+                Login
+              </button>
+              <button className={styles.signupBtn} onClick={() => navigate('/signup')}>
+                Sign Up
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>

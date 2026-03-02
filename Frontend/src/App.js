@@ -6,11 +6,14 @@ import JobView from './Pages/JobView/JobView.js';
 import ApplicationForm from './Pages/ApplicationForm/ApplicationForm.js';
 import Mainpage from './Pages/Mainpage/Mainpage.js';
 import JobList from './Pages/JobList/JobList.js';
+import Login from './Pages/Login/Login.js';
+import Signup from './Pages/Signup/Signup.js';
 import './App.css';
 
 function App() {
   const navigate = useNavigate();
   const [selectedJob, setSelectedJob] = useState(null);
+  const [user, setUser] = useState(null);
 
   // Default detailed job info used for JobView
   const defaultDetailedJob = {
@@ -74,10 +77,12 @@ function App() {
 
   return (
     <div className="app">
-      <Header />
+      <Header user={user} />
       <main className="main">
         <Routes>
           <Route path="/" element={<Mainpage />} />
+          <Route path="/login" element={<Login setUser={setUser} />} />
+          <Route path="/signup" element={<Signup setUser={setUser} />} />
           <Route path="/jobs" element={<JobList jobs={jobs} />} />
           <Route path="/jobs/:id" element={<JobView job={defaultDetailedJob} onApply={handleApplyClick} />} />
           <Route path="/apply" element={<ApplicationForm job={defaultDetailedJob} onBack={handleBack} />} />
