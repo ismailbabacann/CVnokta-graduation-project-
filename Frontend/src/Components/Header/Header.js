@@ -1,0 +1,77 @@
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import styles from './Header.module.css';
+
+function Header({ user }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  return (
+    <header className={styles.header}>
+      <div className={styles.container}>
+        <div
+          className={styles.logo}
+          onClick={() => navigate('/')}
+        >
+          <div className={styles.logoIconContainer}>
+            <span className={styles.logoIcon}>h</span>
+          </div>
+          <h1 className={styles.logoText}>hr.ai</h1>
+        </div>
+
+        <nav className={styles.nav}>
+          <button
+            className={`${styles.navLink} ${location.pathname === '/' ? styles.active : ''}`}
+            onClick={() => navigate('/')}
+          >
+            Home
+          </button>
+
+          <button
+            className={styles.navLink}
+            onClick={() => {
+              navigate('/');
+              setTimeout(() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }), 100);
+            }}
+          >
+            About Us
+          </button>
+          <button
+            className={styles.navLink}
+            onClick={() => {
+              navigate('/');
+              setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100);
+            }}
+          >
+            FAQ
+          </button>
+          <button
+            className={`${styles.navLink} ${location.pathname === '/jobs' ? styles.active : ''}`}
+            onClick={() => navigate('/jobs')}
+          >
+            All Jobs
+          </button>
+        </nav>
+
+        <div className={styles.authButtons}>
+          {user ? (
+            <button className={styles.signupBtn} onClick={() => navigate('/')}>
+              Hesabım
+            </button>
+          ) : (
+            <>
+              <button className={styles.loginBtn} onClick={() => navigate('/login')}>
+                Login
+              </button>
+              <button className={styles.signupBtn} onClick={() => navigate('/signup')}>
+                Sign Up
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export default Header;

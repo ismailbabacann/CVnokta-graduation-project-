@@ -5,11 +5,13 @@ using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
+using System;
+
 namespace CleanArchitecture.Core.Features.Products.Queries.GetProductById
 {
     public class GetProductByIdQuery : IRequest<Product>
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, Product>
         {
             private readonly IProductRepositoryAsync _productRepository;

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using System;
 
 
 namespace CleanArchitecture.WebApi.Controllers.v1
@@ -26,7 +27,7 @@ namespace CleanArchitecture.WebApi.Controllers.v1
 
         // GET api/<controller>/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
+        public async Task<IActionResult> Get(Guid id)
         {
             return Ok(await Mediator.Send(new GetProductByIdQuery { Id = id }));
         }
@@ -40,7 +41,7 @@ namespace CleanArchitecture.WebApi.Controllers.v1
 
         // PUT api/<controller>/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, UpdateProductCommand command)
+        public async Task<IActionResult> Put(Guid id, UpdateProductCommand command)
         {
             if (id != command.Id)
             {
@@ -51,7 +52,7 @@ namespace CleanArchitecture.WebApi.Controllers.v1
 
         // DELETE api/<controller>/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             return Ok(await Mediator.Send(new DeleteProductByIdCommand { Id = id }));
         }

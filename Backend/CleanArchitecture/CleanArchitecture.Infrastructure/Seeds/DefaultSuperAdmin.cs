@@ -18,7 +18,8 @@ namespace CleanArchitecture.Infrastructure.Seeds
                 FirstName = "Mukesh",
                 LastName = "Murugan",
                 EmailConfirmed = true,
-                PhoneNumberConfirmed = true
+                PhoneNumberConfirmed = true,
+                Id = "64f1e948-4e89-4829-87c2-9a3d1bcf5a8d"
             };
             if (userManager.Users.All(u => u.Id != defaultUser.Id))
             {
