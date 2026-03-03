@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Header from './Components/Header/Header.js';
 import Footer from './Components/Footer/Footer.js';
 import JobView from './Pages/JobView/JobView.js';
@@ -8,10 +8,16 @@ import Mainpage from './Pages/Mainpage/Mainpage.js';
 import JobList from './Pages/JobList/JobList.js';
 import Login from './Pages/Login/Login.js';
 import Signup from './Pages/Signup/Signup.js';
+import CompanyLayout from './Pages/CompanyPanel/Layout/CompanyLayout.js';
+import CompanyDashboard from './Pages/CompanyPanel/Dashboard/CompanyDashboard.js';
+import CompanyJobs from './Pages/CompanyPanel/Jobs/CompanyJobs.js';
+import CreateJob from './Pages/CompanyPanel/CreateJob/CreateJob.js';
+import CompanyCandidates from './Pages/CompanyPanel/Candidates/CompanyCandidates.js';
 import './App.css';
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedJob, setSelectedJob] = useState(null);
   const [user, setUser] = useState(null);
 
@@ -46,21 +52,21 @@ function App() {
       id: 1, // Re-routing to the detailed dummy job
       position: 'Web Developer',
       type: 'Full Time',
-      location: 'Hyderabad',
+      location: 'Antalya',
       description: 'A Web Developer is a professional who is responsible for the design and construction of websites. They ensure that sites meet user expectations by ensuring they look good, run smoothly and offer easy access points with no loading issues between pages or error messages.'
     },
     {
       id: 2,
       position: 'Data Analyst',
       type: 'Part Time',
-      location: 'Mumbai',
+      location: 'Bursa',
       description: 'Data analysts generate reports and present findings to aid decision-making. Specialized tasks include data visualization, statistical analysis, and predictive modeling.'
     },
     {
       id: 3,
       position: 'DevOps Engineer',
       type: 'Full Time',
-      location: 'Mumbai',
+      location: 'Adıyaman, Malatya',
       description: 'A Dev-Ops engineer is an IT generalist who should have a wide-ranging knowledge of both development and operations, including coding, infrastructure management, system administration, and Dev-Ops tool chains.'
     }
   ];
@@ -75,10 +81,12 @@ function App() {
     navigate('/jobs');
   };
 
+  const isCompanyRoute = location.pathname.startsWith('/company');
+
   return (
     <div className="app">
-      <Header user={user} />
-      <main className="main">
+      {!isCompanyRoute && <Header user={user} />}
+      <main className={isCompanyRoute ? "" : "main"}>
         <Routes>
           <Route path="/" element={<Mainpage />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
@@ -86,9 +94,15 @@ function App() {
           <Route path="/jobs" element={<JobList jobs={jobs} />} />
           <Route path="/jobs/:id" element={<JobView job={defaultDetailedJob} onApply={handleApplyClick} />} />
           <Route path="/apply" element={<ApplicationForm job={defaultDetailedJob} onBack={handleBack} />} />
+          <Route path="/company" element={<CompanyLayout />}>
+            <Route index element={<CompanyDashboard />} />
+            <Route path="jobs" element={<CompanyJobs />} />
+            <Route path="create-job" element={<CreateJob />} />
+            <Route path="candidates" element={<CompanyCandidates />} />
+          </Route>
         </Routes>
       </main>
-      <Footer />
+      {!isCompanyRoute && <Footer />}
     </div>
   );
 }

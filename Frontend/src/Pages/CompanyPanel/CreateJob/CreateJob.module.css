@@ -1,0 +1,253 @@
+.container {
+    font-family: 'Inter', sans-serif;
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto;
+    padding-bottom: 50px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.title {
+    font-size: 26px;
+    margin: 0 0 8px 0;
+    color: #1e2235;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: #7a829a;
+    font-size: 14px;
+    margin: 0;
+}
+
+.formContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.box {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    border: 1px solid #eef0f4;
+}
+
+.boxHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eef0f4;
+}
+
+.boxHeader h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #1e2235;
+}
+
+.icon {
+    font-size: 20px;
+}
+
+.formGroup {
+    margin-bottom: 20px;
+}
+
+.formGroup label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5a607f;
+    margin-bottom: 8px;
+}
+
+.input,
+.select,
+.textarea,
+.richTextarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e2e4ed;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    /* Ensures padding doesn't widen the input */
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus,
+.richTextarea:focus {
+    outline: none;
+    border-color: #6a4cd5;
+}
+
+.formRow {
+    display: flex;
+    gap: 20px;
+}
+
+.formRow .formGroup {
+    flex: 1;
+}
+
+.textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.richTextarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.submitRow {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.saveDraftBtn {
+    background: white;
+    color: #5a607f;
+    border: 1px solid #e2e4ed;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.saveDraftBtn:hover {
+    background: #f8f9fc;
+    color: #333;
+}
+
+.publishBtn {
+    background: #6a4cd5;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.publishBtn:hover {
+    background: #5a3bc2;
+}
+
+/* Success Card Styles */
+.successCard {
+    background: white;
+    border-radius: 20px;
+    padding: 60px 40px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 40px;
+}
+
+.successIcon {
+    width: 80px;
+    height: 80px;
+    background: #e8f8f0;
+    color: #2ecc71;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+    font-weight: bold;
+    margin-bottom: 25px;
+}
+
+.successTitle {
+    font-size: 26px;
+    color: #1e2235;
+    margin: 0 0 15px 0;
+}
+
+.successText {
+    color: #5a607f;
+    font-size: 16px;
+    margin: 0 0 30px 0;
+    max-width: 400px;
+    line-height: 1.5;
+}
+
+.linkContainer {
+    display: flex;
+    align-items: center;
+    background: #f8f9fc;
+    border: 1px solid #e2e4ed;
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 40px;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.linkText {
+    color: #6a4cd5;
+    font-weight: 500;
+    padding: 0 15px;
+    font-size: 15px;
+}
+
+.copyBtn {
+    background: white;
+    border: 1px solid #dcdfe6;
+    color: #333;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.copyBtn:hover {
+    background: #f0f2f5;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 15px;
+}
+
+.newJobBtn {
+    background: #6a4cd5;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.newJobBtn:hover {
+    background: #5a3bc2;
+}

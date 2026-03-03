@@ -1,0 +1,202 @@
+.container {
+    font-family: 'Inter', sans-serif;
+    color: #333;
+}
+
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.title {
+    font-size: 26px;
+    margin: 0 0 8px 0;
+    color: #1e2235;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: #7a829a;
+    font-size: 14px;
+    margin: 0;
+}
+
+.tableSection {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    border: 1px solid #eef0f4;
+    overflow: hidden;
+}
+
+.tableControls {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid #eef0f4;
+}
+
+.searchInput {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    width: 300px;
+    font-size: 14px;
+}
+
+.filters {
+    display: flex;
+    gap: 15px;
+}
+
+.filterSelect {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    background-color: #f8f9fc;
+    padding: 15px 20px;
+    text-align: left;
+    font-size: 11px;
+    color: #5a607f;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #eef0f4;
+}
+
+.table td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eef0f4;
+    vertical-align: middle;
+}
+
+.candidateInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    background-color: #e3d9f9;
+    color: #6a4cd5;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.candName {
+    font-weight: 600;
+    color: #1e2235;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.candId {
+    font-size: 12px;
+    color: #7a829a;
+}
+
+.roleText {
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
+.dateText {
+    color: #5a607f;
+    font-size: 14px;
+}
+
+.expEduText {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tag {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.nlpWrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nlpScoreBadge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.scoreHigh {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.scoreMedium {
+    background-color: #fff3e0;
+    color: #f57c00;
+    border: 1px solid #ffe0b2;
+}
+
+.scoreLow {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+.sparkle {
+    font-size: 16px;
+}
+
+.actionBtn {
+    background-color: transparent;
+    color: #6a4cd5;
+    border: 1px solid #6a4cd5;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.actionBtn:hover {
+    background-color: #6a4cd5;
+    color: white;
+}
+
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    font-size: 14px;
+    color: #7a829a;
+}
