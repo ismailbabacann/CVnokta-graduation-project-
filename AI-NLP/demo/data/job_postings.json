@@ -1,0 +1,77 @@
+[
+  {
+    "id": "job-001",
+    "job_title": "Security Engineer - Identity and Access Management",
+    "department": "Engineering, Technology & Product – Tech Security",
+    "location": "İstanbul / Maslak",
+    "work_type": "Tam Zamanlı",
+    "work_model": "Hibrit",
+    "icon": "🔒",
+    "company_name": "TechGuard Solutions",
+    "short_description": "Kimlik ve Erişim Yönetimi (IAM) konusunda uzmanlaşmış bir Security Engineer olarak, sistemlerimize ve verilerimize kullanıcı erişimini kontrol eden çözümleri tasarlamak, uygulamak ve sürdürmekten sorumlu olacaksınız.",
+    "about_company": "Şirketimizde misyonumuz, ekosistemimizde olumlu bir etki yaratmak ve ticareti teknoloji aracılığıyla mümkün kılmaktır. Veriler, yaratıcılık ve çeviklik ile karmaşık sorunları çözeriz — her zaman gerçek sonuçlar tarafından yönlendirilir. Öğrenme, işbirliği ve sahiplenme üzerine kurulan bir kültür ile birlikte büyüyoruz.",
+    "about_role": "Kimlik ve Erişim Yönetimi (IAM) konusunda uzmanlaşmış bir Security Engineer olarak, sistemlerimize ve verilerimize kullanıcı erişimini kontrol eden çözümleri tasarlamak, uygulamak ve sürdürmekten sorumlu olacaksınız. Ana odak noktanız IDM/IGA ve PAM teknolojileri olacak, güvenli ve verimli kullanıcı yaşam döngüsü yönetimi, kimlik doğrulama ve yetkilendirme sağlamak.",
+    "responsibilities": "IDM/IGA ve PAM çözümleri, mimarileri ve çerçeveleri tasarlayın, geliştirin ve uygulayın\nKullanıcı yaşam döngüsü yönetimi, kimlik doğrulama ve yetkilendirme dahil olmak üzere kimlik ve erişim yönetimi sistemlerini tasarlayın, konuşlandırın ve yönetin\nOturum yönetimi, izleme ve kimlik bilgisi kasası dahil olmak üzere Ayrıcalıklı Erişim Yönetimi (PAM) çözümlerini uygulayın ve yönetin\nGüvenlik açıkları ve risk değerlendirmeleri gerçekleştirin\nGüvenlik olaylarına müdahale ve çözüm süreçlerine katılın",
+    "required_qualifications": "IDM/IGA çözümlerinin tasarımı, mimarisi, geliştirilmesi ve uygulanmasında kanıtlanmış deneyim\nGüçlü analitik ve problem çözme becerileri\nMükemmel iletişim ve kişilerarası beceriler\nBilgisayar Mühendisliği veya ilgili alanda lisans derecesi\nEn az 3 yıl IAM alanında deneyim",
+    "required_skills": "Python, AWS IAM, OAuth2, SAML, LDAP, Kubernetes, Docker, Terraform, Active Directory, Azure AD",
+    "benefits": "Esnek Hibrit Çalışma, Yemek Kartı, Özel Sağlık Sigortası, Spor Salonu Üyeliği",
+    "benefit_items": [
+      {"emoji": "🧑\u200d💼", "title": "Esnek Hibrit Çalışma", "description": "Esneklik ve takım bağlılığı arasında doğru dengeyi bulmanıza yardımcı olan bir program"},
+      {"emoji": "🍽️", "title": "Yemek Kartı", "description": "Günlük yemek ihtiyacınız için aylık bakiye yüklenen dijital yemek kartı"},
+      {"emoji": "🏥", "title": "Özel Sağlık Sigortası", "description": "Sizi ve ailenizi kapsayan kapsamlı özel sağlık sigortası"},
+      {"emoji": "💪", "title": "Spor Salonu Üyeliği", "description": "Anlaşmalı spor salonlarında ücretsiz üyelik imkânı"}
+    ],
+    "min_match_score": 85,
+    "total_positions": 2,
+    "status": "Active"
+  },
+  {
+    "id": "job-002",
+    "job_title": "Full Stack Web Developer",
+    "department": "Engineering – Web Development",
+    "location": "İstanbul / Levent",
+    "work_type": "Tam Zamanlı",
+    "work_model": "Ofiste",
+    "icon": "💻",
+    "company_name": "DigiCraft Studio",
+    "short_description": "Full Stack Web Developer olarak, front-end ve back-end geliştirme süreçlerinin tamamında aktif rol alacak, modern web teknolojileri kullanarak ölçeklenebilir ve performanslı uygulamalar geliştireceksiniz.",
+    "about_company": "DigiCraft Studio olarak, yenilikçi dijital çözümler geliştiriyoruz. Start-up ruhunu kurumsal disiplinle birleştirerek, müşterilerimize en üst düzey web ve mobil uygulamalar sunuyoruz. Ekibimiz, tutku ve yaratıcılıkla çalışan deneyimli geliştiricilerden oluşmaktadır.",
+    "about_role": "Full Stack Web Developer olarak, front-end ve back-end geliştirme süreçlerinin tamamında aktif rol alacaksınız. Modern web teknolojileri kullanarak ölçeklenebilir, performanslı ve kullanıcı dostu uygulamalar geliştireceksiniz. Agile metodolojisi ile çalışan ekibimizde teknik liderlik yapacaksınız.",
+    "responsibilities": "React ve TypeScript kullanarak modern, responsive kullanıcı arayüzleri geliştirmek\nNode.js ile RESTful API'ler ve GraphQL servisleri tasarlamak ve uygulamak\nPostgreSQL veritabanı tasarımı ve optimizasyonu\nDocker ile konteynerize edilmiş uygulamalar geliştirmek\nCI/CD pipeline'ları oluşturmak ve yönetmek\nKod incelemeleri yapmak ve ekip arkadaşlarına mentorluk sağlamak",
+    "required_qualifications": "Bilgisayar Mühendisliği veya ilgili alanda lisans derecesi\nEn az 3 yıl full stack geliştirme deneyimi\nReact ekosistemi konusunda derinlemesine bilgi\nBackend geliştirme konusunda güçlü deneyim\nVersiyon kontrol sistemleri (Git) konusunda deneyim",
+    "required_skills": "React, TypeScript, Node.js, PostgreSQL, Docker, Git, REST API, GraphQL, CI/CD, Agile",
+    "benefits": "Yemek Kartı, Özel Sağlık Sigortası, Eğitim Bütçesi, Yılda 2 Hackathon",
+    "benefit_items": [
+      {"emoji": "🍽️", "title": "Yemek Kartı", "description": "Günlük yemek ihtiyacınız için aylık bakiye yüklenen dijital yemek kartı"},
+      {"emoji": "🏥", "title": "Özel Sağlık Sigortası", "description": "Kapsamlı özel sağlık sigortası ile sağlığınız güvence altında"},
+      {"emoji": "📚", "title": "Eğitim Bütçesi", "description": "Kişisel gelişiminiz için yıllık eğitim ve sertifikasyon bütçesi"},
+      {"emoji": "🏆", "title": "Yılda 2 Hackathon", "description": "Yılda iki kez düzenlenen şirket içi hackathonlara katılım ve ödül imkânı"}
+    ],
+    "min_match_score": 85,
+    "total_positions": 3,
+    "status": "Active"
+  },
+  {
+    "id": "job-003",
+    "job_title": "Veri Analisti (Data Analyst)",
+    "department": "Data & Analytics",
+    "location": "Ankara / Çankaya",
+    "work_type": "Yarı Zamanlı",
+    "work_model": "Uzaktan",
+    "icon": "📊",
+    "company_name": "DataPulse Analytics",
+    "short_description": "Veri Analisti olarak, büyük veri setlerini analiz ederek anlamlı içgörüler çıkaracak ve iş kararlarını destekleyen raporlar ve gösterge panelleri oluşturacaksınız.",
+    "about_company": "DataPulse Analytics, veri odaklı karar verme süreçlerini destekleyen bir analitik danışmanlık firmasıdır. Farklı sektörlerden müşterilerimize veri görselleştirme, istatistiksel analiz ve öngörücü modelleme konularında uzmanlaşmış hizmetler sunuyoruz.",
+    "about_role": "Veri Analisti olarak, büyük veri setlerini analiz ederek anlamlı içgörüler çıkaracak ve iş kararlarını destekleyen raporlar ve gösterge panelleri oluşturacaksınız. İstatistiksel yöntemler ve veri görselleştirme araçları kullanarak karmaşık verileri anlaşılır hale getireceksiniz.",
+    "responsibilities": "Büyük veri setlerinin temizlenmesi, düzenlenmesi ve analiz edilmesi\nTableau ve Power BI ile interaktif gösterge panelleri oluşturmak\nİstatistiksel analiz ve A/B testleri gerçekleştirmek\nİş paydaşları ile birlikte çalışarak KPI'lar belirlemek\nVeri kalitesi süreçlerini izlemek ve iyileştirmek\nHaftalık ve aylık performans raporları hazırlamak",
+    "required_qualifications": "İstatistik, Matematik, Bilgisayar Bilimi veya ilgili alanda lisans derecesi\nEn az 2 yıl veri analizi deneyimi\nSQL konusunda ileri düzey bilgi\nEn az bir veri görselleştirme aracında uzmanlaşma\nAnalitik düşünme ve problem çözme becerileri",
+    "required_skills": "Python, SQL, Tableau, Power BI, İstatistiksel Analiz, Machine Learning, Excel, Pandas, NumPy",
+    "benefits": "Esnek Çalışma Saatleri, Uzaktan Çalışma İmkanı, Online Eğitim Platformu Erişimi",    "benefit_items": [
+      {"emoji": "🕐", "title": "Esnek Çalışma Saatleri", "description": "Kendi çalışma ritminize göre esnek saat düzenlemesi yapabilirsiniz"},
+      {"emoji": "🏠", "title": "Uzaktan Çalışma İmkânı", "description": "Tamamen uzaktan çalışarak dünyanın her yerinden görevinizi sürdürebilirsiniz"},
+      {"emoji": "💻", "title": "Online Eğitim Platformu", "description": "Udemy, Coursera ve LinkedIn Learning gibi platformlara tam erişim"}
+    ],    "min_match_score": 85,
+    "total_positions": 1,
+    "status": "Active"
+  }
+]

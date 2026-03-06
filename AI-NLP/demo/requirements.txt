@@ -1,0 +1,6 @@
+# CVnokta Demo — ek bağımlılıklar
+# Ana requirements.txt (AI-NLP/requirements.txt) zaten kurulu olmalı.
+# Bu dosya sadece demo dashboardına özel paketleri içerir.
+
+streamlit>=1.30.0
+python-dotenv>=1.0.0
