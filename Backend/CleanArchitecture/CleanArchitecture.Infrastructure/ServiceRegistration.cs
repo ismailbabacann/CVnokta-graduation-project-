@@ -1,10 +1,8 @@
 ﻿using CleanArchitecture.Core.Interfaces;
-using CleanArchitecture.Core.Interfaces.Repositories;
 using CleanArchitecture.Core.Wrappers;
 using CleanArchitecture.Core.Settings;
 using CleanArchitecture.Infrastructure.Contexts;
 using CleanArchitecture.Infrastructure.Models;
-using CleanArchitecture.Infrastructure.Repositories;
 using CleanArchitecture.Infrastructure.Repository;
 using CleanArchitecture.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -118,8 +116,6 @@ namespace CleanArchitecture.Infrastructure
 
             #region Repositories
             services.AddTransient(typeof(IGenericRepositoryAsync<>), typeof(GenericRepositoryAsync<>));
-            services.AddTransient<IProductRepositoryAsync, ProductRepositoryAsync>();
-            services.AddTransient<ICategoryRepositoryAsync, CategoryRepositoryAsync>();
             #endregion
         }
     }

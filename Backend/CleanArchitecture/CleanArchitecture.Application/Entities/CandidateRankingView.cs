@@ -2,7 +2,7 @@ using System;
 
 namespace CleanArchitecture.Core.Entities
 {
-    public class CandidateRankingView : BaseEntity
+    public class CandidateRankingView
     {
         public Guid JobPostingId { get; set; }
         public Guid CandidateId { get; set; }

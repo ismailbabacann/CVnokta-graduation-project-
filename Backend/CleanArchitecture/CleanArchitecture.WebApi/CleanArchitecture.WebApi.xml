@@ -4,42 +4,189 @@
         <name>CleanArchitecture.WebApi</name>
     </assembly>
     <members>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ApplicationsController.ApplyToJob(CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob.ApplyToJobCommand)">
+            <summary>
+            Adayın "Başvur" butonuna bastığında çağrılan endpoint.
+            Giriş yapmadan da başvuru yapılabilir; ad, e-posta ve telefon istenir.
+            POST /api/v1/Applications/public/apply
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ApplicationsController.GetMyApplications(System.Guid)">
+            <summary>
+            Belirtilen adayın yaptığı tüm başvuruları listeler (başvurulan ilan adı, durum, tarih).
+            GET /api/v1/Applications/my-applications/{candidateId}
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ApplicationsController.Submit(CleanArchitecture.Core.Features.Applications.Commands.SubmitJobApplication.SubmitJobApplicationCommand)">
+            <summary>
+            Adayın kayıtlı sisteme başvuru yapması için (eski endpoint – kayıtlı kullanıcılar).
+            POST /api/v1/Applications
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ApplicationsController.UpdateStage(System.Guid,CleanArchitecture.Core.Features.Applications.Commands.UpdateApplicationStage.UpdateApplicationStageCommand)">
+            <summary>
+            Bir başvurunun aşamasını günceller (CV İnceleme → Mülakat vs.).
+            PUT /api/v1/Applications/{id}/stage
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ApplicationsController.GetByJob(System.Guid)">
+            <summary>
+            Belirli bir iş ilanına gelen tüm başvuruları listeler (İK paneli).
+            GET /api/v1/Applications/job/{jobId}
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ApplicationsController.GetDetail(System.Guid)">
+            <summary>
+            Tekil başvurunun tüm detaylarını getirir (aday bilgileri, test + mülakat sonuçları).
+            GET /api/v1/Applications/{id}
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ApplicationsController.GetCandidatePool(CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool.GetCandidatePoolQuery)">
+            <summary>
+            Aday havuzunu filtreli ve sayfalı şekilde listeler (İK paneli).
+            GET /api/v1/Applications/pool
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ApplicationsController.BulkStatusUpdate(CleanArchitecture.Core.Features.Applications.Commands.BulkUpdateApplicationStatus.BulkUpdateApplicationStatusCommand)">
+            <summary>
+            Seçili başvuruların durumunu toplu olarak günceller.
+            POST /api/v1/Applications/bulk-status-update
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ApplicationsController.GetPoolSummary">
+            <summary>
+            Aday havuzu özet istatistiklerini döner (toplam aday, bugünkü başvuru, ortalama NLP skoru).
+            GET /api/v1/Applications/stats/pool-summary
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.CandidatesController.Create(CleanArchitecture.Core.Features.Candidates.Commands.CreateCandidateProfile.CreateCandidateProfileCommand)">
+            <summary>
+            Yeni aday profili oluşturur (kayıt sırasında otomatik çağrılır).
+            POST /api/v1/Candidates
+            Body: { "userId": "guid", "fullName": "Ad Soyad", "email": "...", "phone": "...", "location": "..." }
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.CandidatesController.UploadCv(CleanArchitecture.Core.Features.Candidates.Commands.UploadCv.UploadCvCommand)">
+            <summary>
+            Adayın özgeçmiş dosyasını (CV) sisteme yükler.
+            multipart/form-data formatında gönderilmelidir.
+            POST /api/v1/Candidates/upload-cv
+            Form: { "candidateId": "guid", "cvFile": [binary] }
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.CandidatesController.GetProfile(System.String)">
+            <summary>
+            Belirtilen kullanıcıya ait aday profilini getirir (eğitim, deneyim, yetenekler, CV bilgileri).
+            GET /api/v1/Candidates/{userId}
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.EvaluationsController.GetRankings(System.Guid)">
+            <summary>
+            Belirtilen iş ilanına başvuran adayları final puanlarına göre sıralı listeler.
+            CV skoru, genel test skoru, AI mülakat skoru ve ağırlıklı final puanı yer alır.
+            GET /api/v1/Evaluations/rankings/{jobId}
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.EvaluationsController.GetScorecard(System.Guid)">
+            <summary>
+            Belirtilen başvurunun tüm aşamalarındaki detaylı puan kartını döner.
+            CV analizi, genel test, AI mülakat ve final ağırlıklı skor ayrıntılı gösterilir.
+            GET /api/v1/Evaluations/scorecard/{appId}
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.InterviewsController.Start(CleanArchitecture.Core.Features.Interviews.Commands.StartAiInterview.StartAiInterviewCommand)">
+            <summary>
+            Belirtilen başvuru için yapay zeka mülakat oturumu başlatır.
+            Aday mülakat akışına girer; sorular sırayla sunulur.
+            POST /api/v1/Interviews/start
+            Body: { "applicationId": "guid", "stageId": "guid", "jobPostingId": "guid", "cvId": "guid" }
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.InterviewsController.SubmitAnswer(CleanArchitecture.Core.Features.Interviews.Commands.SubmitAiInterviewAnswer.SubmitAiInterviewAnswerCommand)">
+            <summary>
+            Devam eden AI mülakat oturumuna aday cevabı gönderir.
+            Her soruna verilen cevap bu endpoint üzerinden iletilir.
+            POST /api/v1/Interviews/submit-answer
+            Body: { "sessionId": "guid", "questionId": "guid", "answerText": "..." }
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.InterviewsController.Complete(CleanArchitecture.Core.Features.Interviews.Commands.CompleteAiInterview.CompleteAiInterviewCommand)">
+            <summary>
+            Yapay zeka mülakat oturumunu tamamlar ve değerlendirme sürecini başlatır.
+            Tüm sorular cevaplandıktan sonra çağrılmalıdır.
+            POST /api/v1/Interviews/complete
+            Body: { "sessionId": "guid" }
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.InterviewsController.GetSummary(System.Guid)">
+            <summary>
+            Tamamlanan AI mülakat oturumunun özet raporunu döner.
+            Adayın genel skoru, güçlü/zayıf yönleri ve öneriler yer alır.
+            GET /api/v1/Interviews/{sessionId}/summary
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.InterviewsController.BulkInvite(CleanArchitecture.Core.Features.Interviews.Commands.BulkInviteToInterview.BulkInviteToInterviewCommand)">
+            <summary>
+            Seçili başvuruları toplu olarak AI mülakate davet eder.
+            Her başvuru için durum "INTERVIEW_INVITED" olarak güncellenir ve MeetingInvitation oluşturulur.
+            POST /api/v1/Interviews/bulk-invite
+            Body: { "applicationIds": ["guid1", "guid2"] }
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetPublicJobList(CleanArchitecture.Core.Features.JobPostings.Queries.GetActiveJobPostings.GetActiveJobPostingsQuery)" -->
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetPublicJobDetail(System.Guid)">
+            <summary>
+            Belirtilen iş ilanının tüm detaylarını döner (Hakkımızda, Sorumluluklar, Nitelikler, Faydalar).
+            GET /api/v1/JobPostings/public/{id}
+            </summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.Create(CleanArchitecture.Core.Features.JobPostings.Commands.CreateJobPosting.CreateJobPostingCommand)">
             <summary>
             Yeni bir iş ilanı oluşturur.
-            SaveAsDraft = true → Taslak Olarak Kaydet
-            SaveAsDraft = false → Yayınla
+            SaveAsDraft = true → Taslak olarak kaydeder.
+            SaveAsDraft = false → Yayınlar.
+            POST /api/v1/JobPostings
             </summary>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.Publish(System.Guid)">
             <summary>
             Taslak bir ilanı yayına alır.
+            PUT /api/v1/JobPostings/{id}/publish
             </summary>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.UpdateStatus(System.Guid,CleanArchitecture.Core.Features.JobPostings.Commands.UpdateJobPostingStatus.UpdateJobPostingStatusCommand)">
             <summary>
             İlanın durumunu değiştirir (Active ↔ Closed).
+            PUT /api/v1/JobPostings/{id}/status
             </summary>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetById(System.Guid)">
             <summary>
-            Tek bir iş ilanının tüm detaylarını getirir (düzenleme / önizleme).
+            Tek bir iş ilanının detaylarını getirir (düzenleme / önizleme için).
+            GET /api/v1/JobPostings/{id}
             </summary>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetMine(System.String)">
             <summary>
-            Oturum açmış İK kullanıcısının ilanlarını listeler
-            (aktif + taslak). statusFilter: All | Active | Draft | Closed
-            </summary>
-        </member>
-        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetActive">
-            <summary>
-            Adayların görebileceği aktif iş ilanlarını listeler.
+            Oturum açmış İK kullanıcısının ilanlarını listeler (aktif + taslak).
+            statusFilter: All | Active | Draft | Closed
+            GET /api/v1/JobPostings/mine
             </summary>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetStats">
             <summary>
             İK paneli için ilanları başvuru istatistikleriyle getirir.
+            GET /api/v1/JobPostings/stats
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.MeetingsController.Invite(CleanArchitecture.Core.Features.Meetings.Commands.SendMeetingInvitation.SendMeetingInvitationCommand)">
+            <summary>
+            Belirtilen adaya toplantı/mülakat daveti gönderir.
+            MeetingInvitation kaydı oluşturulur; e-posta gönderimi için tetikleyici görevi görür.
+            POST /api/v1/Meetings/invite
+            Body: { "applicationId": "guid", "jobPostingId": "guid", "candidateId": "guid",
+                    "meetingTitle": "Final Mülakat", "scheduledDate": "2024-04-01T10:00:00Z",
+                    "meetingLink": "https://meet.google.com/...", "meetingType": "FINAL_INTERVIEW" }
             </summary>
         </member>
     </members>
