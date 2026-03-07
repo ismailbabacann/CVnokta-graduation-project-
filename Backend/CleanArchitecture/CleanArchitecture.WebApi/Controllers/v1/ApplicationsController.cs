@@ -23,8 +23,9 @@ namespace CleanArchitecture.WebApi.Controllers.v1
 
         /// <summary>
         /// Adayın "Başvur" butonuna bastığında çağrılan endpoint.
-        /// Giriş yapmadan da başvuru yapılabilir; ad, e-posta ve telefon istenir.
+        /// Giriş yapmadan da başvuru yapılabilir; ad, e-posta, telefon, lokasyon, şirket, linkedin ve CV url istenir.
         /// POST /api/v1/Applications/public/apply
+        /// Body: { "jobPostingId": "guid", "fullName": "Ad", "email": "a@x.com", "phone": "05", "location": "İst", "linkedInProfile": "url", "currentCompany": "firma", "cvUrl": "url", "coverLetter": "mesaj" }
         /// </summary>
         [HttpPost("public/apply")]
         [AllowAnonymous]
@@ -72,7 +73,7 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         }
 
         /// <summary>
-        /// Belirli bir iş ilanına gelen tüm başvuruları listeler (İK paneli).
+        /// Bir iş ilanına gelen tüm başvuruları ve o adayların profil detaylarını (şirket, lokasyon, cvUrl vs.) listeler (İK paneli).
         /// GET /api/v1/Applications/job/{jobId}
         /// </summary>
         [HttpGet("job/{jobId}")]

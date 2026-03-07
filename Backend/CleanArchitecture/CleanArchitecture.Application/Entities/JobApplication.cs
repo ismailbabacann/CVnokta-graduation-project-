@@ -7,6 +7,7 @@ namespace CleanArchitecture.Core.Entities
         public Guid JobPostingId { get; set; }
         public Guid CandidateId { get; set; }
         public Guid? CvId { get; set; }
+        public string CvUrl { get; set; }
         public string CoverLetter { get; set; }
         public string ApplicationStatus { get; set; }
         public DateTime AppliedAt { get; set; }

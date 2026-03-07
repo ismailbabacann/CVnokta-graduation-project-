@@ -24,9 +24,14 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
         public string Email      { get; set; }
         public string Phone      { get; set; }
 
+        public string Location   { get; set; }
+        public string LinkedInProfile { get; set; }
+        public string CurrentCompany { get; set; }
+
         // Ek bilgiler
         public string CoverLetter { get; set; }
-        public Guid?  CvId        { get; set; }   // Yüklü CV varsa opsiyonel
+        public Guid?  CvId        { get; set; }   // Yüklü CV varsa
+        public string CvUrl       { get; set; }   // Frontend seçili CV linki verirse
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -87,14 +92,37 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
 
                 if (alreadyApplied)
                     return new ApplyToJobResponse { Success = false, Message = "Bu iş ilanına zaten başvurdunuz." };
+                
+                // Varsa profilini güncelle (Yeni UI'dan gelenlerle)
+                candidate.Location = request.Location ?? candidate.Location;
+                candidate.LinkedInProfile = request.LinkedInProfile ?? candidate.LinkedInProfile;
+                candidate.CurrentCompany = request.CurrentCompany ?? candidate.CurrentCompany;
+                await _candidateRepo.UpdateAsync(candidate);
+            }
+            else
+            {
+                // Aday bulunamadı, anonim başvuru için yeni profil oluştur
+                candidate = new CandidateProfile
+                {
+                    UserId = null,
+                    FullName = request.FullName,
+                    Email = request.Email,
+                    Phone = request.Phone,
+                    Location = request.Location,
+                    LinkedInProfile = request.LinkedInProfile,
+                    CurrentCompany = request.CurrentCompany
+                };
+                await _candidateRepo.AddAsync(candidate);
             }
 
             // Yeni başvuru oluştur
             var application = new JobApplication
             {
                 JobPostingId      = request.JobPostingId,
-                CandidateId       = candidate?.Id ?? Guid.Empty,
+                CandidateId       = candidate.Id,
                 CvId              = request.CvId, 
+                CvUrl             = request.CvUrl,
+                CoverLetter       = request.CoverLetter,
                 ApplicationStatus = "SUBMITTED",
                 AppliedAt         = DateTime.UtcNow
             };
