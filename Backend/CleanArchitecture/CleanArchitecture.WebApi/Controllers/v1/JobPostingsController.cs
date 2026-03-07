@@ -2,8 +2,9 @@ using CleanArchitecture.Core.Features.JobPostings.Commands.CreateJobPosting;
 using CleanArchitecture.Core.Features.JobPostings.Commands.PublishJobPosting;
 using CleanArchitecture.Core.Features.JobPostings.Commands.UpdateJobPostingStatus;
 using CleanArchitecture.Core.Features.JobPostings.Queries.GetActiveJobPostings;
+using CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs;
+using CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardSummary;
 using CleanArchitecture.Core.Features.JobPostings.Queries.GetJobPostingById;
-using CleanArchitecture.Core.Features.JobPostings.Queries.GetJobPostingsWithStats;
 using CleanArchitecture.Core.Features.JobPostings.Queries.GetMyJobPostings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -112,14 +113,26 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         }
 
         /// <summary>
-        /// İK paneli için ilanları başvuru istatistikleriyle getirir.
-        /// GET /api/v1/JobPostings/stats
+        /// İK Dashboard - Üst kısımdaki toplam istatistik kartları.
+        /// GET /api/v1/JobPostings/dashboard/overview
         /// </summary>
-        [HttpGet("stats")]
+        [HttpGet("dashboard/overview")]
         [Authorize(Roles = "HiringManager,SuperAdmin")]
-        public async Task<IActionResult> GetStats()
+        public async Task<IActionResult> GetDashboardOverview()
         {
-            return Ok(await Mediator.Send(new GetJobPostingsWithStatsQuery()));
+            return Ok(await Mediator.Send(new GetDashboardSummaryQuery()));
         }
+
+        /// <summary>
+        /// İK Dashboard - Alt kısımdaki ilan listesi (NLP, Aday, Mülakat istatistikleriyle).
+        /// GET /api/v1/JobPostings/dashboard/list
+        /// </summary>
+        [HttpGet("dashboard/list")]
+        [Authorize(Roles = "HiringManager,SuperAdmin")]
+        public async Task<IActionResult> GetDashboardJobList([FromQuery] GetDashboardJobsQuery query)
+        {
+            return Ok(await Mediator.Send(query));
+        }
+
     }
 }

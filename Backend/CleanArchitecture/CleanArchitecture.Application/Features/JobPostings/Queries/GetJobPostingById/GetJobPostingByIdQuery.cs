@@ -33,6 +33,7 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetJobPostingById
 
         // İlan Detayları
         public string AboutCompany { get; set; }
+        public string AboutRole { get; set; }
         public string Responsibilities { get; set; }
         public string RequiredQualifications { get; set; }
 
@@ -86,6 +87,7 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetJobPostingById
                 WorkType             = jobPosting.WorkType,
                 WorkModel            = jobPosting.WorkModel,
                 AboutCompany         = jobPosting.AboutCompany,
+                AboutRole            = jobPosting.AboutRole,
                 Responsibilities     = jobPosting.Responsibilities,
                 RequiredQualifications = jobPosting.RequiredQualifications,
                 SalaryMin            = jobPosting.SalaryMin,

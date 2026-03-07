@@ -174,10 +174,16 @@
             GET /api/v1/JobPostings/mine
             </summary>
         </member>
-        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetStats">
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetDashboardOverview">
             <summary>
-            İK paneli için ilanları başvuru istatistikleriyle getirir.
-            GET /api/v1/JobPostings/stats
+            İK Dashboard - Üst kısımdaki toplam istatistik kartları.
+            GET /api/v1/JobPostings/dashboard/overview
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetDashboardJobList(CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs.GetDashboardJobsQuery)">
+            <summary>
+            İK Dashboard - Alt kısımdaki ilan listesi (NLP, Aday, Mülakat istatistikleriyle).
+            GET /api/v1/JobPostings/dashboard/list
             </summary>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.MeetingsController.Invite(CleanArchitecture.Core.Features.Meetings.Commands.SendMeetingInvitation.SendMeetingInvitationCommand)">

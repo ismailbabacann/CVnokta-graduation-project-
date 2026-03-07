@@ -35,6 +35,9 @@ namespace CleanArchitecture.Core.Features.JobPostings.Commands.CreateJobPosting
         /// <summary>About Us / Company introduction text</summary>
         public string AboutCompany { get; set; }
 
+        /// <summary>About Role text</summary>
+        public string AboutRole { get; set; }
+
         /// <summary>Responsibilities (rich text / HTML supported)</summary>
         public string Responsibilities { get; set; }
 
