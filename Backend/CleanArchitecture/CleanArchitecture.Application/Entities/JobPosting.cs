@@ -23,6 +23,9 @@ namespace CleanArchitecture.Core.Entities
         /// <summary>Company introduction / About Us text</summary>
         public string AboutCompany { get; set; }
 
+        /// <summary>About Role text (Rol Hakkında)</summary>
+        public string AboutRole { get; set; }
+
         /// <summary>Responsibilities (rich text / HTML)</summary>
         public string Responsibilities { get; set; }
 
