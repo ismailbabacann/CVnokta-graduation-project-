@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 
 namespace CleanArchitecture.Core.DTOs.Account
-{
+{ 
     public class AuthenticationResponse
     {
         public string Id { get; set; }

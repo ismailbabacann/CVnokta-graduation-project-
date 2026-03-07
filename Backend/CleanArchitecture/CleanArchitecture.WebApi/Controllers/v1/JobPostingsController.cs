@@ -15,10 +15,43 @@ namespace CleanArchitecture.WebApi.Controllers.v1
     [ApiVersion("1.0")]
     public class JobPostingsController : BaseApiController
     {
+        // ────────────────────────────────────────────────────────────────────────
+        // PUBLIC ENDPOINTS (Giriş yapmadan erişilebilir)
+        // ────────────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Aktif iş ilanlarını listeler. Sayfalama + Arama + Filtreler desteklenir.
+        /// GET /api/v1/JobPostings/public?pageNumber=1&pageSize=10&searchTerm=developer&location=Antalya&workType=FullTime
+        /// </summary>
+        [HttpGet("public")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetPublicJobList([FromQuery] GetActiveJobPostingsQuery query)
+        {
+            return Ok(await Mediator.Send(query));
+        }
+
+        /// <summary>
+        /// Belirtilen iş ilanının tüm detaylarını döner (Hakkımızda, Sorumluluklar, Nitelikler, Faydalar).
+        /// GET /api/v1/JobPostings/public/{id}
+        /// </summary>
+        [HttpGet("public/{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetPublicJobDetail(Guid id)
+        {
+            var result = await Mediator.Send(new GetJobPostingByIdQuery { Id = id });
+            if (result == null) return NotFound(new { Message = "İş ilanı bulunamadı." });
+            return Ok(result);
+        }
+
+        // ────────────────────────────────────────────────────────────────────────
+        // PRIVATE ENDPOINTS (İK / Admin – JWT gerekli)
+        // ────────────────────────────────────────────────────────────────────────
+
         /// <summary>
         /// Yeni bir iş ilanı oluşturur.
-        /// SaveAsDraft = true → Taslak Olarak Kaydet
-        /// SaveAsDraft = false → Yayınla
+        /// SaveAsDraft = true → Taslak olarak kaydeder.
+        /// SaveAsDraft = false → Yayınlar.
+        /// POST /api/v1/JobPostings
         /// </summary>
         [HttpPost]
         [Authorize(Roles = "HiringManager,SuperAdmin")]
@@ -30,6 +63,7 @@ namespace CleanArchitecture.WebApi.Controllers.v1
 
         /// <summary>
         /// Taslak bir ilanı yayına alır.
+        /// PUT /api/v1/JobPostings/{id}/publish
         /// </summary>
         [HttpPut("{id}/publish")]
         [Authorize(Roles = "HiringManager,SuperAdmin")]
@@ -42,6 +76,7 @@ namespace CleanArchitecture.WebApi.Controllers.v1
 
         /// <summary>
         /// İlanın durumunu değiştirir (Active ↔ Closed).
+        /// PUT /api/v1/JobPostings/{id}/status
         /// </summary>
         [HttpPut("{id}/status")]
         [Authorize(Roles = "HiringManager,SuperAdmin")]
@@ -51,12 +86,9 @@ namespace CleanArchitecture.WebApi.Controllers.v1
             return Ok(await Mediator.Send(command));
         }
 
-        // ────────────────────────────────────────────────────────────────────────
-        // QUERIES (Read)
-        // ────────────────────────────────────────────────────────────────────────
-
         /// <summary>
-        /// Tek bir iş ilanının tüm detaylarını getirir (düzenleme / önizleme).
+        /// Tek bir iş ilanının detaylarını getirir (düzenleme / önizleme için).
+        /// GET /api/v1/JobPostings/{id}
         /// </summary>
         [HttpGet("{id}")]
         [Authorize]
@@ -68,8 +100,9 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         }
 
         /// <summary>
-        /// Oturum açmış İK kullanıcısının ilanlarını listeler
-        /// (aktif + taslak). statusFilter: All | Active | Draft | Closed
+        /// Oturum açmış İK kullanıcısının ilanlarını listeler (aktif + taslak).
+        /// statusFilter: All | Active | Draft | Closed
+        /// GET /api/v1/JobPostings/mine
         /// </summary>
         [HttpGet("mine")]
         [Authorize(Roles = "HiringManager,SuperAdmin")]
@@ -79,17 +112,8 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         }
 
         /// <summary>
-        /// Adayların görebileceği aktif iş ilanlarını listeler.
-        /// </summary>
-        [HttpGet("active")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetActive()
-        {
-            return Ok(await Mediator.Send(new GetActiveJobPostingsQuery()));
-        }
-
-        /// <summary>
         /// İK paneli için ilanları başvuru istatistikleriyle getirir.
+        /// GET /api/v1/JobPostings/stats
         /// </summary>
         [HttpGet("stats")]
         [Authorize(Roles = "HiringManager,SuperAdmin")]
