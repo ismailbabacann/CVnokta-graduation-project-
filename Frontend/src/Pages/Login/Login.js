@@ -52,7 +52,12 @@ function Login({ setUser }) {
                     roles: response.data.roles
                 });
 
-                navigate('/');
+                // Role-based redirection
+                if (response.data.roles && response.data.roles.includes('HiringManager')) {
+                    navigate('/company');
+                } else {
+                    navigate('/');
+                }
             } else {
                 setError('Login failed. Please try again.');
             }

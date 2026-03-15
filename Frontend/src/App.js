@@ -46,31 +46,6 @@ function App() {
     ]
   };
 
-  // Dummy list of jobs for the Job List page mapping the design graphic
-  const jobs = [
-    {
-      id: 1, // Re-routing to the detailed dummy job
-      position: 'Web Developer',
-      type: 'Full Time',
-      location: 'Antalya',
-      description: 'A Web Developer is a professional who is responsible for the design and construction of websites. They ensure that sites meet user expectations by ensuring they look good, run smoothly and offer easy access points with no loading issues between pages or error messages.'
-    },
-    {
-      id: 2,
-      position: 'Data Analyst',
-      type: 'Part Time',
-      location: 'Bursa',
-      description: 'Data analysts generate reports and present findings to aid decision-making. Specialized tasks include data visualization, statistical analysis, and predictive modeling.'
-    },
-    {
-      id: 3,
-      position: 'DevOps Engineer',
-      type: 'Full Time',
-      location: 'Adıyaman, Malatya',
-      description: 'A Dev-Ops engineer is an IT generalist who should have a wide-ranging knowledge of both development and operations, including coding, infrastructure management, system administration, and Dev-Ops tool chains.'
-    }
-  ];
-
   const handleApplyClick = () => {
     setSelectedJob(defaultDetailedJob);
     navigate('/apply');
@@ -91,7 +66,7 @@ function App() {
           <Route path="/" element={<Mainpage />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/signup" element={<Signup setUser={setUser} />} />
-          <Route path="/jobs" element={<JobList jobs={jobs} />} />
+          <Route path="/jobs" element={<JobList />} />
           <Route path="/jobs/:id" element={<JobView job={defaultDetailedJob} onApply={handleApplyClick} />} />
           <Route path="/apply" element={<ApplicationForm job={defaultDetailedJob} onBack={handleBack} />} />
           <Route path="/company" element={<CompanyLayout />}>

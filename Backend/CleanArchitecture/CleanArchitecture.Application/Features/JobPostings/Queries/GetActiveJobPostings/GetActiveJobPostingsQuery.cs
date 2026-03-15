@@ -72,7 +72,7 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetActiveJobPostin
 
             // Sadece yayında ve kapanma tarihi geçmemiş ilanlar
             var filtered = all
-                .Where(j => j.Status == "Published" && !j.IsDraft
+                .Where(j => j.Status == "Active" && !j.IsDraft
                             && (j.ClosingDate == null || j.ClosingDate >= DateTime.UtcNow))
                 .AsEnumerable();
 

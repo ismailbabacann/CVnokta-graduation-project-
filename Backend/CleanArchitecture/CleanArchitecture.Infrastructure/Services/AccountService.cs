@@ -1,5 +1,6 @@
 ﻿using CleanArchitecture.Core.DTOs.Account;
 using CleanArchitecture.Core.DTOs.Email;
+using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Enums;
 using CleanArchitecture.Core.Exceptions;
 using CleanArchitecture.Core.Interfaces;
@@ -30,19 +31,23 @@ namespace CleanArchitecture.Infrastructure.Services
         private readonly IEmailService _emailService;
         private readonly JWTSettings _jwtSettings;
         private readonly IDateTimeService _dateTimeService;
+        private readonly IGenericRepositoryAsync<User> _userRepository;
+
         public AccountService(UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IOptions<JWTSettings> jwtSettings,
             IDateTimeService dateTimeService,
             SignInManager<ApplicationUser> signInManager,
-            IEmailService emailService)
+            IEmailService emailService,
+            IGenericRepositoryAsync<User> userRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _jwtSettings = jwtSettings.Value;
             _dateTimeService = dateTimeService;
             _signInManager = signInManager;
-            this._emailService = emailService;
+            _emailService = emailService;
+            _userRepository = userRepository;
         }
 
         public async Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, string ipAddress)
@@ -104,6 +109,19 @@ namespace CleanArchitecture.Infrastructure.Services
                         throw new ApiException($"Role '{roleName}' does not exist. Accepted values: Basic, HiringManager, SuperAdmin.");
 
                     await _userManager.AddToRoleAsync(user, roleName);
+
+                    // Add Domain User with same ID for Foreign Key references
+                    var domainUser = new User
+                    {
+                        Id = Guid.Parse(user.Id),
+                        Email = user.Email,
+                        PasswordHash = user.PasswordHash ?? "N/A",
+                        FullName = $"{user.FirstName} {user.LastName}",
+                        UserType = roleName,
+                        IsActive = true
+                    };
+                    await _userRepository.AddAsync(domainUser);
+
                     var verificationUri = await SendVerificationEmail(user, origin);
                     //TODO: Attach Email Service here and configure it via appsettings
                     //await _emailService.SendAsync(new Core.DTOs.Email.EmailRequest() { From = "mail@codewithmukesh.com", To = user.Email, Body = $"Please confirm your account by visiting this URL {verificationUri}", Subject = "Confirm Registration" });
