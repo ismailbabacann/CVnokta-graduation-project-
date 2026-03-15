@@ -111,7 +111,7 @@ namespace CleanArchitecture.Infrastructure.Services
                 }
                 else
                 {
-                    throw new ApiException($"{result.Errors}");
+                    throw new ApiException($"{string.Join(" ", result.Errors.Select(e => e.Description))}");
                 }
             }
             else
