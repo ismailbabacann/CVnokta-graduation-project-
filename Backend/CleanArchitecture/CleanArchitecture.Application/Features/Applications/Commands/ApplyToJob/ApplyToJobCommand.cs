@@ -67,7 +67,7 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
         {
             // İlanın var olduğunu ve aktif olduğunu doğrula
             var jobPosting = await _jobPostingRepo.GetByIdAsync(request.JobPostingId);
-            if (jobPosting == null || jobPosting.Status != "Published")
+            if (jobPosting == null || jobPosting.Status != "Active")
                 return new ApplyToJobResponse { Success = false, Message = "İş ilanı bulunamadı veya aktif değil." };
 
             // Aday profilini e-posta ile bul (üye değilse null olabilir)

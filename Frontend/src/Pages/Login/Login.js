@@ -44,6 +44,9 @@ function Login({ setUser }) {
                 if (response.data.refreshToken) {
                     localStorage.setItem('refreshToken', response.data.refreshToken);
                 }
+                if (response.data.userName) {
+                    localStorage.setItem('userName', response.data.userName);
+                }
 
                 // Update user state
                 setUser({

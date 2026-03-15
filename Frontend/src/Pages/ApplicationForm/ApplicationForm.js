@@ -1,7 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import * as pdfjsLib from 'pdfjs-dist';
 import '../ApplicationForm/ApplicationForm.css';
 
-function ApplicationForm({ job, onBack }) {
+// Set up the worker for pdf.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+
+function ApplicationForm({ onBack }) {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [job, setJob] = useState(null);
+
+  useEffect(() => {
+    if (id) {
+      axios.get(`https://localhost:9001/api/v1/JobPostings/public/${id}`)
+        .then(res => setJob(res.data.data || res.data))
+        .catch(err => console.error("Error fetching job for application form:", err));
+    }
+  }, [id]);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -16,6 +33,9 @@ function ApplicationForm({ job, onBack }) {
 
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   const validate = () => {
     const err = {};
@@ -42,19 +62,93 @@ function ApplicationForm({ job, onBack }) {
     }
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+
     setFormData(prev => ({ ...prev, resume: file }));
     if (errors.resume) {
       setErrors(prev => ({ ...prev, resume: '' }));
     }
+
+    if (file.type === 'application/pdf') {
+      try {
+        setIsParsing(true);
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let text = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const strings = content.items.map(item => item.str);
+          text += strings.join(' ') + ' ';
+        }
+
+        const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
+        const phoneRegex = /(?:\+90|0)?[-\s]?\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2}/;
+        const linkedinRegex = /linkedin\.com\/in\/([a-zA-Z0-9-]+)/i;
+
+        const emailMatch = text.match(emailRegex);
+        const phoneMatch = text.match(phoneRegex);
+        const linkedinMatch = text.match(linkedinRegex);
+
+        // Heuristic for name: usually the first 2-3 words of a CV
+        // We clean up extra spaces and take the first 2 words as a guess
+        const words = text.trim().split(/\s+/);
+        let guessedName = '';
+        if (words.length >= 2) {
+          guessedName = words[0] + ' ' + words[1];
+          if (words.length > 2 && /^[A-ZÇĞİÖŞÜ][a-zçğıöşü]+$/.test(words[2])) {
+            // if 3rd word looks like a capitalized name, include it (e.g. 2 names + 1 surname)
+            guessedName += ' ' + words[2];
+          }
+        }
+
+        setFormData(prev => ({
+          ...prev,
+          fullName: prev.fullName || guessedName,
+          email: prev.email || (emailMatch ? emailMatch[1] : ''),
+          phone: prev.phone || (phoneMatch ? phoneMatch[0] : ''),
+          linkedIn: prev.linkedIn || (linkedinMatch ? `https://linkedin.com/in/${linkedinMatch[1]}` : '')
+        }));
+      } catch (err) {
+        console.error('PDF Parsing error:', err);
+      } finally {
+        setIsParsing(false);
+      }
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError(null);
     if (!validate()) return;
-    console.log('Başvuru:', formData);
-    setSubmitted(true);
+
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        jobPostingId: id,
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        location: formData.currentLocation,
+        linkedInProfile: formData.linkedIn,
+        currentCompany: formData.currentCompany,
+        coverLetter: formData.coverLetter,
+        cvUrl: "uploaded_cvs/" + formData.resume.name
+      };
+
+      const response = await axios.post('https://localhost:9001/api/v1/Applications/public/apply', payload);
+      if (response.data.success || response.status === 200) {
+        setSubmitted(true);
+      }
+    } catch (err) {
+      console.error('Başvuru gönderilemedi:', err);
+      setSubmitError(err.response?.data?.message || 'Başvuru sırasında bir hata oluştu.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -62,7 +156,7 @@ function ApplicationForm({ job, onBack }) {
       <div className="form-container">
         <div className="success-message">
           <h2>✅ Başvurunuz Alındı!</h2>
-          <p><strong>{job.position}</strong> pozisyonuna başvurunuz başarıyla iletildi.</p>
+          <p><strong>{job?.jobTitle || 'Bu'}</strong> pozisyonuna başvurunuz başarıyla iletildi.</p>
           <button className="btn" onClick={onBack}>
             ← Ana Sayfaya Dön
           </button>
@@ -75,8 +169,8 @@ function ApplicationForm({ job, onBack }) {
     <div className="form-container">
       <div className="form-header">
         <h1>İş Başvurusu</h1>
-        <p>{job.position}</p>
-        <p className="location">📍 {job.location}</p>
+        <p>{job?.jobTitle || 'Yükleniyor...'}</p>
+        <p className="location">📍 {job?.location || ''}</p>
       </div>
 
       <form className="form-body" onSubmit={handleSubmit}>
@@ -101,9 +195,13 @@ function ApplicationForm({ job, onBack }) {
           <textarea name="coverLetter" value={formData.coverLetter} onChange={handleChange} placeholder="Kendinizden bahsedin..." />
         </div>
 
+        {submitError && <div className="error-message" style={{ marginBottom: '10px' }}>{submitError}</div>}
+
         <div className="form-actions">
-          <button type="button" className="btn btn-back" onClick={onBack}>← Geri Dön</button>
-          <button type="submit" className="btn btn-submit">✓ Başvuruyu Gönder</button>
+          <button type="button" className="btn btn-back" disabled={isSubmitting} onClick={onBack}>← Geri Dön</button>
+          <button type="submit" className="btn btn-submit" disabled={isSubmitting || isParsing}>
+            {isSubmitting ? 'Gönderiliyor...' : '✓ Başvuruyu Gönder'}
+          </button>
         </div>
       </form>
     </div>

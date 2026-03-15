@@ -16,24 +16,31 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
         private readonly IGenericRepositoryAsync<CandidateProfile> _profileRepository;
         private readonly IGenericRepositoryAsync<JobPosting> _jobPostingRepository;
         private readonly IGenericRepositoryAsync<CandidateRankingView> _rankingRepository;
+        private readonly IAuthenticatedUserService _authenticatedUserService;
 
         public GetCandidatePoolQueryHandler(
             IGenericRepositoryAsync<JobApplication> applicationRepository,
             IGenericRepositoryAsync<CandidateProfile> profileRepository,
             IGenericRepositoryAsync<JobPosting> jobPostingRepository,
-            IGenericRepositoryAsync<CandidateRankingView> rankingRepository)
+            IGenericRepositoryAsync<CandidateRankingView> rankingRepository,
+            IAuthenticatedUserService authenticatedUserService)
         {
             _applicationRepository = applicationRepository;
             _profileRepository = profileRepository;
             _jobPostingRepository = jobPostingRepository;
             _rankingRepository = rankingRepository;
+            _authenticatedUserService = authenticatedUserService;
         }
 
         public async Task<PagedResponse<CandidatePoolDto>> Handle(GetCandidatePoolQuery request, CancellationToken cancellationToken)
         {
+            var userId = _authenticatedUserService.UserId;
+            
             var apps = await _applicationRepository.GetAllAsync();
             var profiles = await _profileRepository.GetAllAsync();
-            var jobs = await _jobPostingRepository.GetAllAsync();
+            // Filter jobs by the logged in Hiring Manager
+            var jobs = (await _jobPostingRepository.GetAllAsync())
+                        .Where(j => j.HiringManagerId == Guid.Parse(userId)).ToList();
             var rankings = await _rankingRepository.GetAllAsync();
 
             var query = from a in apps
@@ -51,7 +58,12 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
                             ApplicationDate = a.AppliedAt,
                             ExperienceYears = p.ExperienceYears,
                             EducationLevel = p.EducationLevel,
-                            NlpMatchScore = r?.CvAnalysisScore ?? 0m
+                            NlpMatchScore = r?.CvAnalysisScore ?? 0m,
+                            Email = p.Email,
+                            Phone = p.Phone,
+                            LinkedInProfile = p.LinkedInProfile,
+                            CvUrl = a.CvUrl,
+                            CoverLetter = a.CoverLetter
                         };
 
             // SEARCH

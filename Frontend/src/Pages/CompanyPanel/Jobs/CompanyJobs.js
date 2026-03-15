@@ -9,6 +9,13 @@ function CompanyJobs() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // Search, Filter and Pagination States
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterDept, setFilterDept] = useState('All');
+    const [filterStatus, setFilterStatus] = useState('All');
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 5;
+
     useEffect(() => {
         const fetchJobs = async () => {
             try {
@@ -55,16 +62,42 @@ function CompanyJobs() {
     // Format ID for display
     const formatDisplayId = (id) => {
         if (!id) return '';
-        // E.g., take the first 8 chars of Guid
         return `#${id.substring(0, 8).toUpperCase()}`;
     };
 
-    // Calculate dynamic stats
+    // Calculate dynamic stats from ALL fetched jobs
     const totalApps = jobs.reduce((sum, job) => sum + (job.totalApplications || 0), 0);
     const activeCount = jobs.filter(j => j.status === 'Active').length;
-    // Just mock placeholders for NLP and Interviwed since they might not be fully fleshed out
     const totalHighMatch = jobs.reduce((sum, job) => sum + (job.nlpHighMatchCount || 0), 0);
     const pendingCount = jobs.filter(j => j.status === 'Draft' || j.isDraft).length;
+
+    // Derived states for filtering
+    const departments = ['All', ...new Set(jobs.map(j => j.department).filter(Boolean))];
+
+    const filteredJobs = jobs.filter(job => {
+        const matchesSearch = (job.jobTitle || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (job.id || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesDept = filterDept === 'All' || job.department === filterDept;
+
+        // Status matching
+        let matchesStatus = true;
+        if (filterStatus === 'Active') matchesStatus = job.status === 'Active' && !job.isDraft;
+        if (filterStatus === 'Draft') matchesStatus = job.status === 'Draft' || job.isDraft;
+
+        return matchesSearch && matchesDept && matchesStatus;
+    });
+
+    const totalPages = Math.max(1, Math.ceil(filteredJobs.length / ITEMS_PER_PAGE));
+    const paginatedJobs = filteredJobs.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
+
+    // Reset pagination when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, filterDept, filterStatus]);
 
     return (
         <div className={styles.container}>
@@ -87,7 +120,6 @@ function CompanyJobs() {
                         <span className={styles.statLabel}>Toplam Başvuru</span>
                         <span className={styles.statValue}>{loading ? '...' : totalApps}</span>
                     </div>
-                    <div className={styles.cardFooter}>Tümünü gör</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.iconBg} ${styles.purpleBg}`}>🧠</div>
@@ -95,7 +127,6 @@ function CompanyJobs() {
                         <span className={styles.statLabel}>Yüksek Eşleşme (NLP)</span>
                         <span className={styles.statValue}>{loading ? '...' : totalHighMatch}</span>
                     </div>
-                    <div className={styles.cardFooter}>Analizleri gör</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.iconBg} ${styles.greenBg}`}>📢</div>
@@ -103,7 +134,6 @@ function CompanyJobs() {
                         <span className={styles.statLabel}>Aktif İlanlar</span>
                         <span className={styles.statValue}>{loading ? '...' : activeCount}</span>
                     </div>
-                    <div className={styles.cardFooter}>Yönet</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.iconBg} ${styles.orangeBg}`}>📋</div>
@@ -111,20 +141,37 @@ function CompanyJobs() {
                         <span className={styles.statLabel}>Değerlendirme Bekleyen</span>
                         <span className={styles.statValue}>{loading ? '...' : pendingCount}</span>
                     </div>
-                    <div className={styles.cardFooter}>İşlem yap</div>
                 </div>
             </div>
 
             {/* Table Area */}
             <div className={styles.tableSection}>
                 <div className={styles.tableControls}>
-                    <input type="text" placeholder="İlan başlığı veya ID ile ara..." className={styles.searchInput} />
+                    <input
+                        type="text"
+                        placeholder="İlan başlığı veya ID ile ara..."
+                        className={styles.searchInput}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                     <div className={styles.filters}>
-                        <select className={styles.filterSelect}>
-                            <option>Tüm Departmanlar</option>
+                        <select
+                            className={styles.filterSelect}
+                            value={filterDept}
+                            onChange={(e) => setFilterDept(e.target.value)}
+                        >
+                            {departments.map(dept => (
+                                <option key={dept} value={dept}>{dept === 'All' ? 'Tüm Departmanlar' : dept}</option>
+                            ))}
                         </select>
-                        <select className={styles.filterSelect}>
-                            <option>Durum: Tümü</option>
+                        <select
+                            className={styles.filterSelect}
+                            value={filterStatus}
+                            onChange={(e) => setFilterStatus(e.target.value)}
+                        >
+                            <option value="All">Durum: Tümü</option>
+                            <option value="Active">Aktif</option>
+                            <option value="Draft">Taslak</option>
                         </select>
                     </div>
                 </div>
@@ -148,7 +195,7 @@ function CompanyJobs() {
                             </tr>
                         </thead>
                         <tbody>
-                            {jobs.map(job => (
+                            {paginatedJobs.map(job => (
                                 <tr key={job.id}>
                                     <td>
                                         <div className={styles.jobTitle}>{job.jobTitle}</div>
@@ -191,12 +238,26 @@ function CompanyJobs() {
                     </table>
                 )}
                 <div className={styles.pagination}>
-                    <span>Toplam {jobs.length} ilandan 1 ile {jobs.length} arası gösteriliyor</span>
-                    {jobs.length > 0 && (
+                    <span>Toplam {filteredJobs.length} ilandan {(currentPage - 1) * ITEMS_PER_PAGE + 1} ile {Math.min(currentPage * ITEMS_PER_PAGE, filteredJobs.length)} arası gösteriliyor</span>
+                    {totalPages > 1 && (
                         <div className={styles.pageButtons}>
-                            <button>&lt;</button>
-                            <button className={styles.activePage}>1</button>
-                            <button>&gt;</button>
+                            <button
+                                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                                disabled={currentPage === 1}
+                            >&lt;</button>
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                                <button
+                                    key={pageNum}
+                                    className={currentPage === pageNum ? styles.activePage : ''}
+                                    onClick={() => handlePageChange(pageNum)}
+                                >
+                                    {pageNum}
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                                disabled={currentPage === totalPages}
+                            >&gt;</button>
                         </div>
                     )}
                 </div>
