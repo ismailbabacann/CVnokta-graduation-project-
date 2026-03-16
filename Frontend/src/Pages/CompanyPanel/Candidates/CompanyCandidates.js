@@ -23,16 +23,6 @@ function CompanyCandidates() {
         setIsModalOpen(false);
     };
 
-    const handleReject = () => {
-        alert("Aday başarıyla elendi!");
-        closeModal();
-    };
-
-    const handleInvite = () => {
-        alert("Adaya mülakat linki başarıyla gönderildi!");
-        closeModal();
-    };
-
     useEffect(() => {
         const fetchCandidates = async () => {
             try {
@@ -219,9 +209,6 @@ function CompanyCandidates() {
                             </div>
 
                             <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
-                                <button onClick={handleReject} style={{ ...cvBtnStyle, backgroundColor: '#e74c3c' }}>
-                                    ❌ Adayı Ele
-                                </button>
                                 {selectedCandidate.cvUrl ? (
                                     <a href={selectedCandidate.cvUrl} target="_blank" rel="noopener noreferrer" style={{ ...cvBtnStyle, backgroundColor: '#3498db' }}>
                                         📄 CV'yi İncele
@@ -229,9 +216,6 @@ function CompanyCandidates() {
                                 ) : (
                                     <span style={{ color: '#999', padding: '12px', display: 'flex', alignItems: 'center' }}>CV yüklenmedi.</span>
                                 )}
-                                <button onClick={handleInvite} style={{ ...cvBtnStyle, backgroundColor: '#2ecc71' }}>
-                                    ✅ Mülakat Linki Gönder
-                                </button>
                             </div>
                         </div>
                     </div>

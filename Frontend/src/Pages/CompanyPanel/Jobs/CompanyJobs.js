@@ -274,7 +274,6 @@ function CompanyJobs() {
                                     <td>
                                         <div className={styles.statsCol}>
                                             <div className={styles.statGroup}><strong>{job.totalApplications || 0}</strong><span>Başvuru</span></div>
-                                            <div className={styles.statGroup}><strong className={styles.blueText}>{job.totalInterviewed || 0}</strong><span>Mülakat</span></div>
                                         </div>
                                     </td>
                                     <td>
