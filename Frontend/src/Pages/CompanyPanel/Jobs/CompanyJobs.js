@@ -16,6 +16,80 @@ function CompanyJobs() {
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 5;
 
+    // Modal States
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedJob, setSelectedJob] = useState(null);
+    const [jobCandidates, setJobCandidates] = useState([]);
+    const [modalLoading, setModalLoading] = useState(false);
+
+    const openJobModal = async (job) => {
+        setSelectedJob(job);
+        setIsModalOpen(true);
+        setModalLoading(true);
+        
+        try {
+            const token = localStorage.getItem('jwToken');
+            const response = await axios.get(`https://localhost:9001/api/v1/Applications/pool`, {
+                params: {
+                    JobPostingId: job.id,
+                    PageNumber: 1,
+                    PageSize: 100,
+                    SortBy: 'nlpscoredesc'
+                },
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            if (response.data && response.data.data) {
+                setJobCandidates(response.data.data);
+            } else {
+                setJobCandidates([]);
+            }
+        } catch (err) {
+            console.error("Error fetching job candidates:", err);
+            setJobCandidates([]);
+        } finally {
+            setModalLoading(false);
+        }
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedJob(null);
+        setJobCandidates([]);
+    };
+
+    const handleToggleStatus = async (id, makeActive) => {
+        try {
+            const token = localStorage.getItem('jwToken');
+            await axios.put(`https://localhost:9001/api/v1/JobPostings/${id}/status`, {
+                id: id,
+                isActive: makeActive
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            // Optimistically update local state instead of doing a full refetch
+            setJobs(prevJobs => prevJobs.map(j => 
+                j.id === id ? { ...j, status: makeActive ? 'Active' : 'Closed' } : j
+            ));
+            
+            if (selectedJob && selectedJob.id === id) {
+                setSelectedJob(prev => ({ ...prev, status: makeActive ? 'Active' : 'Closed' }));
+            }
+            alert(`İlan başarıyla ${makeActive ? 'aktif edildi' : 'pasife alındı'}.`);
+        } catch (err) {
+            console.error(err);
+            alert('Durum güncellenirken bir hata oluştu.');
+        }
+    };
+
+    const handleDeleteJob = () => {
+        // Backend developer is writing the delete logic on the server, so we just show an alert here as planned
+        if(window.confirm("Bu ilanı sistemden tamamen kaldırmak istediğinize emin misiniz?")) {
+            alert("Delete işlemi planlandığı üzere şimdilik arayüzde simüle ediliyor. API ayağa kalktığında bu bölüm çalışacaktır.");
+        }
+    };
+
     useEffect(() => {
         const fetchJobs = async () => {
             try {
@@ -135,13 +209,6 @@ function CompanyJobs() {
                         <span className={styles.statValue}>{loading ? '...' : activeCount}</span>
                     </div>
                 </div>
-                <div className={styles.statCard}>
-                    <div className={`${styles.iconBg} ${styles.orangeBg}`}>📋</div>
-                    <div className={styles.statInfo}>
-                        <span className={styles.statLabel}>Değerlendirme Bekleyen</span>
-                        <span className={styles.statValue}>{loading ? '...' : pendingCount}</span>
-                    </div>
-                </div>
             </div>
 
             {/* Table Area */}
@@ -226,11 +293,11 @@ function CompanyJobs() {
                                     </td>
                                     <td>
                                         <span className={`${styles.statusBadge} ${styles[job.status === 'Active' ? 'active' : job.status === 'Draft' ? 'draft' : 'pending']}`}>
-                                            {job.status === 'Active' && !job.isDraft ? 'Aktif' : 'Taslak'}
+                                            {job.status === 'Active' && !job.isDraft ? 'Aktif' : job.status === 'Closed' ? 'Pasif' : 'Taslak'}
                                         </span>
                                     </td>
                                     <td>
-                                        <span className={styles.actionLink}>{job.status === 'Draft' || job.isDraft ? 'Düzenle' : 'Adayları Gör'}</span>
+                                        <span className={styles.actionLink} onClick={() => openJobModal(job)}>İlanı İncele</span>
                                     </td>
                                 </tr>
                             ))}
@@ -262,8 +329,102 @@ function CompanyJobs() {
                     )}
                 </div>
             </div>
+
+            {/* Job Details Modal */}
+            {isModalOpen && selectedJob && (
+                <div style={modalOverlayStyle}>
+                    <div style={modalContentStyle}>
+                        <div style={modalHeaderStyle}>
+                            <h2 style={{ margin: 0 }}>İlan Detayları: {selectedJob.jobTitle}</h2>
+                            <button onClick={closeModal} style={closeBtnStyle}>X</button>
+                        </div>
+                        <div style={modalBodyStyle}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                                <div>
+                                    <h3 style={{ margin: '0 0 5px 0' }}>{selectedJob.department} - {selectedJob.location}</h3>
+                                    <p style={{ margin: 0, color: '#666' }}>ID: #{selectedJob.id?.substring(0, 8).toUpperCase()}</p>
+                                    <p style={{ margin: '5px 0 0 0', fontWeight: 'bold' }}>
+                                        Mevcut Durum: {selectedJob.status === 'Active' ? <span style={{color: 'green'}}>Aktif</span> : <span style={{color: 'orange'}}>{selectedJob.status}</span>}
+                                    </p>
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <button 
+                                        onClick={() => handleToggleStatus(selectedJob.id, selectedJob.status !== 'Active')}
+                                        style={{ ...actionBtnStyle, backgroundColor: selectedJob.status === 'Active' ? '#f39c12' : '#2ecc71' }}
+                                    >
+                                        {selectedJob.status === 'Active' ? '⏸ Pasife Al' : '▶️ Aktif Et'}
+                                    </button>
+                                    <button onClick={handleDeleteJob} style={{ ...actionBtnStyle, backgroundColor: '#e74c3c' }}>
+                                        🗑️ İlanı Sil
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <hr style={{ borderColor: '#eee', margin: '20px 0' }} />
+                            
+                            <h3 style={{marginBottom: '10px'}}>Bu İlana Başvuran Adaylar</h3>
+                            {modalLoading ? (
+                                <p style={{textAlign: 'center', color: '#666'}}>Adaylar yükleniyor...</p>
+                            ) : jobCandidates.length === 0 ? (
+                                <p style={{textAlign: 'center', color: '#666'}}>Bu ilana henüz başvuru yapılmamış.</p>
+                            ) : (
+                                <table className={styles.table} style={{marginTop: '0'}}>
+                                    <thead>
+                                        <tr>
+                                            <th>ADAY</th>
+                                            <th>DENEYİM & EĞİTİM</th>
+                                            <th>NLP SKORU</th>
+                                            <th>AKSİYON</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {jobCandidates.map(cand => (
+                                            <tr key={cand.applicationId}>
+                                                <td>
+                                                    <strong>{cand.firstName} {cand.lastName}</strong><br/>
+                                                    <span style={{fontSize: '12px', color: '#666'}}>{cand.email || 'Email yok'}</span>
+                                                </td>
+                                                <td>{cand.experienceYears !== null ? `${cand.experienceYears} Yıl` : '-'} / {cand.educationLevel || '-'}</td>
+                                                <td>
+                                                    <span style={{fontWeight: 'bold', color: cand.nlpMatchScore >= 75 ? '#20B2AA' : '#f39c12'}}>
+                                                        %{cand.nlpMatchScore}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span className={styles.actionLink} onClick={() => navigate('/company/candidates')}>Havuzda Gör</span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
+
+// Inline Styles for Modal
+const modalOverlayStyle = {
+    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+};
+const modalContentStyle = {
+    backgroundColor: '#fff', borderRadius: '12px', width: '800px', maxWidth: '90%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+};
+const modalHeaderStyle = {
+    padding: '20px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+};
+const closeBtnStyle = {
+    background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999'
+};
+const modalBodyStyle = {
+    padding: '20px', overflowY: 'auto'
+};
+const actionBtnStyle = {
+    border: 'none', padding: '10px 15px', color: 'white', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold'
+};
 
 export default CompanyJobs;

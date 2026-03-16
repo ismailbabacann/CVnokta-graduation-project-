@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import * as pdfjsLib from 'pdfjs-dist';
 import styles from './CreateJob.module.css';
+
+// Set up the worker for pdf.js (Same version as ApplicationForm)
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 function CreateJob() {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [isParsing, setIsParsing] = useState(false);
     const [error, setError] = useState('');
     const [createdJobId, setCreatedJobId] = useState('');
 
@@ -24,6 +29,81 @@ function CreateJob() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file || file.type !== 'application/pdf') return;
+
+        try {
+            setIsParsing(true);
+            setError('');
+            
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let text = '';
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                const strings = content.items.map(item => item.str);
+                text += strings.join(' ') + '\n';
+            }
+            
+            console.log("--- RAW PDF TEXT ---");
+            console.log(text);
+            console.log("--------------------");
+
+            // Check if it's a valid template
+            const lowerText = text.toLowerCase();
+            if (!lowerText.includes('ilan') && !lowerText.includes('departman') && !lowerText.includes('about the role') && !lowerText.includes('responsibilities')) {
+                alert("Uyarı: Yüklenen PDF dosyasında beklenen standart başlıklar (Örn: 'İlan Başlığı', 'About The Role') bulunamadı. Metinler yanlış yerlere dolabilir.");
+            }
+
+            // A more resilient extraction function that looks for keywords with or without colons, 
+            // and captures everything up to the next known keyword.
+            const extractSection = (startKeywords, endKeywords, fallback = '') => {
+                const startRegex = new RegExp(`(?:${startKeywords.join('|')})\\s*:?\\s*`, 'i');
+                const startMatch = text.match(startRegex);
+                
+                if (!startMatch) return fallback;
+                
+                const startIndex = startMatch.index + startMatch[0].length;
+                let endIndex = text.length;
+
+                if (endKeywords && endKeywords.length > 0) {
+                    const endRegex = new RegExp(`(?:${endKeywords.join('|')})\\s*:?\\s*`, 'i');
+                    // Search for the end keyword ONLY AFTER the start index
+                    const remainingText = text.substring(startIndex);
+                    const endMatch = remainingText.match(endRegex);
+                    if (endMatch) {
+                        endIndex = startIndex + endMatch.index;
+                    }
+                }
+
+                const extracted = text.substring(startIndex, endIndex).trim();
+                return extracted || fallback;
+            };
+
+            const parsedData = {
+                jobTitle: extractSection(['İlan Başlığı', 'Pozisyon', 'Job Title'], ['Departman', 'About the Team', 'About The Role']) || formData.jobTitle,
+                department: extractSection(['Departman', 'Bölüm', 'Department'], ['Şirket Hakkında', 'Biz Kimiz', 'About the Team']) || formData.department,
+                aboutCompany: extractSection(['Şirket Hakkında', 'Biz Kimiz', 'Hakkımızda', 'About Company', 'About the Team'], ['Rol Hakkında', 'İş Tanımı', 'Sorumluluklar', 'Aranan Nitelikler', 'Görevler', 'About The Role', 'Responsibilities']) || formData.aboutCompany,
+                aboutRole: extractSection(['Rol Hakkında', 'İş Tanımı', 'Position Overview', 'About The Role'], ['Sorumluluklar', 'Görevler', 'Aranan Nitelikler', 'İstenen Yetenekler', 'Ayrıcalıklar', 'Responsibilities']) || formData.aboutRole,
+                responsibilities: extractSection(['Sorumluluklar', 'Görevler', 'İş Tanımı', 'Responsibilities'], ['Aranan Nitelikler', 'İstenen Yetenekler', 'Beklentilerimiz', 'Ayrıcalıklar', 'Yan Haklar', 'Expected Qualifications', 'What We Offer', 'Take the Next Step']) || formData.responsibilities,
+                requiredQualifications: extractSection(['Aranan Nitelikler', 'İstenen Yetenekler', 'Beklentilerimiz', 'Qualifications', 'Requirements', 'Expected Qualifications'], ['Ayrıcalıklar', 'Yan Haklar', 'Sunduklarımız', 'Benefits', 'What We Offer', 'Take the Next Step']) || formData.requiredQualifications,
+                benefits: extractSection(['Ayrıcalıklar', 'Yan Haklar', 'Sunduklarımız', 'Faydalar', 'Benefits', 'What We Offer'], ['Take the Next Step']) || formData.benefits
+            };
+
+            setFormData(prev => ({ ...prev, ...parsedData }));
+
+        } catch (err) {
+            console.error('PDF Parsing Error:', err);
+            setError('PDF Okunurken bir hata oluştu. Dosyanın şifreli veya bozuk olmadığından emin olun.');
+        } finally {
+            setIsParsing(false);
+            e.target.value = null; // reset file input
+        }
     };
 
     const handleSubmit = async (e, saveAsDraft = false) => {
@@ -156,6 +236,22 @@ function CreateJob() {
 
             <form className={styles.formContainer} onSubmit={(e) => handleSubmit(e, false)}>
                 {error && <div style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
+
+                {/* PDF Upload Banner */}
+                <div style={{ backgroundColor: '#eef2ff', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px dashed #6366f1' }}>
+                    <h3 style={{ margin: '0 0 10px 0', color: '#4f46e5' }}>🤖 Yapay Zeka ile Otomatik Doldur (İsteğe Bağlı)</h3>
+                    <p style={{ margin: '0 0 15px 0', fontSize: '14px', color: '#4b5563' }}>
+                        Standart İlan Taslağınızı (PDF) yükleyin, sistem "İlan Başlığı:", "Sorumluluklar:" vb. başlıkları algılayıp formu sizin yerinize doldursun.
+                    </p>
+                    <input 
+                        type="file" 
+                        accept="application/pdf" 
+                        onChange={handleFileUpload}
+                        disabled={isParsing}
+                        style={{ display: 'block', padding: '10px', backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', width: '100%', maxWidth: '400px' }}
+                    />
+                    {isParsing && <span style={{display: 'block', marginTop: '10px', color: '#4f46e5', fontWeight: 'bold'}}>PDF Analiz ediliyor...</span>}
+                </div>
 
                 {/* Box 1: Basic Info */}
                 <div className={styles.box}>

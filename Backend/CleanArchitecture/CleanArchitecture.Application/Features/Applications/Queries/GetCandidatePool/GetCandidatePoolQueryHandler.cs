@@ -46,6 +46,8 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
             var query = from a in apps
                         join p in profiles on a.CandidateId equals p.Id
                         join j in jobs on a.JobPostingId equals j.Id
+                        // Ensure we filter by specific job if requested
+                        where !request.JobPostingId.HasValue || a.JobPostingId == request.JobPostingId.Value
                         join r in rankings on a.Id equals r.ApplicationId into rankingGroup
                         from r in rankingGroup.DefaultIfEmpty()
                         select new CandidatePoolDto

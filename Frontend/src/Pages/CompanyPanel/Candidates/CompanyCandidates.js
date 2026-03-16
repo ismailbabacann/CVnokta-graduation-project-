@@ -7,6 +7,7 @@ function CompanyCandidates() {
     const [candidates, setCandidates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Modal State
     const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -65,6 +66,13 @@ function CompanyCandidates() {
         fetchCandidates();
     }, [sortBy]);
 
+    const filteredCandidates = candidates.filter(cand => {
+        const trm = searchTerm.toLowerCase();
+        const fullName = `${cand.firstName} ${cand.lastName}`.toLowerCase();
+        const pos = (cand.appliedPosition || '').toLowerCase();
+        return fullName.includes(trm) || pos.includes(trm);
+    });
+
     return (
         <div className={styles.container}>
             {/* Header Area */}
@@ -78,7 +86,13 @@ function CompanyCandidates() {
             {/* Table Area */}
             <div className={styles.tableSection}>
                 <div className={styles.tableControls}>
-                    <input type="text" placeholder="Aday ismi veya pozisyon ara..." className={styles.searchInput} />
+                    <input 
+                        type="text" 
+                        placeholder="Aday ismi veya pozisyon ara..." 
+                        className={styles.searchInput}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                     <div className={styles.filters}>
                         <select
                             className={styles.filterSelect}
@@ -110,10 +124,10 @@ function CompanyCandidates() {
                         {!loading && error && (
                             <tr><td colSpan="6" style={{ textAlign: "center", padding: "20px", color: "red" }}>{error}</td></tr>
                         )}
-                        {!loading && !error && candidates.length === 0 && (
-                            <tr><td colSpan="6" style={{ textAlign: "center", padding: "20px", color: "#666" }}>Henüz hiçbir ilanınıza başvuru yapılmamış.</td></tr>
+                        {!loading && !error && filteredCandidates.length === 0 && (
+                            <tr><td colSpan="6" style={{ textAlign: "center", padding: "20px", color: "#666" }}>Arama kriterlerine uyan aday bulunamadı.</td></tr>
                         )}
-                        {!loading && !error && candidates.map(cand => (
+                        {!loading && !error && filteredCandidates.map(cand => (
                             <tr key={cand.applicationId}>
                                 <td>
                                     <div className={styles.candidateInfo}>
@@ -154,7 +168,7 @@ function CompanyCandidates() {
                     </tbody>
                 </table>
                 <div className={styles.pagination}>
-                    <span>Sistemde toplam {candidates.length} aday bulunuyor</span>
+                    <span>Sistemde toplam {filteredCandidates.length} aday bulunuyor</span>
                 </div>
             </div>
 
