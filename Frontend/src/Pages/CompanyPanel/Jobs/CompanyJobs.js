@@ -143,7 +143,6 @@ function CompanyJobs() {
     const totalApps = jobs.reduce((sum, job) => sum + (job.totalApplications || 0), 0);
     const activeCount = jobs.filter(j => j.status === 'Active').length;
     const totalHighMatch = jobs.reduce((sum, job) => sum + (job.nlpHighMatchCount || 0), 0);
-    const pendingCount = jobs.filter(j => j.status === 'Draft' || j.isDraft).length;
 
     // Derived states for filtering
     const departments = ['All', ...new Set(jobs.map(j => j.department).filter(Boolean))];
@@ -275,7 +274,6 @@ function CompanyJobs() {
                                     <td>
                                         <div className={styles.statsCol}>
                                             <div className={styles.statGroup}><strong>{job.totalApplications || 0}</strong><span>Başvuru</span></div>
-                                            <div className={styles.statGroup}><strong className={styles.blueText}>{job.totalInterviewed || 0}</strong><span>Mülakat</span></div>
                                         </div>
                                     </td>
                                     <td>

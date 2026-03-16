@@ -175,9 +175,9 @@ function CreateJob() {
     };
 
     const handleCopy = () => {
-        const link = `hr.ai/jobs/ilan-${createdJobId || 'placeholder'}`;
+        const link = `${window.location.origin}/jobs/${createdJobId || 'placeholder'}`;
         navigator.clipboard.writeText(link);
-        alert("Link copied!");
+        alert("Link kopyalandı!");
     };
 
     const resetForm = () => {
@@ -208,8 +208,8 @@ function CreateJob() {
                     </p>
 
                     <div className={styles.linkContainer}>
-                        <span className={styles.linkText}>hr.ai/jobs/ilan-{createdJobId || 'pending'}</span>
-                        <button className={styles.copyBtn} onClick={handleCopy}>Copy</button>
+                        <span className={styles.linkText}>{window.location.origin}/jobs/{createdJobId || 'pending'}</span>
+                        <button className={styles.copyBtn} onClick={handleCopy}>Kopyala</button>
                     </div>
 
                     <div className={styles.actionButtons}>

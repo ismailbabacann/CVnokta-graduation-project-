@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import * as pdfjsLib from 'pdfjs-dist';
 import '../ApplicationForm/ApplicationForm.css';
@@ -9,7 +9,6 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLi
 
 function ApplicationForm({ onBack }) {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [job, setJob] = useState(null);
 
   useEffect(() => {
