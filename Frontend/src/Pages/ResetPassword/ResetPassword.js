@@ -64,7 +64,7 @@ function ResetPassword() {
         setStatus({ type: '', message: '' });
 
         try {
-            const response = await axios.post('https://localhost:9001/api/Account/reset-password', {
+            await axios.post('https://localhost:9001/api/Account/reset-password', {
                 email: formData.email,
                 token: formData.token,
                 password: formData.password,

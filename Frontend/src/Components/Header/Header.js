@@ -76,6 +76,13 @@ function Header({ user }) {
           >
             FAQ
           </button>
+
+          <button
+            className={`${styles.navLink} ${location.pathname === '/insights' ? styles.active : ''}`}
+            onClick={() => navigate('/insights')}
+          >
+            Insights
+          </button>
           
           <button
             className={`${styles.navLink} ${location.pathname === '/jobs' ? styles.active : ''}`}
