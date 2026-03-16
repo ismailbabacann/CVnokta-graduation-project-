@@ -1,9 +1,20 @@
 import React from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styles from './CompanyLayout.module.css';
 
 function CompanyLayout() {
     const location = useLocation();
+    const navigate = useNavigate();
+
+    // Get the User's name from localStorage (defaults to "İnsan Kaynakları" if not found)
+    const userName = localStorage.getItem('userName') || 'İnsan Kaynakları';
+
+    const handleLogout = () => {
+        localStorage.removeItem('jwToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userName');
+        navigate('/login');
+    };
 
     const getPageTitle = () => {
         switch (location.pathname) {
@@ -43,10 +54,15 @@ function CompanyLayout() {
                         <span className={styles.breadcrumb}>hr.ai &nbsp;/&nbsp; {getPageTitle()}</span>
                     </div>
                     <div className={styles.headerRight}>
-                        <span className={styles.notificationIcon}>🔔</span>
                         <div className={styles.userProfile}>
-                            <span className={styles.userName}>İnsan Kaynakları<br /><span>Admin</span></span>
-                            <div className={styles.avatar}>İK</div>
+                            <span className={styles.userName}>
+                                {userName}<br />
+                                <span>Admin</span>
+                                <span onClick={handleLogout} style={{ color: '#e74c3c', cursor: 'pointer', fontSize: '12px', marginLeft: '5px' }}>
+                                    (Çıkış Yap)
+                                </span>
+                            </span>
+                            <div className={styles.avatar}>{userName.charAt(0).toUpperCase()}</div>
                         </div>
                     </div>
                 </header>

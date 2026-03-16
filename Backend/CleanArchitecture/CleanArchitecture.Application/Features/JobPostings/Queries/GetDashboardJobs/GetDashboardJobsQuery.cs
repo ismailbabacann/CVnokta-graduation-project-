@@ -38,15 +38,18 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs
         private readonly IGenericRepositoryAsync<JobPosting> _jobRepository;
         private readonly IGenericRepositoryAsync<JobApplication> _appRepository;
         private readonly IGenericRepositoryAsync<CandidateRankingView> _rankingRepository;
+        private readonly IAuthenticatedUserService _authenticatedUserService;
 
         public GetDashboardJobsQueryHandler(
             IGenericRepositoryAsync<JobPosting> jobRepository,
             IGenericRepositoryAsync<JobApplication> appRepository,
-            IGenericRepositoryAsync<CandidateRankingView> rankingRepository)
+            IGenericRepositoryAsync<CandidateRankingView> rankingRepository,
+            IAuthenticatedUserService authenticatedUserService)
         {
             _jobRepository = jobRepository;
             _appRepository = appRepository;
             _rankingRepository = rankingRepository;
+            _authenticatedUserService = authenticatedUserService;
         }
 
         public async Task<PagedResponse<DashboardJobDto>> Handle(GetDashboardJobsQuery request, CancellationToken cancellationToken)
@@ -55,7 +58,8 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs
             var apps = await _appRepository.GetAllAsync();
             var rankings = await _rankingRepository.GetAllAsync();
 
-            var query = jobs.AsQueryable();
+            var currentUserId = Guid.Parse(_authenticatedUserService.UserId);
+            var query = jobs.Where(j => j.HiringManagerId == currentUserId).AsQueryable();
 
             if (!string.IsNullOrEmpty(request.SearchTerm))
             {

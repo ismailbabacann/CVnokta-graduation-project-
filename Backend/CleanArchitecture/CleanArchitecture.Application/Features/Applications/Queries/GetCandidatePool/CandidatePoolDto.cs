@@ -13,5 +13,10 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
         public int? ExperienceYears { get; set; }
         public string EducationLevel { get; set; }
         public decimal? NlpMatchScore { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+        public string LinkedInProfile { get; set; }
+        public string CvUrl { get; set; }
+        public string CoverLetter { get; set; }
     }
 }

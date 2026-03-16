@@ -44,6 +44,9 @@ function Login({ setUser }) {
                 if (response.data.refreshToken) {
                     localStorage.setItem('refreshToken', response.data.refreshToken);
                 }
+                if (response.data.userName) {
+                    localStorage.setItem('userName', response.data.userName);
+                }
 
                 // Update user state
                 setUser({
@@ -52,7 +55,12 @@ function Login({ setUser }) {
                     roles: response.data.roles
                 });
 
-                navigate('/');
+                // Role-based redirection
+                if (response.data.roles && response.data.roles.includes('HiringManager')) {
+                    navigate('/company');
+                } else {
+                    navigate('/');
+                }
             } else {
                 setError('Login failed. Please try again.');
             }
