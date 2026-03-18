@@ -1,0 +1,102 @@
+[
+  {
+    "id": "va-001",
+    "category": "verbal_ability",
+    "difficulty": "easy",
+    "question": "Choose the word most similar in meaning to 'BENEVOLENT':",
+    "options": ["Hostile", "Kind", "Greedy", "Indifferent"],
+    "correct_answer": 1,
+    "explanation": "Benevolent means well-meaning, kind, and generous."
+  },
+  {
+    "id": "va-002",
+    "category": "verbal_ability",
+    "difficulty": "medium",
+    "question": "Choose the word most OPPOSITE in meaning to 'EPHEMERAL':",
+    "options": ["Temporary", "Permanent", "Fleeting", "Brief"],
+    "correct_answer": 1,
+    "explanation": "Ephemeral means short-lived. Its opposite is permanent."
+  },
+  {
+    "id": "va-003",
+    "category": "verbal_ability",
+    "difficulty": "medium",
+    "question": "Select the correctly spelled word:",
+    "options": ["Accomodate", "Accommodate", "Acommodate", "Acomodate"],
+    "correct_answer": 1,
+    "explanation": "The correct spelling is 'accommodate' with double c and double m."
+  },
+  {
+    "id": "va-004",
+    "category": "verbal_ability",
+    "difficulty": "easy",
+    "question": "'The project was completed __________ schedule.' Choose the correct preposition:",
+    "options": ["in", "on", "ahead of", "at"],
+    "correct_answer": 2,
+    "explanation": "'Ahead of schedule' is the correct collocation meaning earlier than planned."
+  },
+  {
+    "id": "va-005",
+    "category": "verbal_ability",
+    "difficulty": "hard",
+    "question": "Which sentence uses the word 'pragmatic' correctly?",
+    "options": [
+      "The pragmatic sunset painted the sky red.",
+      "She took a pragmatic approach to solving the budget crisis.",
+      "His pragmatic singing voice filled the hall.",
+      "The pragmatic equation could not be solved."
+    ],
+    "correct_answer": 1,
+    "explanation": "Pragmatic means practical, dealing with things sensibly and realistically."
+  },
+  {
+    "id": "va-006",
+    "category": "verbal_ability",
+    "difficulty": "medium",
+    "question": "Choose the correct analogy: AUTHOR : BOOK :: COMPOSER : ?",
+    "options": ["Music", "Painting", "Symphony", "Instrument"],
+    "correct_answer": 2,
+    "explanation": "An author creates a book; a composer creates a symphony."
+  },
+  {
+    "id": "va-007",
+    "category": "verbal_ability",
+    "difficulty": "easy",
+    "question": "Which word does NOT belong in the group: Apple, Banana, Carrot, Mango?",
+    "options": ["Apple", "Banana", "Carrot", "Mango"],
+    "correct_answer": 2,
+    "explanation": "Carrot is a vegetable; the others are fruits."
+  },
+  {
+    "id": "va-008",
+    "category": "verbal_ability",
+    "difficulty": "hard",
+    "question": "The CEO's __________ leadership style inspired loyalty across all departments.",
+    "options": ["autocratic", "charismatic", "laissez-faire", "bureaucratic"],
+    "correct_answer": 1,
+    "explanation": "Charismatic means exercising a compelling charm that inspires loyalty."
+  },
+  {
+    "id": "va-009",
+    "category": "verbal_ability",
+    "difficulty": "medium",
+    "question": "Identify the sentence with correct grammar:",
+    "options": [
+      "Neither the manager nor the employees was informed.",
+      "Neither the manager nor the employees were informed.",
+      "Neither the manager nor the employees is informed.",
+      "Neither the manager nor the employees has been informed."
+    ],
+    "correct_answer": 1,
+    "explanation": "With 'neither...nor', the verb agrees with the nearer subject ('employees' = plural → 'were')."
+  },
+  {
+    "id": "va-010",
+    "category": "verbal_ability",
+    "difficulty": "hard",
+    "question": "Which word best describes someone who speaks very little?",
+    "options": ["Loquacious", "Taciturn", "Gregarious", "Verbose"],
+    "correct_answer": 1,
+    "explanation": "Taciturn means reserved, saying very little. The others imply talking a lot or being sociable."
+  }
+]

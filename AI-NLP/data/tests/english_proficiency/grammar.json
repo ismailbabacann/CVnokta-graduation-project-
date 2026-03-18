@@ -1,0 +1,127 @@
+[
+  {
+    "id": "gr-001",
+    "category": "grammar",
+    "difficulty": "easy",
+    "question": "Choose the correct form: 'She __________ to the office every day.'",
+    "options": ["drive", "drives", "driving", "driven"],
+    "correct_answer": 1,
+    "explanation": "Third person singular present tense requires 'drives'."
+  },
+  {
+    "id": "gr-002",
+    "category": "grammar",
+    "difficulty": "medium",
+    "question": "Choose the correct sentence:",
+    "options": [
+      "If I was you, I would accept the offer.",
+      "If I were you, I would accept the offer.",
+      "If I am you, I would accept the offer.",
+      "If I be you, I would accept the offer."
+    ],
+    "correct_answer": 1,
+    "explanation": "The subjunctive mood requires 'were' in hypothetical conditionals."
+  },
+  {
+    "id": "gr-003",
+    "category": "grammar",
+    "difficulty": "medium",
+    "question": "Select the sentence with correct use of the past perfect:",
+    "options": [
+      "She had finished the report before the meeting started.",
+      "She has finished the report before the meeting started.",
+      "She finished the report before the meeting had started.",
+      "She had finish the report before the meeting started."
+    ],
+    "correct_answer": 0,
+    "explanation": "Past perfect ('had finished') is used for the earlier of two past actions."
+  },
+  {
+    "id": "gr-004",
+    "category": "grammar",
+    "difficulty": "easy",
+    "question": "Which sentence uses articles correctly?",
+    "options": [
+      "She is a honest person.",
+      "She is an honest person.",
+      "She is the honest person.",
+      "She is honest person."
+    ],
+    "correct_answer": 1,
+    "explanation": "'Honest' starts with a vowel sound (/ɒn/), so 'an' is correct."
+  },
+  {
+    "id": "gr-005",
+    "category": "grammar",
+    "difficulty": "hard",
+    "question": "Identify the sentence with correct parallel structure:",
+    "options": [
+      "The manager likes planning, organising, and to control.",
+      "The manager likes planning, organising, and controlling.",
+      "The manager likes to plan, organising, and controlling.",
+      "The manager likes planning, to organise, and controlling."
+    ],
+    "correct_answer": 1,
+    "explanation": "Parallel structure requires consistent verb forms: planning, organising, controlling."
+  },
+  {
+    "id": "gr-006",
+    "category": "grammar",
+    "difficulty": "medium",
+    "question": "Choose the correct relative pronoun: 'The developer __________ wrote the code is on leave.'",
+    "options": ["which", "whom", "who", "whose"],
+    "correct_answer": 2,
+    "explanation": "'Who' is used as a subject pronoun for people."
+  },
+  {
+    "id": "gr-007",
+    "category": "grammar",
+    "difficulty": "hard",
+    "question": "Which sentence correctly uses the passive voice?",
+    "options": [
+      "The report was being review by the manager.",
+      "The report was being reviewed by the manager.",
+      "The report was been reviewed by the manager.",
+      "The report is being review by the manager."
+    ],
+    "correct_answer": 1,
+    "explanation": "Past continuous passive: was/were + being + past participle."
+  },
+  {
+    "id": "gr-008",
+    "category": "grammar",
+    "difficulty": "easy",
+    "question": "Choose the correct form: 'There __________ many candidates at the interview.'",
+    "options": ["was", "were", "is", "has"],
+    "correct_answer": 1,
+    "explanation": "'Candidates' is plural, so 'were' is correct."
+  },
+  {
+    "id": "gr-009",
+    "category": "grammar",
+    "difficulty": "medium",
+    "question": "Select the correct sentence:",
+    "options": [
+      "Each of the employees have their own desk.",
+      "Each of the employees has their own desk.",
+      "Each of the employees has his own desk.",
+      "Each of the employees have his own desk."
+    ],
+    "correct_answer": 1,
+    "explanation": "'Each' is singular and takes 'has'. Modern English accepts 'their' as a gender-neutral singular pronoun."
+  },
+  {
+    "id": "gr-010",
+    "category": "grammar",
+    "difficulty": "hard",
+    "question": "Which sentence uses the gerund correctly?",
+    "options": [
+      "I appreciate you to help me with the project.",
+      "I appreciate you helping me with the project.",
+      "I appreciate you helped me with the project.",
+      "I appreciate you help me with the project."
+    ],
+    "correct_answer": 1,
+    "explanation": "'Appreciate' is followed by a gerund (verb+ing), not an infinitive."
+  }
+]

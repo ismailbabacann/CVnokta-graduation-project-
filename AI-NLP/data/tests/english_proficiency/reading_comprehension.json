@@ -1,0 +1,132 @@
+[
+  {
+    "id": "rc-001",
+    "category": "reading_comprehension",
+    "difficulty": "medium",
+    "question": "Read the passage: 'Remote work has transformed the modern workplace. Companies report increased productivity but face challenges in maintaining team cohesion. Studies show that hybrid models — combining remote and in-office work — offer the best balance.' What is the main idea?",
+    "options": [
+      "Remote work is always better than office work",
+      "Hybrid work models balance productivity gains with team cohesion challenges",
+      "Companies should return to fully in-office work",
+      "Remote work reduces productivity"
+    ],
+    "correct_answer": 1,
+    "explanation": "The passage presents hybrid models as offering the best balance between remote and in-office benefits."
+  },
+  {
+    "id": "rc-002",
+    "category": "reading_comprehension",
+    "difficulty": "easy",
+    "question": "Read: 'The meeting will be held on Tuesday at 3 PM in Conference Room B. All department heads must attend. Please bring your quarterly reports.' Who needs to attend?",
+    "options": ["All employees", "Department heads", "The CEO only", "New hires"],
+    "correct_answer": 1,
+    "explanation": "The text explicitly states 'All department heads must attend.'"
+  },
+  {
+    "id": "rc-003",
+    "category": "reading_comprehension",
+    "difficulty": "hard",
+    "question": "Read: 'While artificial intelligence promises to automate many routine tasks, experts caution that it will augment rather than replace most professional roles. The key challenge lies not in technology adoption, but in reskilling the workforce to collaborate effectively with AI systems.' What does the author imply about AI's impact on jobs?",
+    "options": [
+      "AI will eliminate most jobs",
+      "AI will have no impact on employment",
+      "The main issue is training people to work alongside AI",
+      "Technology adoption is the biggest challenge"
+    ],
+    "correct_answer": 2,
+    "explanation": "The author states the key challenge is 'reskilling the workforce to collaborate effectively with AI systems.'"
+  },
+  {
+    "id": "rc-004",
+    "category": "reading_comprehension",
+    "difficulty": "medium",
+    "question": "Read: 'Customer satisfaction surveys revealed that 78% of respondents valued response time over issue resolution complexity. This suggests that acknowledging a problem quickly is more important to customers than immediately solving it.' What business strategy does this support?",
+    "options": [
+      "Investing only in complex problem-solving training",
+      "Prioritising fast initial responses to customer inquiries",
+      "Reducing customer service staff",
+      "Ignoring complex issues entirely"
+    ],
+    "correct_answer": 1,
+    "explanation": "The data shows customers value quick responses, supporting a strategy of fast initial acknowledgment."
+  },
+  {
+    "id": "rc-005",
+    "category": "reading_comprehension",
+    "difficulty": "easy",
+    "question": "Read: 'The software update includes three main features: improved security protocols, a redesigned dashboard, and support for multiple languages. Users should update before March 1st to avoid compatibility issues.' When should users update?",
+    "options": ["Immediately", "Before March 1st", "After March 1st", "No deadline mentioned"],
+    "correct_answer": 1,
+    "explanation": "The text clearly states 'Users should update before March 1st.'"
+  },
+  {
+    "id": "rc-006",
+    "category": "reading_comprehension",
+    "difficulty": "hard",
+    "question": "Read: 'The paradox of choice suggests that while consumers appreciate having options, an excess of choices often leads to decision paralysis and decreased satisfaction. Successful e-commerce platforms have learned to curate selections rather than maximise them, guiding users through personalised recommendations.' What strategy do successful platforms use?",
+    "options": [
+      "Offering the maximum number of products possible",
+      "Removing all options and showing only one product",
+      "Curating selections with personalised recommendations",
+      "Letting users sort through all products themselves"
+    ],
+    "correct_answer": 2,
+    "explanation": "The passage states successful platforms 'curate selections' with 'personalised recommendations.'"
+  },
+  {
+    "id": "rc-007",
+    "category": "reading_comprehension",
+    "difficulty": "medium",
+    "question": "Read: 'Agile methodology emphasises iterative development, where requirements and solutions evolve through collaborative effort. Unlike waterfall approaches, Agile allows teams to adapt to changing requirements even late in development.' What distinguishes Agile from waterfall?",
+    "options": [
+      "Agile has no requirements",
+      "Agile cannot adapt to changes",
+      "Agile allows adaptation to changing requirements throughout development",
+      "Waterfall is more flexible than Agile"
+    ],
+    "correct_answer": 2,
+    "explanation": "The passage explicitly contrasts Agile's flexibility with waterfall's rigid approach."
+  },
+  {
+    "id": "rc-008",
+    "category": "reading_comprehension",
+    "difficulty": "medium",
+    "question": "Read: 'The company's carbon footprint decreased by 30% after implementing three initiatives: switching to renewable energy sources, optimising logistics routes, and encouraging remote work for non-essential office roles.' Which was NOT one of the three initiatives?",
+    "options": [
+      "Switching to renewable energy",
+      "Optimising logistics routes",
+      "Planting trees",
+      "Encouraging remote work"
+    ],
+    "correct_answer": 2,
+    "explanation": "Planting trees is not mentioned among the three initiatives listed."
+  },
+  {
+    "id": "rc-009",
+    "category": "reading_comprehension",
+    "difficulty": "easy",
+    "question": "Read the email: 'Dear Team, Due to the public holiday on Monday, the Friday deadline has been extended to next Tuesday. Please ensure all deliverables are submitted by 5 PM.' What changed about the deadline?",
+    "options": [
+      "It was moved earlier to Thursday",
+      "It was extended from Friday to Tuesday",
+      "It was cancelled entirely",
+      "It remained the same"
+    ],
+    "correct_answer": 1,
+    "explanation": "The email states the Friday deadline was extended to next Tuesday."
+  },
+  {
+    "id": "rc-010",
+    "category": "reading_comprehension",
+    "difficulty": "hard",
+    "question": "Read: 'Despite initial scepticism, the four-day work week trial showed a 12% increase in productivity and a 40% decrease in employee burnout. However, client-facing departments reported scheduling challenges. The report recommends a phased rollout with staggered schedules for customer service teams.' What does the report suggest for client-facing teams?",
+    "options": [
+      "They should not participate in the four-day week",
+      "They should implement staggered schedules during a phased rollout",
+      "They should work five days regardless",
+      "They should work fewer hours each day instead"
+    ],
+    "correct_answer": 1,
+    "explanation": "The report recommends 'a phased rollout with staggered schedules for customer service teams.'"
+  }
+]

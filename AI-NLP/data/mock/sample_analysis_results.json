@@ -1,0 +1,44 @@
+[
+  {
+    "application_id": "d4e5f6a7-b8c9-0123-def0-123456789abc",
+    "cv_upload_id": "e5f6a7b8-c9d0-1234-ef01-23456789abcd",
+    "analysis_score": 88.5,
+    "experience_match_score": 92.0,
+    "education_match_score": 85.0,
+    "skills_match_score": 90.0,
+    "matching_skills": ".NET Core, C#, Python, Docker, Kubernetes, PostgreSQL, Redis, RabbitMQ, REST API, Git",
+    "missing_skills": "",
+    "overall_assessment": "Excellent match for the Senior Backend Developer position. The candidate has 6+ years of directly relevant experience with the core technology stack. MSc in Software Engineering adds strong academic foundation. Strong alignment with required skills including container orchestration and message queuing. Recommended for next stage.",
+    "is_passed": true,
+    "strengths": "Strong .NET Core and microservices experience. Kubernetes and Docker expertise. Team leadership experience. Relevant certifications (Azure, Docker).",
+    "weaknesses": "No specific mention of CI/CD pipeline setup experience in detail. Could strengthen open-source contribution history."
+  },
+  {
+    "application_id": "f6a7b8c9-d0e1-2345-f012-3456789abcde",
+    "cv_upload_id": "a7b8c9d0-e1f2-3456-0123-456789abcdef",
+    "analysis_score": 91.0,
+    "experience_match_score": 88.0,
+    "education_match_score": 95.0,
+    "skills_match_score": 92.0,
+    "matching_skills": "Python, PyTorch, TensorFlow, Hugging Face, LangChain, FastAPI, Docker, NLP, RAG, FAISS",
+    "missing_skills": "SQL (listed but likely has via PostgreSQL)",
+    "overall_assessment": "Outstanding match for the AI/ML Engineer role. MSc in AI with focus on NLP provides the exact academic background needed. 4 years of production ML experience including RAG systems and LangChain — directly aligned with the role requirements. Strong publication potential given open-source contributions.",
+    "is_passed": true,
+    "strengths": "Direct RAG and LangChain experience. Strong NLP background with transformer models. Production deployment experience with FastAPI. Relevant certifications in TensorFlow and AWS ML.",
+    "weaknesses": "Could have more years of experience. No explicit mention of A/B testing framework experience."
+  },
+  {
+    "application_id": "b8c9d0e1-f2a3-4567-0123-56789abcdef0",
+    "cv_upload_id": "c9d0e1f2-a3b4-5678-1234-6789abcdef01",
+    "analysis_score": 72.0,
+    "experience_match_score": 70.0,
+    "education_match_score": 75.0,
+    "skills_match_score": 68.0,
+    "matching_skills": "React.js, JavaScript, TypeScript, HTML5, CSS3, Tailwind CSS, Redux, REST API, Git",
+    "missing_skills": "Figma, Three.js/WebGL experience",
+    "overall_assessment": "Good match for the Frontend Developer role with solid React experience. Meets the core requirements well. Missing preferred qualifications like Three.js and accessibility experience. English proficiency at Intermediate level might be a concern for an international team. Recommended for testing stage.",
+    "is_passed": true,
+    "strengths": "3 years of focused React development. TypeScript and modern tooling. Testing experience with Jest.",
+    "weaknesses": "No Figma or design tool experience listed. Missing Three.js/WebGL preferred skill. Intermediate English level."
+  }
+]
