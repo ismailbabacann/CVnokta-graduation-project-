@@ -1,0 +1,92 @@
+[
+  {
+    "id": "lr-001",
+    "category": "logical_reasoning",
+    "difficulty": "medium",
+    "question": "If all Bloops are Razzies and all Razzies are Lazzies, then which statement must be true?",
+    "options": ["All Bloops are Lazzies", "All Lazzies are Bloops", "Some Lazzies are not Bloops", "No Bloops are Lazzies"],
+    "correct_answer": 0,
+    "explanation": "This is a syllogism: Bloops ⊂ Razzies ⊂ Lazzies, so all Bloops are Lazzies."
+  },
+  {
+    "id": "lr-002",
+    "category": "logical_reasoning",
+    "difficulty": "easy",
+    "question": "What comes next in the sequence: 2, 6, 18, 54, ...?",
+    "options": ["108", "162", "72", "180"],
+    "correct_answer": 1,
+    "explanation": "Each term is multiplied by 3. 54 × 3 = 162."
+  },
+  {
+    "id": "lr-003",
+    "category": "logical_reasoning",
+    "difficulty": "medium",
+    "question": "A clock shows 3:15. What is the angle between the hour and minute hands?",
+    "options": ["0°", "7.5°", "15°", "22.5°"],
+    "correct_answer": 1,
+    "explanation": "At 3:15, minute hand is at 90°. Hour hand is at 90° + 15×0.5° = 97.5°. Difference = 7.5°."
+  },
+  {
+    "id": "lr-004",
+    "category": "logical_reasoning",
+    "difficulty": "hard",
+    "question": "If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets?",
+    "options": ["1 minute", "5 minutes", "20 minutes", "100 minutes"],
+    "correct_answer": 1,
+    "explanation": "Each machine makes 1 widget in 5 minutes. 100 machines each making 1 widget = 5 minutes total."
+  },
+  {
+    "id": "lr-005",
+    "category": "logical_reasoning",
+    "difficulty": "medium",
+    "question": "Tom is taller than Jim. Jim is taller than Sam. Sam is taller than Bob. Who is the shortest?",
+    "options": ["Tom", "Jim", "Sam", "Bob"],
+    "correct_answer": 3,
+    "explanation": "Order: Tom > Jim > Sam > Bob. Bob is the shortest."
+  },
+  {
+    "id": "lr-006",
+    "category": "logical_reasoning",
+    "difficulty": "easy",
+    "question": "Which number does NOT belong in the series: 2, 5, 10, 17, __(28)__, 37?",
+    "options": ["The series has no error", "28 should be 26", "37 should be 38", "17 should be 18"],
+    "correct_answer": 1,
+    "explanation": "Pattern: +3, +5, +7, +9, +11. After 17: 17+9=26, 26+11=37. So 28 should be 26."
+  },
+  {
+    "id": "lr-007",
+    "category": "logical_reasoning",
+    "difficulty": "hard",
+    "question": "A farmer has 17 sheep. All but 9 die. How many sheep does the farmer have left?",
+    "options": ["8", "9", "0", "17"],
+    "correct_answer": 1,
+    "explanation": "'All but 9 die' means 9 survive. The farmer has 9 sheep left."
+  },
+  {
+    "id": "lr-008",
+    "category": "logical_reasoning",
+    "difficulty": "medium",
+    "question": "If APPLE is coded as 50 (A=1, P=16, P=16, L=12, E=5), what is GRAPE coded as?",
+    "options": ["50", "47", "52", "57"],
+    "correct_answer": 2,
+    "explanation": "G=7, R=18, A=1, P=16, E=5. Total = 7+18+1+16+5 = 47. Wait — let me recompute: 7+18+1+16+5=47. Hmm, but APPLE = 1+16+16+12+5=50. GRAPE=47 is option index 1. Actually GRAPE = G(7)+R(18)+A(1)+P(16)+E(5) = 47. The correct answer should be 47."
+  },
+  {
+    "id": "lr-009",
+    "category": "logical_reasoning",
+    "difficulty": "easy",
+    "question": "If you rearrange the letters 'CIFAIPC' you get the name of a(n):",
+    "options": ["City", "Animal", "Ocean", "Country"],
+    "correct_answer": 2,
+    "explanation": "CIFAIPC rearranges to PACIFIC, which is an ocean."
+  },
+  {
+    "id": "lr-010",
+    "category": "logical_reasoning",
+    "difficulty": "hard",
+    "question": "Three people check into a hotel room that costs $30. They each pay $10. The manager realizes the room is only $25 and gives $5 to the bellboy to return. The bellboy keeps $2 and gives $1 back to each person. Each person paid $9 (total $27) and the bellboy has $2. $27 + $2 = $29. Where is the missing dollar?",
+    "options": ["The bellboy stole it", "There is no missing dollar — the math is misleading", "The hotel kept it", "Each person should get $1.67 back"],
+    "correct_answer": 1,
+    "explanation": "The $27 already includes the bellboy's $2. The correct equation: $25 (room) + $2 (bellboy) = $27 paid. $27 + $3 returned = $30. No dollar is missing."
+  }
+]

@@ -1,0 +1,92 @@
+[
+  {
+    "id": "vc-001",
+    "category": "vocabulary",
+    "difficulty": "easy",
+    "question": "What does 'ubiquitous' mean?",
+    "options": ["Rare", "Present everywhere", "Dangerous", "Invisible"],
+    "correct_answer": 1,
+    "explanation": "Ubiquitous means found or present everywhere."
+  },
+  {
+    "id": "vc-002",
+    "category": "vocabulary",
+    "difficulty": "medium",
+    "question": "Choose the word that best completes: 'The company's __________ approach to innovation kept them ahead of competitors.'",
+    "options": ["retroactive", "proactive", "inactive", "reactive"],
+    "correct_answer": 1,
+    "explanation": "Proactive means creating or controlling a situation rather than just responding."
+  },
+  {
+    "id": "vc-003",
+    "category": "vocabulary",
+    "difficulty": "medium",
+    "question": "What is a 'paradigm'?",
+    "options": ["A type of chart", "A typical example or model", "A mathematical formula", "A business meeting"],
+    "correct_answer": 1,
+    "explanation": "A paradigm is a typical example, pattern, or model of something."
+  },
+  {
+    "id": "vc-004",
+    "category": "vocabulary",
+    "difficulty": "hard",
+    "question": "Choose the correct meaning of 'ameliorate':",
+    "options": ["To make worse", "To make better", "To remove", "To combine"],
+    "correct_answer": 1,
+    "explanation": "Ameliorate means to make (something bad or unsatisfactory) better."
+  },
+  {
+    "id": "vc-005",
+    "category": "vocabulary",
+    "difficulty": "easy",
+    "question": "'Comprehensive' most closely means:",
+    "options": ["Brief", "Complete and thorough", "Confusing", "Expensive"],
+    "correct_answer": 1,
+    "explanation": "Comprehensive means complete, including all or nearly all elements."
+  },
+  {
+    "id": "vc-006",
+    "category": "vocabulary",
+    "difficulty": "medium",
+    "question": "What does 'mitigate' mean in the sentence: 'We need to mitigate the risk'?",
+    "options": ["Increase", "Eliminate", "Reduce the severity of", "Ignore"],
+    "correct_answer": 2,
+    "explanation": "Mitigate means to make less severe, serious, or painful."
+  },
+  {
+    "id": "vc-007",
+    "category": "vocabulary",
+    "difficulty": "hard",
+    "question": "Choose the word that means 'to confirm or support':",
+    "options": ["Refute", "Corroborate", "Contradict", "Obfuscate"],
+    "correct_answer": 1,
+    "explanation": "Corroborate means to confirm or give support to a statement or theory."
+  },
+  {
+    "id": "vc-008",
+    "category": "vocabulary",
+    "difficulty": "easy",
+    "question": "'Innovative' is closest in meaning to:",
+    "options": ["Traditional", "Creative and original", "Expensive", "Complicated"],
+    "correct_answer": 1,
+    "explanation": "Innovative means featuring new methods; advanced and original."
+  },
+  {
+    "id": "vc-009",
+    "category": "vocabulary",
+    "difficulty": "medium",
+    "question": "What is the meaning of 'diligent'?",
+    "options": ["Lazy", "Careful and persistent", "Intelligent", "Wealthy"],
+    "correct_answer": 1,
+    "explanation": "Diligent means having or showing care and conscientiousness in one's work."
+  },
+  {
+    "id": "vc-010",
+    "category": "vocabulary",
+    "difficulty": "hard",
+    "question": "Choose the word that means 'existing in large numbers':",
+    "options": ["Sparse", "Prolific", "Negligible", "Minimal"],
+    "correct_answer": 1,
+    "explanation": "Prolific means producing in large quantities; present in large numbers."
+  }
+]

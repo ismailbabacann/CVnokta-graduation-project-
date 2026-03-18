@@ -1,0 +1,126 @@
+[
+  {
+    "full_name": "Ahmet Yılmaz",
+    "email": "ahmet.yilmaz@email.com",
+    "phone": "+90 532 123 4567",
+    "linkedin_url": "linkedin.com/in/ahmetyilmaz",
+    "summary": "Experienced backend developer with 6 years of experience in .NET Core and Python. Passionate about clean architecture, microservices, and cloud-native development. Strong track record of delivering scalable solutions.",
+    "education": [
+      {
+        "institution": "Istanbul Technical University",
+        "degree": "BSc",
+        "field": "Computer Engineering",
+        "gpa": "3.45",
+        "start_year": 2014,
+        "end_year": 2018
+      },
+      {
+        "institution": "Bogazici University",
+        "degree": "MSc",
+        "field": "Software Engineering",
+        "gpa": "3.72",
+        "start_year": 2018,
+        "end_year": 2020
+      }
+    ],
+    "experience": [
+      {
+        "company": "TechCorp Istanbul",
+        "title": "Junior Backend Developer",
+        "start_date": "2018-06",
+        "end_date": "2020-08",
+        "description": "Developed REST APIs using ASP.NET Core. Managed PostgreSQL databases. Participated in code reviews."
+      },
+      {
+        "company": "CloudScale Teknoloji",
+        "title": "Senior Backend Developer",
+        "start_date": "2020-09",
+        "end_date": null,
+        "description": "Designed microservice architecture using .NET Core and Docker. Implemented CI/CD with GitHub Actions. Led team of 4 developers. Managed Kubernetes deployments on Azure."
+      }
+    ],
+    "skills": [".NET Core", "C#", "Python", "Docker", "Kubernetes", "PostgreSQL", "Redis", "RabbitMQ", "REST API", "Git", "Azure", "Clean Architecture"],
+    "languages": ["Turkish (Native)", "English (Professional)"],
+    "certifications": ["Azure Developer Associate", "Docker Certified Associate"]
+  },
+  {
+    "full_name": "Elif Demir",
+    "email": "elif.demir@email.com",
+    "phone": "+90 555 987 6543",
+    "linkedin_url": "linkedin.com/in/elifdemir",
+    "summary": "AI/ML engineer with 4 years of experience building NLP systems. Specialised in transformer models, RAG pipelines, and production ML deployments. Contributor to open-source NLP tools.",
+    "education": [
+      {
+        "institution": "METU",
+        "degree": "BSc",
+        "field": "Computer Science",
+        "gpa": "3.80",
+        "start_year": 2015,
+        "end_year": 2019
+      },
+      {
+        "institution": "METU",
+        "degree": "MSc",
+        "field": "Artificial Intelligence",
+        "gpa": "3.90",
+        "start_year": 2019,
+        "end_year": 2021
+      }
+    ],
+    "experience": [
+      {
+        "company": "NLP Startup",
+        "title": "ML Engineer",
+        "start_date": "2021-01",
+        "end_date": "2023-06",
+        "description": "Built NLP pipelines for document classification. Fine-tuned BERT models for Turkish NER. Deployed models using FastAPI and Docker."
+      },
+      {
+        "company": "BigData Analytics",
+        "title": "Senior AI Engineer",
+        "start_date": "2023-07",
+        "end_date": null,
+        "description": "Designed RAG systems using LangChain and vector databases. Built candidate matching algorithms. Led evaluation framework design."
+      }
+    ],
+    "skills": ["Python", "PyTorch", "TensorFlow", "Hugging Face", "LangChain", "FastAPI", "Docker", "NLP", "RAG", "FAISS", "PostgreSQL", "Git"],
+    "languages": ["Turkish (Native)", "English (Fluent)"],
+    "certifications": ["TensorFlow Developer Certificate", "AWS ML Specialty"]
+  },
+  {
+    "full_name": "Mehmet Can Kara",
+    "email": "mehmet.kara@email.com",
+    "phone": "+90 541 456 7890",
+    "linkedin_url": null,
+    "summary": "Frontend developer with 3 years of React experience. Focused on creating accessible, performant web applications. Design-minded with strong collaboration skills.",
+    "education": [
+      {
+        "institution": "Sabanci University",
+        "degree": "BSc",
+        "field": "Computer Science",
+        "gpa": "3.20",
+        "start_year": 2017,
+        "end_year": 2021
+      }
+    ],
+    "experience": [
+      {
+        "company": "WebAgency",
+        "title": "Frontend Developer",
+        "start_date": "2021-03",
+        "end_date": "2023-05",
+        "description": "Built React components for e-commerce platforms. Implemented responsive designs with Tailwind CSS. Integrated REST APIs."
+      },
+      {
+        "company": "FinTech Startup",
+        "title": "Frontend Developer",
+        "start_date": "2023-06",
+        "end_date": null,
+        "description": "Developing React dashboard with TypeScript. Implementing state management with Redux Toolkit. Writing unit tests with Jest."
+      }
+    ],
+    "skills": ["React.js", "JavaScript", "TypeScript", "HTML5", "CSS3", "Tailwind CSS", "Redux", "REST API", "Git", "Jest"],
+    "languages": ["Turkish (Native)", "English (Intermediate)"],
+    "certifications": []
+  }
+]

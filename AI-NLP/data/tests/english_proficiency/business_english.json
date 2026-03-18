@@ -1,0 +1,142 @@
+[
+  {
+    "id": "be-001",
+    "category": "business_english",
+    "difficulty": "easy",
+    "question": "Choose the most appropriate phrase to start a formal email to a new business contact:",
+    "options": [
+      "Hey there!",
+      "Dear Mr/Ms [Name],",
+      "Yo, what's up?",
+      "To whom this may concern,"
+    ],
+    "correct_answer": 1,
+    "explanation": "'Dear Mr/Ms [Name]' is the standard professional greeting for a specific business contact."
+  },
+  {
+    "id": "be-002",
+    "category": "business_english",
+    "difficulty": "medium",
+    "question": "What does 'ROI' stand for in business contexts?",
+    "options": [
+      "Rate of Inflation",
+      "Return on Investment",
+      "Range of Interest",
+      "Report on Income"
+    ],
+    "correct_answer": 1,
+    "explanation": "ROI stands for Return on Investment, measuring the profitability of an investment."
+  },
+  {
+    "id": "be-003",
+    "category": "business_english",
+    "difficulty": "medium",
+    "question": "Choose the most professional way to decline a meeting request:",
+    "options": [
+      "I can't come, sorry.",
+      "No way, I'm too busy.",
+      "Unfortunately, I have a prior commitment at that time. Could we reschedule?",
+      "I don't want to attend."
+    ],
+    "correct_answer": 2,
+    "explanation": "This option is polite, explains the reason, and offers an alternative."
+  },
+  {
+    "id": "be-004",
+    "category": "business_english",
+    "difficulty": "easy",
+    "question": "In business, 'to scale up' means:",
+    "options": [
+      "To weigh something",
+      "To increase the size or scope of operations",
+      "To climb stairs",
+      "To reduce the budget"
+    ],
+    "correct_answer": 1,
+    "explanation": "'Scale up' in business means to increase or grow operations."
+  },
+  {
+    "id": "be-005",
+    "category": "business_english",
+    "difficulty": "hard",
+    "question": "Choose the correct phrase: 'We need to __________ with the marketing team before launching the campaign.'",
+    "options": [
+      "get in line",
+      "touch base",
+      "hit the ground",
+      "break the ice"
+    ],
+    "correct_answer": 1,
+    "explanation": "'Touch base' means to briefly make contact or check in with someone."
+  },
+  {
+    "id": "be-006",
+    "category": "business_english",
+    "difficulty": "medium",
+    "question": "What is meant by 'synergy' in a business context?",
+    "options": [
+      "A type of energy source",
+      "Combined effort being greater than individual efforts",
+      "Company merger only",
+      "A type of financial report"
+    ],
+    "correct_answer": 1,
+    "explanation": "Synergy refers to the interaction of elements that produces a combined effect greater than the sum of individual effects."
+  },
+  {
+    "id": "be-007",
+    "category": "business_english",
+    "difficulty": "hard",
+    "question": "Choose the most appropriate closing for a formal business proposal:",
+    "options": [
+      "Later!",
+      "We look forward to your favourable response and are available to discuss any aspects of this proposal at your convenience.",
+      "Hope you like it, bye!",
+      "That's all, thanks."
+    ],
+    "correct_answer": 1,
+    "explanation": "This closing is professional, forward-looking, and offers continued engagement."
+  },
+  {
+    "id": "be-008",
+    "category": "business_english",
+    "difficulty": "easy",
+    "question": "A 'stakeholder' in a project is:",
+    "options": [
+      "Someone who invests money only",
+      "Anyone who has an interest in or is affected by the project",
+      "The project manager only",
+      "A shareholder in the stock market"
+    ],
+    "correct_answer": 1,
+    "explanation": "A stakeholder is any person or group who has an interest in or is affected by an organisation's actions."
+  },
+  {
+    "id": "be-009",
+    "category": "business_english",
+    "difficulty": "medium",
+    "question": "What does 'KPI' stand for?",
+    "options": [
+      "Key Performance Indicator",
+      "Knowledge Process Integration",
+      "Key Product Innovation",
+      "Knowledge Performance Index"
+    ],
+    "correct_answer": 0,
+    "explanation": "KPI stands for Key Performance Indicator, a measurable value demonstrating effectiveness."
+  },
+  {
+    "id": "be-010",
+    "category": "business_english",
+    "difficulty": "hard",
+    "question": "Select the best expression for presenting negative results diplomatically in a meeting:",
+    "options": [
+      "The results were terrible this quarter.",
+      "We failed completely in meeting our targets.",
+      "While results fell short of our targets, we've identified key areas for improvement and have an action plan in place.",
+      "I don't want to talk about the bad numbers."
+    ],
+    "correct_answer": 2,
+    "explanation": "This acknowledges the shortfall while maintaining a constructive, forward-looking tone."
+  }
+]
