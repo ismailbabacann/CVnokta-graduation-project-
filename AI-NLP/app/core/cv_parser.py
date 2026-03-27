@@ -2,7 +2,6 @@
 CV Parser — extracts structured data from PDF text.
 
 Uses regex-based heuristics for section detection and entity extraction.
-spaCy is used as an optional enhancement for NER when available.
 """
 
 from __future__ import annotations

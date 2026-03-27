@@ -1,7 +1,7 @@
 """
 OpenAI GPT wrapper service.
 
-Encapsulates all GPT-5-mini / GPT-4o-mini interactions behind a clean
+Encapsulates all GPT-4o-mini interactions behind a clean
 interface.  Responses are always parsed JSON.
 """
 

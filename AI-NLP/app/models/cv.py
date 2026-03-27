@@ -121,6 +121,13 @@ class CVAnalysisResult(BaseModel):
 
     analysis_date: datetime = Field(default_factory=datetime.utcnow)
 
+    # Pipeline metadata
+    pipeline_version: Optional[str] = Field(None, description="Pipeline version string")
+    prompt_version: Optional[str] = Field(None, description="Scoring prompt version")
+    model_id: Optional[str] = Field(None, description="LLM model used for scoring")
+    fallback_used: bool = Field(False, description="Whether fallback scoring was used")
+    fallback_reason: Optional[str] = Field(None, description="Reason fallback was activated")
+
     # Optional enrichment – not stored in backend but useful for debugging
     parsed_cv: Optional[ParsedCV] = None
 

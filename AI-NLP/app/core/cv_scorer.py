@@ -5,7 +5,7 @@ Orchestrates:
   1. Chunk job posting into embedable segments
   2. Embed CV sections + job requirements via local model
   3. FAISS similarity search to find matched context
-  4. GPT-5-mini scores the candidate against matched context
+  4. GPT-4o-mini scores the candidate against matched context
 """
 
 from __future__ import annotations
@@ -19,12 +19,16 @@ from app.core.cv_parser import parse_cv_from_pdf, parse_cv_from_text
 from app.core.prompts.cv_analysis import (
     CV_ANALYSIS_SYSTEM_PROMPT,
     CV_ANALYSIS_USER_PROMPT_TEMPLATE,
+    PROMPT_VERSION,
 )
 from app.models.cv import CVAnalysisRequest, CVAnalysisResult, ParsedCV
 from app.models.job_posting import JobPostingInput
+from app.utils.logging import track_latency
 from app.utils.text_cleaner import clean_text, mask_personal_info, strip_html
 
 logger = logging.getLogger(__name__)
+
+PIPELINE_VERSION = "1.0.0"
 
 
 class LLMUnavailableError(RuntimeError):
@@ -211,13 +215,15 @@ async def score_cv(
 
     # Step 1: Parse CV
     logger.info("Step 1: Parsing CV from %s", request.cv_file_path)
-    parsed_cv = parse_cv_from_pdf(request.cv_file_path)
+    with track_latency("cv_parsing"):
+        parsed_cv = parse_cv_from_pdf(request.cv_file_path)
 
     # Step 2: Build RAG context
     logger.info("Step 2: Building RAG context")
-    matched_context = _build_matched_context(
-        parsed_cv, request.job_posting, embedding_service
-    )
+    with track_latency("rag_context"):
+        matched_context = _build_matched_context(
+            parsed_cv, request.job_posting, embedding_service
+        )
 
     # Step 3: Prepare anonymised CV text for GPT
     cv_text = mask_personal_info("\n".join(parsed_cv.sections_text))
@@ -238,25 +244,35 @@ async def score_cv(
         cv_text=cv_text,
     )
 
+    fallback_used = False
+    fallback_reason = None
+
     if openai_service is None:
         if not settings.llm_fallback_enabled:
             raise LLMUnavailableError(
                 "LLM scoring unavailable and LLM_FALLBACK_ENABLED is false."
             )
         logger.warning("OpenAI service unavailable, using fallback scoring.")
-        raw_scores = _fallback_scores(parsed_cv, request.job_posting)
+        fallback_used = True
+        fallback_reason = "OpenAI service not configured"
+        with track_latency("fallback_scoring"):
+            raw_scores = _fallback_scores(parsed_cv, request.job_posting)
     else:
         try:
-            raw_scores = await openai_service.generate_json(
-                CV_ANALYSIS_SYSTEM_PROMPT, user_prompt
-            )
+            with track_latency("llm_scoring", {"model": settings.openai_model}):
+                raw_scores = await openai_service.generate_json(
+                    CV_ANALYSIS_SYSTEM_PROMPT, user_prompt
+                )
         except Exception as exc:
             if not settings.llm_fallback_enabled:
                 raise LLMUnavailableError(
                     f"LLM scoring failed and fallback is disabled: {exc}"
                 ) from exc
             logger.warning("LLM scoring failed, using fallback scoring: %s", exc)
-            raw_scores = _fallback_scores(parsed_cv, request.job_posting)
+            fallback_used = True
+            fallback_reason = f"LLM error: {exc}"
+            with track_latency("fallback_scoring"):
+                raw_scores = _fallback_scores(parsed_cv, request.job_posting)
 
     scores = _normalize_scores(raw_scores)
 
@@ -276,6 +292,11 @@ async def score_cv(
         overall_assessment=scores.get("overall_assessment", ""),
         is_passed=analysis_score >= threshold,
         analysis_date=datetime.utcnow(),
+        pipeline_version=PIPELINE_VERSION,
+        prompt_version=PROMPT_VERSION,
+        model_id=settings.openai_model if not fallback_used else None,
+        fallback_used=fallback_used,
+        fallback_reason=fallback_reason,
         parsed_cv=parsed_cv,
     )
 
@@ -338,8 +359,12 @@ async def score_cv_from_text(
                 "LLM scoring unavailable and LLM_FALLBACK_ENABLED is false."
             )
         logger.warning("OpenAI service unavailable, using fallback scoring.")
+        fallback_used = True
+        fallback_reason = "OpenAI service not configured"
         raw_scores = _fallback_scores(parsed_cv, job_posting)
     else:
+        fallback_used = False
+        fallback_reason = None
         try:
             raw_scores = await openai_service.generate_json(
                 CV_ANALYSIS_SYSTEM_PROMPT, user_prompt
@@ -350,6 +375,8 @@ async def score_cv_from_text(
                     f"LLM scoring failed and fallback is disabled: {exc}"
                 ) from exc
             logger.warning("LLM scoring failed, using fallback scoring: %s", exc)
+            fallback_used = True
+            fallback_reason = f"LLM error: {exc}"
             raw_scores = _fallback_scores(parsed_cv, job_posting)
 
     scores = _normalize_scores(raw_scores)
@@ -369,5 +396,10 @@ async def score_cv_from_text(
         overall_assessment=scores.get("overall_assessment", ""),
         is_passed=analysis_score >= threshold,
         analysis_date=datetime.utcnow(),
+        pipeline_version=PIPELINE_VERSION,
+        prompt_version=PROMPT_VERSION,
+        model_id=settings.openai_model if not fallback_used else None,
+        fallback_used=fallback_used,
+        fallback_reason=fallback_reason,
         parsed_cv=parsed_cv,
     )

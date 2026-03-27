@@ -57,7 +57,8 @@ class AnswerItem(BaseModel):
 
 class TestSubmission(BaseModel):
     application_id: str = Field(..., description="Application UUID as string")
-    test_type: str  # "general_aptitude" | "english_proficiency"
+    test_type: str  # "technical_assessment" | "english_test"
+    job_posting_id: Optional[str] = Field(None, description="Job posting ID for question lookup")
     answers: List[AnswerItem]
     duration_seconds: int = 0
 
