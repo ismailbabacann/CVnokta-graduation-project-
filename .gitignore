@@ -349,3 +349,10 @@ FodyWeavers.xsd
 
 # Local History for Visual Studio Code
 .history/
+
+# macOS
+.DS_Store
+
+# AI tool configs
+.ai-duo/
+.claude/

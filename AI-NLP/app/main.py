@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
+from app.middleware import RequestTrackingMiddleware
 
 # ── Logging ────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -68,6 +69,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── Request tracking ──────────────────────────────────────────────────
+app.add_middleware(RequestTrackingMiddleware)
 
 # ── Routers ────────────────────────────────────────────────────────────
 from app.api.v1.cv_analysis import router as cv_router  # noqa: E402

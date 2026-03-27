@@ -48,13 +48,11 @@ class Settings(BaseSettings):
     cv_pass_threshold: int = 85
     cv_upload_dir: str = "./data/uploads"
     cv_max_upload_size_mb: int = 10
-    direct_api_key_enabled: bool = False
-    direct_api_key: str = ""
 
     # ── Tests ───────────────────────────────────────────────
-    general_test_question_count: int = 20
-    general_test_time_limit_minutes: int = 30
-    english_test_question_count: int = 20
+    technical_test_question_count: int = 10
+    technical_test_time_limit_minutes: int = 30
+    english_test_question_count: int = 10
     english_test_time_limit_minutes: int = 25
 
     # ── Derived paths (not from env) ────────────────────────

@@ -2,6 +2,9 @@
 Prompt templates for CV analysis scoring via GPT.
 """
 
+# ── Versioning ─────────────────────────────────────────────────────
+PROMPT_VERSION = "cv_scoring_v1"
+
 CV_ANALYSIS_SYSTEM_PROMPT = """\
 You are an expert HR analyst with deep experience in technical recruitment.
 Your task is to evaluate a candidate's CV against a specific job posting.

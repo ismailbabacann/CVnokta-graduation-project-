@@ -1,23 +1,31 @@
 """
-Test Engine — serves and grades multiple-choice tests.
+Test Engine — AI-generated tests per job posting.
 
-Handles both General Aptitude and English Proficiency tests.
-Questions are loaded from JSON files under data/tests/.
+Two test types:
+  - technical_assessment: GPT generates questions based on job posting requirements
+  - english_test: GPT generates B1-B2 level English questions
+
+Tests are generated once per job posting and cached in-memory.
+All candidates applying to the same posting get the same questions.
 """
 
 from __future__ import annotations
 
-import json
+import hashlib
 import logging
-import random
 from collections import defaultdict
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from app.config import get_settings
+from app.core.prompts.test_generation import (
+    ENGLISH_SYSTEM_PROMPT,
+    ENGLISH_USER_PROMPT_TEMPLATE,
+    TECHNICAL_SYSTEM_PROMPT,
+    TECHNICAL_USER_PROMPT_TEMPLATE,
+)
+from app.models.job_posting import JobPostingInput
 from app.models.test import (
-    AnswerItem,
     CategoryBreakdown,
     TestQuestion,
     TestQuestionOut,
@@ -31,116 +39,159 @@ logger = logging.getLogger(__name__)
 # ── Friendly names for backend entity compatibility ─────────────────
 
 _TEST_NAMES = {
-    "general_aptitude": "General Aptitude Test",
-    "english_proficiency": "English Proficiency Test",
+    "technical_assessment": "Technical Assessment",
+    "english_test": "English Proficiency Test",
 }
+
+
+def _posting_cache_key(job_posting: JobPostingInput, test_type: str) -> str:
+    """Deterministic cache key from job posting content + test type."""
+    content = f"{test_type}:{job_posting.job_title}:{job_posting.required_skills}:{job_posting.required_qualifications}"
+    return hashlib.sha256(content.encode()).hexdigest()[:16]
+
+
+def _parse_questions_from_response(raw: Dict[str, Any]) -> List[TestQuestion]:
+    """Parse LLM JSON response into TestQuestion list with validation."""
+    items = raw.get("questions", [])
+    if not isinstance(items, list):
+        return []
+
+    questions: list[TestQuestion] = []
+    for item in items:
+        try:
+            options = item.get("options", [])
+            correct = item.get("correct_answer", 0)
+            if not isinstance(correct, int) or correct < 0 or correct >= len(options):
+                correct = 0
+
+            questions.append(TestQuestion(
+                id=str(item.get("id", f"gen-{len(questions)+1:03d}")),
+                category=str(item.get("category", "general")),
+                difficulty=str(item.get("difficulty", "medium")),
+                question=str(item.get("question", "")),
+                options=options,
+                correct_answer=correct,
+                explanation=item.get("explanation"),
+            ))
+        except Exception as exc:
+            logger.warning("Skipping malformed question: %s", exc)
+
+    return questions
 
 
 class TestEngine:
     """
-    Stateless test engine — loads questions on demand from JSON files.
+    AI-powered test engine — generates questions per job posting via GPT.
 
-    Thread-safe: no mutable instance state beyond the cache.
+    Thread-safe: cache is append-only dict.
     """
 
     def __init__(self) -> None:
         self._settings = get_settings()
         self._question_cache: Dict[str, List[TestQuestion]] = {}
 
-    # ── Question loading ────────────────────────────────────────────
+    # ── Question generation ─────────────────────────────────────────
 
-    def _load_questions(self, test_type: str) -> List[TestQuestion]:
-        """
-        Load all questions for a given test type from JSON files.
+    async def generate_technical_test(
+        self,
+        job_posting: JobPostingInput,
+        count: Optional[int] = None,
+    ) -> List[TestQuestion]:
+        """Generate technical assessment questions from job posting via LLM."""
+        if count is None:
+            count = self._settings.technical_test_question_count
 
-        Results are cached in memory for the lifetime of the engine.
-        """
-        if test_type in self._question_cache:
-            return self._question_cache[test_type]
+        cache_key = _posting_cache_key(job_posting, "technical")
+        if cache_key in self._question_cache:
+            logger.info("Technical test cache hit: %s", cache_key)
+            return self._question_cache[cache_key]
 
-        test_dir = self._settings.test_questions_dir / test_type
-        if not test_dir.exists():
-            logger.warning("Test directory not found: %s", test_dir)
-            return []
+        from app.services.openai_service import OpenAIService
 
-        questions: list[TestQuestion] = []
-        for json_file in sorted(test_dir.glob("*.json")):
-            try:
-                data = json.loads(json_file.read_text(encoding="utf-8"))
-                items = data if isinstance(data, list) else data.get("questions", [])
-                for item in items:
-                    questions.append(TestQuestion(**item))
-            except Exception as exc:
-                logger.error("Failed to load %s: %s", json_file, exc)
+        service = OpenAIService()
+        user_prompt = TECHNICAL_USER_PROMPT_TEMPLATE.format(
+            count=count,
+            job_title=job_posting.job_title,
+            department=job_posting.department or "N/A",
+            required_skills=job_posting.required_skills or "N/A",
+            required_qualifications=job_posting.required_qualifications or "N/A",
+            responsibilities=job_posting.responsibilities or "N/A",
+        )
 
-        logger.info("Loaded %d questions for %s", len(questions), test_type)
-        self._question_cache[test_type] = questions
+        raw = await service.generate_json(TECHNICAL_SYSTEM_PROMPT, user_prompt)
+        questions = _parse_questions_from_response(raw)
+
+        if questions:
+            self._question_cache[cache_key] = questions
+            logger.info("Generated %d technical questions for '%s'", len(questions), job_posting.job_title)
+        else:
+            logger.error("LLM returned no valid technical questions")
+
         return questions
 
-    def _get_answer_key(self, test_type: str) -> Dict[str, int]:
-        """Build a question_id → correct_answer (index) mapping."""
-        questions = self._load_questions(test_type)
-        return {q.id: q.correct_answer for q in questions}
+    async def generate_english_test(
+        self,
+        job_posting_id: str,
+        count: Optional[int] = None,
+    ) -> List[TestQuestion]:
+        """Generate B1-B2 English proficiency questions via LLM."""
+        if count is None:
+            count = self._settings.english_test_question_count
+
+        cache_key = f"english:{job_posting_id}"
+        if cache_key in self._question_cache:
+            logger.info("English test cache hit: %s", cache_key)
+            return self._question_cache[cache_key]
+
+        from app.services.openai_service import OpenAIService
+
+        service = OpenAIService()
+
+        grammar_count = count // 3
+        vocab_count = count // 3
+        reading_count = count - grammar_count - vocab_count
+
+        user_prompt = ENGLISH_USER_PROMPT_TEMPLATE.format(
+            count=count,
+            grammar_count=grammar_count,
+            vocab_count=vocab_count,
+            reading_count=reading_count,
+        )
+
+        raw = await service.generate_json(ENGLISH_SYSTEM_PROMPT, user_prompt)
+        questions = _parse_questions_from_response(raw)
+
+        if questions:
+            self._question_cache[cache_key] = questions
+            logger.info("Generated %d English questions for posting %s", len(questions), job_posting_id)
+        else:
+            logger.error("LLM returned no valid English questions")
+
+        return questions
 
     # ── Public API ──────────────────────────────────────────────────
 
-    def get_questions(
+    def get_cached_questions(
         self,
         test_type: str,
-        count: Optional[int] = None,
-        categories: Optional[List[str]] = None,
-        seed: Optional[int] = None,
-    ) -> TestQuestionsResponse:
-        """
-        Return a randomised subset of questions for a test session.
-
-        Args:
-            test_type: "general_aptitude" or "english_proficiency"
-            count: number of questions (default from config)
-            categories: optional category filter
-            seed: RNG seed for reproducible tests
-        """
-        all_questions = self._load_questions(test_type)
-
-        if categories:
-            cat_set = {c.lower() for c in categories}
-            all_questions = [q for q in all_questions if q.category.lower() in cat_set]
-
-        if count is None:
-            count = (
-                self._settings.general_test_question_count
-                if test_type == "general_aptitude"
-                else self._settings.english_test_question_count
-            )
-
-        # Balanced sampling: equal questions per category
-        by_category: Dict[str, list[TestQuestion]] = defaultdict(list)
-        for q in all_questions:
-            by_category[q.category].append(q)
-
-        rng = random.Random(seed)
-        selected: list[TestQuestion] = []
-
-        if by_category:
-            per_cat = max(1, count // len(by_category))
-            remainder = count - per_cat * len(by_category)
-
-            for cat, cat_questions in by_category.items():
-                rng.shuffle(cat_questions)
-                selected.extend(cat_questions[:per_cat])
-
-            # Fill remainder from all remaining questions
-            remaining = [q for q in all_questions if q not in selected]
-            rng.shuffle(remaining)
-            selected.extend(remaining[:max(0, remainder)])
+        job_posting_id: str,
+        job_posting: Optional[JobPostingInput] = None,
+    ) -> Optional[List[TestQuestion]]:
+        """Return cached questions if available, None otherwise."""
+        if test_type == "technical_assessment" and job_posting:
+            cache_key = _posting_cache_key(job_posting, "technical")
+        elif test_type == "english_test":
+            cache_key = f"english:{job_posting_id}"
         else:
-            selected = all_questions
+            return None
+        return self._question_cache.get(cache_key)
 
-        # Shuffle final selection
-        rng.shuffle(selected)
-        selected = selected[:count]
-
-        # Strip correct answers for client
+    def build_questions_response(
+        self,
+        test_type: str,
+        questions: List[TestQuestion],
+    ) -> TestQuestionsResponse:
+        """Build a response stripping correct answers."""
         questions_out = [
             TestQuestionOut(
                 id=q.id,
@@ -149,12 +200,12 @@ class TestEngine:
                 question=q.question,
                 options=q.options,
             )
-            for q in selected
+            for q in questions
         ]
 
         time_limit = (
-            self._settings.general_test_time_limit_minutes
-            if test_type == "general_aptitude"
+            self._settings.technical_test_time_limit_minutes
+            if test_type == "technical_assessment"
             else self._settings.english_test_time_limit_minutes
         )
 
@@ -165,15 +216,18 @@ class TestEngine:
             time_limit_minutes=time_limit,
         )
 
-    def grade_submission(self, submission: TestSubmission) -> TestResult:
+    def grade_submission(
+        self,
+        submission: TestSubmission,
+        questions: List[TestQuestion],
+    ) -> TestResult:
         """
-        Grade a test submission and return a TestResult.
+        Grade a test submission against provided questions.
 
-        Maps directly to the backend GeneralTestResult entity fields.
+        Deterministic — no LLM involved in grading.
         """
-        answer_key = self._get_answer_key(submission.test_type)
-        all_questions = self._load_questions(submission.test_type)
-        question_map = {q.id: q for q in all_questions}
+        answer_key = {q.id: q.correct_answer for q in questions}
+        question_map = {q.id: q for q in questions}
 
         correct = 0
         wrong = 0
@@ -209,7 +263,7 @@ class TestEngine:
             wrong_answers=wrong,
             score=score,
             duration_seconds=submission.duration_seconds,
-            passed=None,  # Threshold is decided by the backend / job posting
+            passed=None,
             test_date=datetime.utcnow(),
             category_breakdown=breakdown,
         )

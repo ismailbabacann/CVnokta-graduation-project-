@@ -26,6 +26,10 @@ pytest>=7.4.0
 pytest-asyncio>=0.21.0
 httpx>=0.25.0
 
+# Demo UI
+streamlit>=1.30.0
+pandas>=2.0.0
+
 # Utilities
 python-multipart>=0.0.6
 aiofiles>=23.2.0

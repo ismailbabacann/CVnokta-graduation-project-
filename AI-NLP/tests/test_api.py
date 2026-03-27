@@ -169,37 +169,6 @@ class TestCVEndpoints:
 
         monkeypatch.setattr(settings, "cv_max_upload_size_mb", original)
 
-    def test_analyze_upload_requires_api_key_when_enabled(self, test_client, monkeypatch):
-        from app.config import get_settings
-
-        settings = get_settings()
-        original_enabled = settings.direct_api_key_enabled
-        original_key = settings.direct_api_key
-        monkeypatch.setattr(settings, "direct_api_key_enabled", True)
-        monkeypatch.setattr(settings, "direct_api_key", "secret-key")
-
-        files = {
-            "file": ("cv.pdf", b"%PDF-1.4 test", "application/pdf"),
-        }
-        data = {
-            "job_posting_json": '{"job_title":"Backend Developer"}',
-        }
-
-        resp = test_client.post("/api/v1/cv/analyze-upload", files=files, data=data)
-        assert resp.status_code == 401
-
-        ok_resp = test_client.post(
-            "/api/v1/cv/analyze-upload",
-            files=files,
-            data=data,
-            headers={"X-API-Key": "secret-key"},
-        )
-        # With key and minimal valid payload the request reaches business logic.
-        assert ok_resp.status_code != 401
-
-        monkeypatch.setattr(settings, "direct_api_key_enabled", original_enabled)
-        monkeypatch.setattr(settings, "direct_api_key", original_key)
-
     def test_analyze_upload_requires_openai_key_when_mock_disabled(self, test_client, monkeypatch):
         from app.config import get_settings
 
@@ -225,57 +194,65 @@ class TestCVEndpoints:
 
 
 class TestTestEndpoints:
-    """Test aptitude/english test endpoints."""
+    """Test technical assessment & english test endpoints."""
 
-    def test_get_general_aptitude_questions(self, test_client):
-        resp = test_client.get("/api/v1/tests/general_aptitude/questions")
-        assert resp.status_code == 200
-        data = resp.json()
-        assert data["test_type"] == "general_aptitude"
-        assert len(data["questions"]) > 0
-
-    def test_get_english_proficiency_questions(self, test_client):
-        resp = test_client.get("/api/v1/tests/english_proficiency/questions")
-        assert resp.status_code == 200
-        data = resp.json()
-        assert data["test_type"] == "english_proficiency"
-        assert len(data["questions"]) > 0
-
-    def test_get_questions_with_count(self, test_client):
-        resp = test_client.get("/api/v1/tests/general_aptitude/questions?count=3")
-        assert resp.status_code == 200
-        data = resp.json()
-        assert len(data["questions"]) <= 3
-
-    def test_get_questions_invalid_type(self, test_client):
-        resp = test_client.get("/api/v1/tests/invalid_type/questions")
-        assert resp.status_code == 400
-
-    def test_submit_test(self, test_client):
-        # First get questions
-        q_resp = test_client.get("/api/v1/tests/general_aptitude/questions?count=3")
-        questions = q_resp.json()["questions"]
-
-        # Build answers
-        answers = [
-            {"question_id": q["id"], "selected_option": 0}
-            for q in questions
-        ]
-
+    def test_generate_invalid_type(self, test_client):
         resp = test_client.post(
-            "/api/v1/tests/general_aptitude/submit",
+            "/api/v1/tests/invalid_type/generate",
             json={
-                "application_id": "test-submit-001",
-                "test_type": "general_aptitude",
-                "answers": answers,
-                "duration_seconds": 120,
+                "job_posting": {
+                    "job_title": "Developer",
+                    "required_skills": "Python",
+                },
             },
         )
-        assert resp.status_code == 200
-        data = resp.json()
-        assert "test_name" in data
-        assert data["total_questions"] == len(questions)
-        assert "score" in data
+        assert resp.status_code == 400
+
+    def test_submit_invalid_type(self, test_client):
+        resp = test_client.post(
+            "/api/v1/tests/invalid_type/submit",
+            json={
+                "application_id": "test-001",
+                "test_type": "invalid_type",
+                "answers": [],
+            },
+        )
+        assert resp.status_code == 400
+
+    def test_submit_type_mismatch(self, test_client):
+        resp = test_client.post(
+            "/api/v1/tests/technical_assessment/submit",
+            json={
+                "application_id": "test-001",
+                "test_type": "english_test",
+                "answers": [{"question_id": "q1", "selected_option": 0}],
+            },
+        )
+        assert resp.status_code == 400
+
+    def test_submit_empty_answers(self, test_client):
+        resp = test_client.post(
+            "/api/v1/tests/technical_assessment/submit",
+            json={
+                "application_id": "test-001",
+                "test_type": "technical_assessment",
+                "answers": [],
+            },
+        )
+        assert resp.status_code == 400
+
+    def test_submit_no_generated_test(self, test_client):
+        """Submit answers when no test has been generated → 404."""
+        resp = test_client.post(
+            "/api/v1/tests/technical_assessment/submit",
+            json={
+                "application_id": "test-001",
+                "test_type": "technical_assessment",
+                "job_posting_id": "nonexistent",
+                "answers": [{"question_id": "tq-001", "selected_option": 0}],
+            },
+        )
+        assert resp.status_code == 404
 
 
 class TestRankingEndpoints:

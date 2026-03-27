@@ -28,7 +28,7 @@ def validate_uuid(value: str) -> UUID:
 
 def validate_test_type(test_type: str) -> str:
     """Ensure test_type is one of the allowed values."""
-    allowed = {"general_aptitude", "english_proficiency"}
+    allowed = {"technical_assessment", "english_test"}
     normalised = test_type.lower().strip()
     if normalised not in allowed:
         raise ValueError(

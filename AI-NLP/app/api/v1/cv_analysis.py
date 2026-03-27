@@ -13,7 +13,7 @@ import logging
 from pathlib import Path
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form, Header
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form
 from pydantic import BaseModel, Field, ValidationError
 from typing import Optional
 
@@ -22,7 +22,14 @@ from app.config import get_settings
 from app.core.cv_parser import parse_cv_from_pdf
 from app.core.cv_scorer import LLMUnavailableError, score_cv
 from app.models.cv import CVAnalysisRequest, CVAnalysisResult, ParsedCV
+from app.models.errors import ErrorCode
 from app.models.job_posting import JobPostingInput
+from app.utils.pdf_extractor import (
+    PDFCorruptedError,
+    PDFEncryptedError,
+    PDFExtractionError,
+    PDFNoTextError,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/cv", tags=["CV Analysis"])
@@ -59,13 +66,16 @@ def _validate_upload_file(file: UploadFile) -> None:
 
 def _validate_content_size(content: bytes, max_size_mb: int) -> None:
     if not content:
-        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+        raise HTTPException(
+            status_code=400,
+            detail={"error_code": ErrorCode.FILE_EMPTY, "message": "Uploaded file is empty."},
+        )
 
     max_bytes = max(1, max_size_mb) * 1024 * 1024
     if len(content) > max_bytes:
         raise HTTPException(
             status_code=413,
-            detail=f"File too large. Max size is {max_size_mb} MB.",
+            detail={"error_code": ErrorCode.PDF_TOO_LARGE, "message": f"File too large. Max size is {max_size_mb} MB."},
         )
 
 
@@ -73,7 +83,7 @@ def _validate_pdf_magic(content: bytes) -> None:
     if not content.startswith(b"%PDF-"):
         raise HTTPException(
             status_code=400,
-            detail="Invalid PDF file signature.",
+            detail={"error_code": ErrorCode.PDF_INVALID_SIGNATURE, "message": "Invalid PDF file signature."},
         )
 
 
@@ -84,21 +94,6 @@ def _ensure_llm_ready_for_analysis() -> None:
             status_code=503,
             detail="LLM scoring unavailable: OPENAI_API_KEY is required when USE_MOCK_DATA=false.",
         )
-
-
-def _enforce_direct_api_key(x_api_key: Optional[str]) -> None:
-    settings = get_settings()
-    if not settings.direct_api_key_enabled:
-        return
-
-    if not settings.direct_api_key:
-        raise HTTPException(
-            status_code=500,
-            detail="DIRECT_API_KEY_ENABLED is true but DIRECT_API_KEY is not configured.",
-        )
-
-    if not x_api_key or x_api_key != settings.direct_api_key:
-        raise HTTPException(status_code=401, detail="Invalid or missing API key.")
 
 
 def _resolve_internal_pdf_path(raw_path: str) -> Path:
@@ -175,25 +170,29 @@ async def analyze_cv(request: CVAnalysisRequest):
         )
         return result
     except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
+        raise HTTPException(status_code=404, detail={"error_code": ErrorCode.FILE_NOT_FOUND, "message": str(exc)})
+    except PDFNoTextError as exc:
+        raise HTTPException(status_code=422, detail={"error_code": exc.error_code, "message": str(exc)})
+    except PDFEncryptedError as exc:
+        raise HTTPException(status_code=422, detail={"error_code": exc.error_code, "message": str(exc)})
+    except PDFCorruptedError as exc:
+        raise HTTPException(status_code=422, detail={"error_code": exc.error_code, "message": str(exc)})
     except LLMUnavailableError as exc:
-        raise HTTPException(status_code=503, detail=str(exc))
+        raise HTTPException(status_code=503, detail={"error_code": ErrorCode.LLM_UNAVAILABLE, "message": str(exc)})
     except Exception as exc:
         logger.exception("CV analysis failed")
-        raise HTTPException(status_code=500, detail="CV analysis failed due to an internal error.")
+        raise HTTPException(status_code=500, detail={"error_code": ErrorCode.INTERNAL_ERROR, "message": "CV analysis failed due to an internal error."})
 
 
 @router.post("/parse", response_model=ParsedCV)
 async def parse_cv(
     file: UploadFile = File(..., description="PDF file to parse"),
-    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
 ):
     """
     Parse a PDF CV and return structured data.
     No GPT call — pure local extraction.
     Useful for testing the parser independently.
     """
-    _enforce_direct_api_key(x_api_key)
     settings = get_settings()
     _validate_upload_file(file)
 
@@ -209,9 +208,17 @@ async def parse_cv(
         temp_path.write_bytes(content)
         parsed = parse_cv_from_pdf(temp_path)
         return parsed
+    except HTTPException:
+        raise
+    except PDFNoTextError as exc:
+        raise HTTPException(status_code=422, detail={"error_code": exc.error_code, "message": str(exc)})
+    except PDFEncryptedError as exc:
+        raise HTTPException(status_code=422, detail={"error_code": exc.error_code, "message": str(exc)})
+    except PDFCorruptedError as exc:
+        raise HTTPException(status_code=422, detail={"error_code": exc.error_code, "message": str(exc)})
     except Exception as exc:
         logger.exception("CV parsing failed")
-        raise HTTPException(status_code=500, detail="CV parsing failed due to an internal error.")
+        raise HTTPException(status_code=500, detail={"error_code": ErrorCode.INTERNAL_ERROR, "message": "CV parsing failed due to an internal error."})
     finally:
         if temp_path.exists():
             temp_path.unlink()
@@ -224,15 +231,13 @@ async def analyze_cv_upload(
     application_id: Optional[str] = Form(None, description="Application UUID"),
     stage_id: Optional[str] = Form(None, description="Stage UUID"),
     cv_id: Optional[str] = Form(None, description="CV UUID"),
-    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
 ):
     """
-    Frontend-friendly CV analysis endpoint.
+    Upload-based CV analysis endpoint.
 
-    Accepts multipart upload from browser clients and avoids server-side file path dependency.
+    Accepts multipart upload and avoids server-side file path dependency.
     """
     settings = get_settings()
-    _enforce_direct_api_key(x_api_key)
 
     _validate_upload_file(file)
     _ensure_llm_ready_for_analysis()
@@ -266,11 +271,17 @@ async def analyze_cv_upload(
         )
     except HTTPException:
         raise
+    except PDFNoTextError as exc:
+        raise HTTPException(status_code=422, detail={"error_code": exc.error_code, "message": str(exc)})
+    except PDFEncryptedError as exc:
+        raise HTTPException(status_code=422, detail={"error_code": exc.error_code, "message": str(exc)})
+    except PDFCorruptedError as exc:
+        raise HTTPException(status_code=422, detail={"error_code": exc.error_code, "message": str(exc)})
     except LLMUnavailableError as exc:
-        raise HTTPException(status_code=503, detail=str(exc))
+        raise HTTPException(status_code=503, detail={"error_code": ErrorCode.LLM_UNAVAILABLE, "message": str(exc)})
     except Exception as exc:
         logger.exception("CV upload analysis failed")
-        raise HTTPException(status_code=500, detail="CV analysis failed due to an internal error.")
+        raise HTTPException(status_code=500, detail={"error_code": ErrorCode.INTERNAL_ERROR, "message": "CV analysis failed due to an internal error."})
     finally:
         if temp_path.exists():
             temp_path.unlink()
