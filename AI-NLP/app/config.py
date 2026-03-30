@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -28,8 +28,13 @@ class Settings(BaseSettings):
     openai_max_tokens: int = 1500
     llm_fallback_enabled: bool = True
 
+    # ── LLM Cache ───────────────────────────────────────────
+    llm_cache_enabled: bool = True
+    llm_cache_max_size: int = 128
+    llm_cache_ttl_seconds: int = 3600
+
     # ── Embedding ───────────────────────────────────────────
-    embedding_model: str = "all-MiniLM-L6-v2"
+    embedding_model: str = "paraphrase-multilingual-MiniLM-L12-v2"
 
     # ── Application ─────────────────────────────────────────
     app_env: str = "development"
@@ -49,11 +54,33 @@ class Settings(BaseSettings):
     cv_upload_dir: str = "./data/uploads"
     cv_max_upload_size_mb: int = 10
 
+    # ── Ranking ──────────────────────────────────────────────
+    ranking_weight_cv: float = 0.30
+    ranking_weight_general_test: float = 0.25
+    ranking_weight_english_test: float = 0.15
+    ranking_weight_interview: float = 0.30
+
+    @property
+    def ranking_weights(self) -> Dict[str, float]:
+        return {
+            "cv": self.ranking_weight_cv,
+            "general_test": self.ranking_weight_general_test,
+            "english_test": self.ranking_weight_english_test,
+            "interview": self.ranking_weight_interview,
+        }
+
     # ── Tests ───────────────────────────────────────────────
     technical_test_question_count: int = 10
     technical_test_time_limit_minutes: int = 30
     english_test_question_count: int = 10
     english_test_time_limit_minutes: int = 25
+
+    # ── Interview ───────────────────────────────────────────
+    interview_question_count: int = 6
+    interview_session_ttl_seconds: int = 1800
+    interview_tts_model: str = "tts-1"
+    interview_tts_voice: str = "nova"
+    interview_stt_model: str = "whisper-1"
 
     # ── Derived paths (not from env) ────────────────────────
     @property

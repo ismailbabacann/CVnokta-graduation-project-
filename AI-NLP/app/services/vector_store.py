@@ -3,6 +3,16 @@ FAISS-backed vector store for similarity search.
 
 Lightweight wrapper – no persistence needed because we rebuild per-request
 (job postings change; no point in long-lived indexes for now).
+
+THREAD SAFETY NOTE:
+  FAISS indexes are NOT thread-safe for concurrent write+read.
+  This service creates a fresh index per-request (per VectorStore instance),
+  so concurrent requests each get their own index — safe for single-worker
+  or multi-worker deployments.
+
+  DO NOT share a single VectorStore instance across requests or threads.
+  Deploy with: uvicorn --workers 1  (safest for graduation demo).
+  If multi-worker is needed, each worker gets its own process & memory.
 """
 
 from __future__ import annotations

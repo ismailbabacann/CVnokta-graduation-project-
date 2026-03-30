@@ -5,18 +5,65 @@ Provides:
 - Structured JSON log formatter
 - Per-stage latency tracking context manager
 - Request-scoped logging context
+- Latency metrics collector for benchmarking
 """
 
 from __future__ import annotations
 
 import logging
 import time
+from collections import defaultdict
 from contextlib import contextmanager
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional
 
 from app.middleware import request_id_ctx
 
 logger = logging.getLogger(__name__)
+
+
+# ── In-process metrics collector (H1) ──────────────────────────────
+
+class LatencyCollector:
+    """Collect per-stage latency samples for benchmarking."""
+
+    def __init__(self) -> None:
+        self._samples: Dict[str, List[float]] = defaultdict(list)
+        self._max_samples = 1000
+
+    def record(self, stage: str, latency_ms: float) -> None:
+        buf = self._samples[stage]
+        if len(buf) >= self._max_samples:
+            buf.pop(0)
+        buf.append(latency_ms)
+
+    def get_stats(self) -> Dict[str, Dict[str, Any]]:
+        stats: Dict[str, Dict[str, Any]] = {}
+        for stage, samples in self._samples.items():
+            if not samples:
+                continue
+            sorted_s = sorted(samples)
+            n = len(sorted_s)
+            stats[stage] = {
+                "count": n,
+                "avg_ms": round(sum(sorted_s) / n, 1),
+                "min_ms": round(sorted_s[0], 1),
+                "max_ms": round(sorted_s[-1], 1),
+                "p50_ms": round(sorted_s[n // 2], 1),
+                "p95_ms": round(sorted_s[int(n * 0.95)], 1) if n >= 20 else None,
+                "p99_ms": round(sorted_s[int(n * 0.99)], 1) if n >= 100 else None,
+            }
+        return stats
+
+    def clear(self) -> None:
+        self._samples.clear()
+
+
+_collector = LatencyCollector()
+
+
+def get_latency_collector() -> LatencyCollector:
+    """Global latency collector singleton."""
+    return _collector
 
 
 @contextmanager
@@ -41,6 +88,7 @@ def track_latency(stage: str, extra: Optional[dict[str, Any]] = None):
         elapsed = round((time.perf_counter() - start) * 1000, 1)
         result["latency_ms"] = elapsed
         result["error"] = str(exc)
+        _collector.record(stage, elapsed)
         req_id = request_id_ctx.get("")
         logger.error(
             "stage_failed | stage=%s latency_ms=%.1f error=%s request_id=%s",
@@ -50,6 +98,7 @@ def track_latency(stage: str, extra: Optional[dict[str, Any]] = None):
     else:
         elapsed = round((time.perf_counter() - start) * 1000, 1)
         result["latency_ms"] = elapsed
+        _collector.record(stage, elapsed)
         req_id = request_id_ctx.get("")
         parts = [f"stage={stage}", f"latency_ms={elapsed:.1f}"]
         if extra:

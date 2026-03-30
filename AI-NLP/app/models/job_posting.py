@@ -54,7 +54,16 @@ class JobPostingInput(BaseModel):
 
     # AI settings
     ai_scan_enabled: bool = True
-    min_match_score: int = 85
+    min_match_score: int = Field(
+        85,
+        ge=0,
+        le=100,
+        description=(
+            "Per-posting CV pass threshold (0-100). "
+            "Overrides the global CV_PASS_THRESHOLD setting. "
+            "Candidates scoring below this are marked is_passed=false."
+        ),
+    )
     auto_email_enabled: bool = False
 
     benefits: Optional[str] = None           # comma-separated

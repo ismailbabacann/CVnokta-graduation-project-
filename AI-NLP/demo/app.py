@@ -129,7 +129,7 @@ st.sidebar.markdown("---")
 
 page = st.sidebar.radio(
     "Navigation",
-    ["🏠 Ana Sayfa", "📄 CV Analizi", "📝 Testler", "📊 Sıralama"],
+    ["🏠 Ana Sayfa", "📄 CV Analizi", "📝 Testler", "🎙️ Mülakat", "📊 Sıralama"],
     label_visibility="collapsed",
 )
 
@@ -156,7 +156,7 @@ if page == "🏠 Ana Sayfa":
     **Kullanılabilir modüller:**
     """)
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         st.markdown("""
@@ -177,6 +177,15 @@ if page == "🏠 Ana Sayfa":
         """, unsafe_allow_html=True)
 
     with col3:
+        st.markdown("""
+        <div class="score-card">
+            <div class="score-value">🎙️</div>
+            <div class="score-label"><strong>AI Mülakat</strong><br>
+            Soru-cevap & değerlendirme</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col4:
         st.markdown("""
         <div class="score-card">
             <div class="score-value">📊</div>
@@ -212,6 +221,10 @@ elif page == "📄 CV Analizi":
 
 elif page == "📝 Testler":
     from demo.pages.tests import render
+    render()
+
+elif page == "🎙️ Mülakat":
+    from demo.pages.interview import render
     render()
 
 elif page == "📊 Sıralama":

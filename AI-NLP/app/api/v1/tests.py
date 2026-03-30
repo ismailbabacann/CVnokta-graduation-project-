@@ -11,9 +11,10 @@ import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.api.deps import get_test_engine
+from app.config import get_settings
 from app.core.test_engine import TestEngine
 from app.models.job_posting import JobPostingInput
 from app.models.test import TestQuestionsResponse, TestResult, TestSubmission
@@ -26,7 +27,16 @@ router = APIRouter(prefix="/tests", tags=["Tests"])
 class GenerateTestRequest(BaseModel):
     """Request to generate a test for a job posting."""
     job_posting: JobPostingInput
-    question_count: Optional[int] = None
+    question_count: Optional[int] = Field(
+        None,
+        ge=1,
+        le=50,
+        description=(
+            "Number of questions to generate. "
+            "Defaults to server config: TECHNICAL_TEST_QUESTION_COUNT (10) "
+            "or ENGLISH_TEST_QUESTION_COUNT (10)."
+        ),
+    )
 
 
 @router.post("/{test_type}/generate", response_model=TestQuestionsResponse)
