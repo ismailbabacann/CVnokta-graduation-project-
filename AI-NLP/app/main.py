@@ -7,11 +7,12 @@ Run:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -31,6 +32,18 @@ settings = get_settings()
 
 
 # ── Lifespan (startup / shutdown) ─────────────────────────────────────
+async def _session_eviction_loop():
+    """Periodically evict expired realtime sessions."""
+    from app.api.v1.realtime_interview import get_realtime_engine
+    engine = get_realtime_engine()
+    while True:
+        await asyncio.sleep(120)
+        try:
+            engine.evict_expired_sessions()
+        except Exception as exc:
+            logger.warning("Session eviction error: %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan — runs on startup & shutdown."""
@@ -51,8 +64,12 @@ async def lifespan(app: FastAPI):
     settings.mock_data_dir.mkdir(parents=True, exist_ok=True)
     settings.test_questions_dir.mkdir(parents=True, exist_ok=True)
 
+    # Start background session eviction task
+    eviction_task = asyncio.create_task(_session_eviction_loop())
+
     yield  # ← application runs here
 
+    eviction_task.cancel()
     logger.info("👋 CVnokta AI-NLP service shutting down …")
 
 
@@ -87,12 +104,14 @@ app.add_middleware(RequestTrackingMiddleware)
 from app.api.v1.cv_analysis import router as cv_router  # noqa: E402
 from app.api.v1.interview import router as interview_router  # noqa: E402
 from app.api.v1.rankings import router as rankings_router  # noqa: E402
+from app.api.v1.realtime_interview import router as realtime_router  # noqa: E402
 from app.api.v1.tests import router as tests_router  # noqa: E402
 
 app.include_router(cv_router, prefix="/api/v1")
 app.include_router(tests_router, prefix="/api/v1")
 app.include_router(rankings_router, prefix="/api/v1")
 app.include_router(interview_router, prefix="/api/v1")
+app.include_router(realtime_router, prefix="/api/v1")
 
 # ── Static files (interview room UI) ───────────────────────────────────
 _static_dir = Path(__file__).resolve().parent / "static"
@@ -100,11 +119,23 @@ if _static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 
 
-# ── Interview Room page ───────────────────────────────────────────────
+# ── Interview Room pages ──────────────────────────────────────────────
 @app.get("/interview-room", include_in_schema=False)
 async def interview_room():
-    """Serve the AI Video Interview room HTML page."""
+    """Serve the AI Video Interview room HTML page (HTTP turn-based)."""
     html_path = _static_dir / "interview-room" / "index.html"
+    if not html_path.exists():
+        raise HTTPException(status_code=404, detail="Interview room UI not found. Ensure static assets are included in the deployment.")
+    return FileResponse(str(html_path), media_type="text/html")
+
+
+@app.get("/realtime-interview", include_in_schema=False)
+@app.get("/demo", include_in_schema=False)
+async def realtime_interview_room():
+    """Serve the Realtime Voice Interview page (WebSocket-based)."""
+    html_path = _static_dir / "interview-room" / "realtime.html"
+    if not html_path.exists():
+        raise HTTPException(status_code=404, detail="Realtime interview UI not found. Ensure static assets are included in the deployment.")
     return FileResponse(str(html_path), media_type="text/html")
 
 
@@ -125,11 +156,13 @@ async def root():
         "health": "/health",
         "config": "/config",
         "interview_room": "/interview-room",
+        "realtime_interview": "/realtime-interview",
         "endpoints": {
             "cv_analysis": "/api/v1/cv",
             "tests": "/api/v1/tests",
             "rankings": "/api/v1/rankings",
             "interview": "/api/v1/interview",
+            "realtime_interview": "/api/v1/interview/realtime",
         },
     }
 

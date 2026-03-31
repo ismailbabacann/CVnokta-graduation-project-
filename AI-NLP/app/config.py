@@ -82,6 +82,19 @@ class Settings(BaseSettings):
     interview_tts_voice: str = "nova"
     interview_stt_model: str = "whisper-1"
 
+    # ── Realtime Interview ──────────────────────────────────
+    realtime_model: str = "gpt-4o-mini-realtime-preview"
+    realtime_voice: str = "nova"
+    realtime_vad_threshold: float = 0.5
+    realtime_turn_detection: str = "server_vad"
+    realtime_max_questions: int = 12
+    realtime_min_questions: int = 5
+    realtime_input_audio_format: str = "pcm16"
+    realtime_output_audio_format: str = "pcm16"
+    realtime_max_session_duration_seconds: int = 900
+    realtime_max_silence_seconds: int = 30
+    realtime_max_transcript_entries: int = 200
+
     # ── Derived paths (not from env) ────────────────────────
     @property
     def project_root(self) -> Path:
