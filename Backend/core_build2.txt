@@ -1,0 +1,16 @@
+  Geri yüklenecek projeler belirleniyor...
+C:\Users\dici-\OneDrive\Masaüstü\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Application\CleanArchitecture.Core.csproj : warning NU1903: 'AutoMapper' 14.0.0 paketinde önem derecesi yüksek olan bilinen bir https://github.com/advisories/GHSA-rvv3-g6hj-g44x güvenlik açığı var
+  Geri yükleme için tüm projeler güncel.
+C:\Users\dici-\OneDrive\Masaüstü\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Application\CleanArchitecture.Core.csproj : warning NU1903: 'AutoMapper' 14.0.0 paketinde önem derecesi yüksek olan bilinen bir https://github.com/advisories/GHSA-rvv3-g6hj-g44x güvenlik açığı var
+C:\Users\dici-\OneDrive\Masaüstü\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Application\Features\JobPostings\Queries\GetJobPostingsWithStats\GetJobPostingsWithStatsQuery.cs(28,62): warning CS0169: 'GetJobPostingsWithStatsQueryHandler._jobRepository' alanı hiçbir zaman kullanılmaz [C:\Users\dici-\OneDrive\Masaüstü\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Application\CleanArchitecture.Core.csproj]
+  CleanArchitecture.Core -> C:\Users\dici-\OneDrive\Masaüstü\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Application\bin\Debug\net8.0\CleanArchitecture.Core.dll
+
+Oluşturma başarılı oldu.
+
+C:\Users\dici-\OneDrive\Masaüstü\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Application\CleanArchitecture.Core.csproj : warning NU1903: 'AutoMapper' 14.0.0 paketinde önem derecesi yüksek olan bilinen bir https://github.com/advisories/GHSA-rvv3-g6hj-g44x güvenlik açığı var
+C:\Users\dici-\OneDrive\Masaüstü\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Application\CleanArchitecture.Core.csproj : warning NU1903: 'AutoMapper' 14.0.0 paketinde önem derecesi yüksek olan bilinen bir https://github.com/advisories/GHSA-rvv3-g6hj-g44x güvenlik açığı var
+C:\Users\dici-\OneDrive\Masaüstü\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Application\Features\JobPostings\Queries\GetJobPostingsWithStats\GetJobPostingsWithStatsQuery.cs(28,62): warning CS0169: 'GetJobPostingsWithStatsQueryHandler._jobRepository' alanı hiçbir zaman kullanılmaz [C:\Users\dici-\OneDrive\Masaüstü\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Application\CleanArchitecture.Core.csproj]
+    3 Uyarı
+    0 Hata
+
+Geçen Süre 00:00:01.73
