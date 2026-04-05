@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Infrastructure.Models;
 using Microsoft.AspNetCore.Identity;
@@ -39,6 +39,8 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<FinalEvaluationScore> FinalEvaluationScores { get; set; }
         public DbSet<MeetingInvitation> MeetingInvitations { get; set; }
         public DbSet<EventLog> EventLogs { get; set; }
+        public DbSet<JobPostingExam> JobPostingExams { get; set; }
+        public DbSet<ExamQuestion> ExamQuestions { get; set; }
 
         // Read Models
         public DbSet<CandidateRankingView> CandidateRankingViews { get; set; }
@@ -175,6 +177,31 @@ namespace CleanArchitecture.Infrastructure.Contexts
             builder.Entity<JobPosting>()
                 .HasIndex(jp => jp.IsDraft);
 
+            // JobPostingExam Configuration
+            builder.Entity<JobPostingExam>()
+                .HasKey(jpe => jpe.Id);
+            builder.Entity<JobPostingExam>()
+                .Property(jpe => jpe.Title).IsRequired().HasMaxLength(255);
+            builder.Entity<JobPostingExam>()
+                .HasOne(jpe => jpe.JobPosting)
+                .WithOne(jp => jp.EnglishExam)
+                .HasForeignKey<JobPostingExam>(jpe => jpe.JobPostingId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<JobPostingExam>()
+                .HasIndex(jpe => jpe.JobPostingId).IsUnique();
+
+            // ExamQuestion Configuration
+            builder.Entity<ExamQuestion>()
+                .HasKey(eq => eq.Id);
+            builder.Entity<ExamQuestion>()
+                .Property(eq => eq.QuestionText).IsRequired();
+            builder.Entity<ExamQuestion>()
+                .HasOne(eq => eq.JobPostingExam)
+                .WithMany(jpe => jpe.Questions)
+                .HasForeignKey(eq => eq.JobPostingExamId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<ExamQuestion>()
+                .HasIndex(eq => eq.JobPostingExamId);
 
             // CvUpload Configuration
             builder.Entity<CvUpload>()

@@ -63,5 +63,9 @@ namespace CleanArchitecture.Core.Entities
         // --- Relations ---
         public Guid HiringManagerId { get; set; }
         public virtual User HiringManager { get; set; }
+
+        // --- Exam Settings ---
+        public bool HasEnglishExam { get; set; }
+        public virtual JobPostingExam EnglishExam { get; set; }
     }
 }
