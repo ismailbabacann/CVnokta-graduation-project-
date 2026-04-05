@@ -81,6 +81,13 @@
             GET /api/v1/Candidates/{userId}
             </summary>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.CvAnalysisController.SaveScore(CleanArchitecture.Core.Features.Evaluations.Commands.SaveCvAnalysis.SaveCvAnalysisCommand)">
+            <summary>
+            NLP servisi tarafindan CV skorlarini kaydetmek uzere cagirilir.
+            </summary>
+            <param name="command">ApplicationId, AnalysisScore ve diger geribildirimleri icerir.</param>
+            <returns></returns>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.EvaluationsController.GetRankings(System.Guid)">
             <summary>
             Belirtilen iş ilanına başvuran adayları final puanlarına göre sıralı listeler.
