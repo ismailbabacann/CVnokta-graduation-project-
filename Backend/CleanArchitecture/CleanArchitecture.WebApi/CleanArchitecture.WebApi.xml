@@ -199,6 +199,12 @@
             POST /api/v1/JobPostings/generate-details
             </summary>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GenerateEnglishExam(CleanArchitecture.Application.Features.JobPostings.Queries.GenerateEnglishExam.GenerateEnglishExamQuery)">
+            <summary>
+            İK'nın girdiği sınav beklentisi (Context) üzerinden İngilizce Test soruları üretir (Mock / AI).
+            POST /api/v1/JobPostings/generate-exam
+            </summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.MeetingsController.Invite(CleanArchitecture.Core.Features.Meetings.Commands.SendMeetingInvitation.SendMeetingInvitationCommand)">
             <summary>
             Belirtilen adaya toplantı/mülakat daveti gönderir.

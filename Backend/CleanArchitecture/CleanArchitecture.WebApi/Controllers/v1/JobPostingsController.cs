@@ -7,6 +7,7 @@ using CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardSummary;
 using CleanArchitecture.Core.Features.JobPostings.Queries.GetJobPostingById;
 using CleanArchitecture.Core.Features.JobPostings.Queries.GetMyJobPostings;
 using CleanArchitecture.Application.Features.JobPostings.Queries.GenerateJobPostingDetails;
+using CleanArchitecture.Application.Features.JobPostings.Queries.GenerateEnglishExam;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -142,6 +143,17 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         [HttpPost("generate-details")]
         [Authorize(Roles = "HiringManager,SuperAdmin")]
         public async Task<IActionResult> GenerateJobPostingDetails([FromBody] GenerateJobPostingDetailsQuery query)
+        {
+            return Ok(await Mediator.Send(query));
+        }
+
+        /// <summary>
+        /// İK'nın girdiği sınav beklentisi (Context) üzerinden İngilizce Test soruları üretir (Mock / AI).
+        /// POST /api/v1/JobPostings/generate-exam
+        /// </summary>
+        [HttpPost("generate-exam")]
+        [Authorize(Roles = "HiringManager,SuperAdmin")]
+        public async Task<IActionResult> GenerateEnglishExam([FromBody] GenerateEnglishExamQuery query)
         {
             return Ok(await Mediator.Send(query));
         }
