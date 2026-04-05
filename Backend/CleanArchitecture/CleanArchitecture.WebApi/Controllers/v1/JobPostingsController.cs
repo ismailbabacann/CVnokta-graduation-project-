@@ -6,6 +6,7 @@ using CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs;
 using CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardSummary;
 using CleanArchitecture.Core.Features.JobPostings.Queries.GetJobPostingById;
 using CleanArchitecture.Core.Features.JobPostings.Queries.GetMyJobPostings;
+using CleanArchitecture.Application.Features.JobPostings.Queries.GenerateJobPostingDetails;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -130,6 +131,17 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         [HttpGet("dashboard/list")]
         [Authorize(Roles = "HiringManager,SuperAdmin")]
         public async Task<IActionResult> GetDashboardJobList([FromQuery] GetDashboardJobsQuery query)
+        {
+            return Ok(await Mediator.Send(query));
+        }
+
+        /// <summary>
+        /// İK'nın girdiği Application Context üzerinden yapay zeka ile iş ilanı detaylarını doldurmak için taslak oluşturur.
+        /// POST /api/v1/JobPostings/generate-details
+        /// </summary>
+        [HttpPost("generate-details")]
+        [Authorize(Roles = "HiringManager,SuperAdmin")]
+        public async Task<IActionResult> GenerateJobPostingDetails([FromBody] GenerateJobPostingDetailsQuery query)
         {
             return Ok(await Mediator.Send(query));
         }

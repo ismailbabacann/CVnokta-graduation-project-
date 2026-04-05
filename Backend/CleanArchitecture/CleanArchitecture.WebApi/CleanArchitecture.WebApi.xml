@@ -193,6 +193,12 @@
             GET /api/v1/JobPostings/dashboard/list
             </summary>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GenerateJobPostingDetails(CleanArchitecture.Application.Features.JobPostings.Queries.GenerateJobPostingDetails.GenerateJobPostingDetailsQuery)">
+            <summary>
+            İK'nın girdiği Application Context üzerinden yapay zeka ile iş ilanı detaylarını doldurmak için taslak oluşturur.
+            POST /api/v1/JobPostings/generate-details
+            </summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.MeetingsController.Invite(CleanArchitecture.Core.Features.Meetings.Commands.SendMeetingInvitation.SendMeetingInvitationCommand)">
             <summary>
             Belirtilen adaya toplantı/mülakat daveti gönderir.

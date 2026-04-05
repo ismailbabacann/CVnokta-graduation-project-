@@ -1,5 +1,6 @@
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
+using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Core.Settings;
 using CleanArchitecture.Infrastructure.Contexts;
 using CleanArchitecture.Infrastructure.Models;
@@ -113,6 +114,7 @@ namespace CleanArchitecture.Infrastructure
             services.Configure<ResendSettings>(configuration.GetSection("ResendSettings"));
             services.AddTransient<IDateTimeService, DateTimeService>();
             services.AddTransient<IEmailService, EmailService>();
+            services.AddTransient<IAiJobPostingGenerationService, MockAiJobPostingGenerationService>();
 
 
             #region Repositories
