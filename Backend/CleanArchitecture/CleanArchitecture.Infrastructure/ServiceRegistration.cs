@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using CleanArchitecture.Core.Settings;
 using CleanArchitecture.Infrastructure.Contexts;
@@ -112,7 +112,7 @@ namespace CleanArchitecture.Infrastructure
             services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
             services.Configure<ResendSettings>(configuration.GetSection("ResendSettings"));
             services.AddTransient<IDateTimeService, DateTimeService>();
-            services.AddTransient<IEmailService, ResendEmailService>();
+            services.AddTransient<IEmailService, EmailService>();
 
 
             #region Repositories

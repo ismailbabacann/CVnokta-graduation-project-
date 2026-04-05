@@ -1,7 +1,8 @@
-﻿using CleanArchitecture.Core.DTOs.Account;
+using CleanArchitecture.Core.DTOs.Account;
 using CleanArchitecture.Core.DTOs.Email;
 using CleanArchitecture.Core.Enums;
 using CleanArchitecture.Core.Exceptions;
+using CleanArchitecture.Core.Helpers;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Settings;
 using CleanArchitecture.Core.Wrappers;
@@ -106,7 +107,7 @@ namespace CleanArchitecture.Infrastructure.Services
                     await _userManager.AddToRoleAsync(user, roleName);
                     var verificationUri = await SendVerificationEmail(user, origin);
                     
-                    var emailHtml = GetRegistrationEmailTemplate(user.FirstName, verificationUri);
+                    var emailHtml = EmailTemplateService.GetRegistrationConfirmationTemplate(user.FirstName, verificationUri);
                     
                     await _emailService.SendAsync(new Core.DTOs.Email.EmailRequest() 
                     { 
@@ -222,14 +223,15 @@ namespace CleanArchitecture.Infrastructure.Services
             var code = await _userManager.GeneratePasswordResetTokenAsync(account);
             var route = "api/account/reset-password/";
             var _enpointUri = new Uri(string.Concat($"{origin}/", route));
+            
+            var emailHtml = EmailTemplateService.GetForgotPasswordTemplate(account.FirstName, code);
             var emailRequest = new EmailRequest()
             {
-                Body = $"You reset token is - {code}",
+                Body = emailHtml,
                 To = model.Email,
-                Subject = "Reset Password",
+                Subject = "CVNokta - Password Reset Request",
             };
-            //TODO: Attach Email Service here and configure it via appsettings
-            //await _emailService.SendAsync(emailRequest);
+            await _emailService.SendAsync(emailRequest);
             return emailRequest;
         }
 
@@ -248,104 +250,6 @@ namespace CleanArchitecture.Infrastructure.Services
             }
         }
 
-        private string GetRegistrationEmailTemplate(string firstName, string verificationUrl)
-        {
-            return $@"
-            <!DOCTYPE html>
-            <html lang='en'>
-            <head>
-                <meta charset='UTF-8'>
-                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                <title>Welcome to CV Nokta</title>
-                <style>
-                    body {{
-                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        background-color: #f4f7f6;
-                        margin: 0;
-                        padding: 0;
-                    }}
-                    .container {{
-                        max-width: 600px;
-                        margin: 40px auto;
-                        background-color: #ffffff;
-                        border-radius: 12px;
-                        overflow: hidden;
-                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-                    }}
-                    .header {{
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        padding: 40px 20px;
-                        text-align: center;
-                        color: #ffffff;
-                    }}
-                    .header h1 {{
-                        margin: 0;
-                        font-size: 28px;
-                        font-weight: 600;
-                    }}
-                    .content {{
-                        padding: 40px 30px;
-                        color: #333333;
-                        line-height: 1.6;
-                    }}
-                    .content p {{
-                        font-size: 16px;
-                        margin-bottom: 20px;
-                    }}
-                    .btn-container {{
-                        text-align: center;
-                        margin: 40px 0;
-                    }}
-                    .btn {{
-                        display: inline-block;
-                        padding: 14px 32px;
-                        background-color: #667eea;
-                        color: #ffffff;
-                        text-decoration: none;
-                        border-radius: 50px;
-                        font-weight: 600;
-                        font-size: 16px;
-                        transition: background-color 0.3s ease;
-                        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
-                    }}
-                    .btn:hover {{
-                        background-color: #5a6cd6;
-                    }}
-                    .footer {{
-                        background-color: #f9fafb;
-                        padding: 20px;
-                        text-align: center;
-                        font-size: 14px;
-                        color: #888888;
-                        border-top: 1px solid #eeeeee;
-                    }}
-                </style>
-            </head>
-            <body>
-                <div class='container'>
-                    <div class='header'>
-                        <h1>Welcome to CV Nokta!</h1>
-                    </div>
-                    <div class='content'>
-                        <p>Hi {firstName},</p>
-                        <p>We are thrilled to have you join our community. To complete your registration and unlock all the features of your new account, please verify your email address.</p>
-                        
-                        <div class='btn-container'>
-                            <a href='{verificationUrl}' class='btn' style='color: #ffffff;'>Verify My Account</a>
-                        </div>
-                        
-                        <p>If the button above doesn't work, you can also copy and paste the following link into your browser:</p>
-                        <p style='word-break: break-all; font-size: 14px; color: #667eea;'>{verificationUrl}</p>
-                        
-                        <p>If you didn't create an account with us, you can safely ignore this email.</p>
-                        <p>Best Regards,<br>The CV Nokta Team</p>
-                    </div>
-                    <div class='footer'>
-                        &copy; {DateTime.UtcNow.Year} CV Nokta. All rights reserved.
-                    </div>
-                </div>
-            </body>
-            </html>";
-        }
+        // Email templates are now centralized in EmailTemplateService
     }
 }
