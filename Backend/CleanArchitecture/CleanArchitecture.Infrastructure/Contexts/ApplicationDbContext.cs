@@ -41,6 +41,8 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<EventLog> EventLogs { get; set; }
         public DbSet<JobPostingExam> JobPostingExams { get; set; }
         public DbSet<ExamQuestion> ExamQuestions { get; set; }
+        public DbSet<VideoInterview> VideoInterviews { get; set; }
+        public DbSet<VideoInterviewQa> VideoInterviewQas { get; set; }
 
         // Read Models
         public DbSet<CandidateRankingView> CandidateRankingViews { get; set; }
@@ -202,6 +204,38 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 .OnDelete(DeleteBehavior.Cascade);
             builder.Entity<ExamQuestion>()
                 .HasIndex(eq => eq.JobPostingExamId);
+
+            // VideoInterview Configuration
+            builder.Entity<VideoInterview>()
+                .HasKey(vi => vi.Id);
+            builder.Entity<VideoInterview>()
+                .Property(vi => vi.ExternalInterviewId).HasMaxLength(100);
+            builder.Entity<VideoInterview>()
+                .HasOne(vi => vi.Candidate)
+                .WithMany()
+                .HasForeignKey(vi => vi.CandidateId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<VideoInterview>()
+                .HasOne(vi => vi.JobPosting)
+                .WithMany()
+                .HasForeignKey(vi => vi.JobPostingId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<VideoInterview>()
+                .HasIndex(vi => vi.CandidateId);
+            builder.Entity<VideoInterview>()
+                .HasIndex(vi => vi.JobPostingId);
+
+            // VideoInterviewQa Configuration
+            builder.Entity<VideoInterviewQa>()
+                .HasKey(viq => viq.Id);
+            builder.Entity<VideoInterviewQa>()
+                .HasOne(viq => viq.VideoInterview)
+                .WithMany(vi => vi.Questions)
+                .HasForeignKey(viq => viq.VideoInterviewId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<VideoInterviewQa>()
+                .HasIndex(viq => viq.VideoInterviewId);
+
 
             // CvUpload Configuration
             builder.Entity<CvUpload>()
