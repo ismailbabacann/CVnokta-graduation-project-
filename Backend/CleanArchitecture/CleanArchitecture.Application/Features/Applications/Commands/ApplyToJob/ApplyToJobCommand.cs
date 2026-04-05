@@ -1,5 +1,7 @@
+using CleanArchitecture.Core.DTOs.Email;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Helpers;
 using MediatR;
 using System;
 using System.Threading;
@@ -52,15 +54,18 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
         private readonly IGenericRepositoryAsync<JobApplication>    _applicationRepo;
         private readonly IGenericRepositoryAsync<CandidateProfile> _candidateRepo;
         private readonly IGenericRepositoryAsync<JobPosting>       _jobPostingRepo;
+        private readonly IEmailService _emailService;
 
         public ApplyToJobCommandHandler(
             IGenericRepositoryAsync<JobApplication>    applicationRepo,
             IGenericRepositoryAsync<CandidateProfile> candidateRepo,
-            IGenericRepositoryAsync<JobPosting>       jobPostingRepo)
+            IGenericRepositoryAsync<JobPosting>       jobPostingRepo,
+            IEmailService emailService)
         {
             _applicationRepo = applicationRepo;
             _candidateRepo   = candidateRepo;
             _jobPostingRepo  = jobPostingRepo;
+            _emailService    = emailService;
         }
 
         public async Task<ApplyToJobResponse> Handle(ApplyToJobCommand request, CancellationToken cancellationToken)
@@ -129,6 +134,33 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
 
             await _applicationRepo.AddAsync(application);
 
+            // Adaya başvuru alındı bilgilendirme maili gönder
+            try
+            {
+                var candidateEmail = candidate.Email ?? request.Email;
+                if (!string.IsNullOrWhiteSpace(candidateEmail))
+                {
+                    var emailHtml = EmailTemplateService.GetApplicationReceivedTemplate(
+                        candidate.FullName ?? request.FullName ?? "Candidate",
+                        jobPosting.JobTitle,
+                        jobPosting.Department,
+                        jobPosting.Location,
+                        jobPosting.WorkType,
+                        jobPosting.WorkModel);
+
+                    await _emailService.SendAsync(new EmailRequest
+                    {
+                        To = candidateEmail,
+                        Subject = $"Application Received — {jobPosting.JobTitle} | CVNokta",
+                        Body = emailHtml
+                    });
+                }
+            }
+            catch
+            {
+                // Email failure should not block the application submission
+            }
+
             return new ApplyToJobResponse
             {
                 Success       = true,
@@ -138,3 +170,4 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
         }
     }
 }
+

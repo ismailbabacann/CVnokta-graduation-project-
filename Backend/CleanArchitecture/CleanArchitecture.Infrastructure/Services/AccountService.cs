@@ -1,8 +1,9 @@
-﻿using CleanArchitecture.Core.DTOs.Account;
+using CleanArchitecture.Core.DTOs.Account;
 using CleanArchitecture.Core.DTOs.Email;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Enums;
 using CleanArchitecture.Core.Exceptions;
+using CleanArchitecture.Core.Helpers;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Settings;
 using CleanArchitecture.Core.Wrappers;
@@ -123,9 +124,17 @@ namespace CleanArchitecture.Infrastructure.Services
                     await _userRepository.AddAsync(domainUser);
 
                     var verificationUri = await SendVerificationEmail(user, origin);
-                    //TODO: Attach Email Service here and configure it via appsettings
-                    //await _emailService.SendAsync(new Core.DTOs.Email.EmailRequest() { From = "mail@codewithmukesh.com", To = user.Email, Body = $"Please confirm your account by visiting this URL {verificationUri}", Subject = "Confirm Registration" });
-                    return  $"User Registered. Please confirm your account by visiting this URL {verificationUri}";
+                    
+                    var emailHtml = EmailTemplateService.GetRegistrationConfirmationTemplate(user.FirstName, verificationUri);
+                    
+                    await _emailService.SendAsync(new Core.DTOs.Email.EmailRequest() 
+                    { 
+                        To = user.Email, 
+                        Body = emailHtml, 
+                        Subject = "Welcome to CV Nokta! Please Confirm Your Registration" 
+                    });
+
+                    return $"User Registered. A confirmation email has been sent to {user.Email}.";
                 }
                 else
                 {
@@ -232,14 +241,15 @@ namespace CleanArchitecture.Infrastructure.Services
             var code = await _userManager.GeneratePasswordResetTokenAsync(account);
             var route = "api/account/reset-password/";
             var _enpointUri = new Uri(string.Concat($"{origin}/", route));
+            
+            var emailHtml = EmailTemplateService.GetForgotPasswordTemplate(account.FirstName, code);
             var emailRequest = new EmailRequest()
             {
-                Body = $"You reset token is - {code}",
+                Body = emailHtml,
                 To = model.Email,
-                Subject = "Reset Password",
+                Subject = "CVNokta - Password Reset Request",
             };
-            //TODO: Attach Email Service here and configure it via appsettings
-            //await _emailService.SendAsync(emailRequest);
+            await _emailService.SendAsync(emailRequest);
             return emailRequest;
         }
 
@@ -257,5 +267,7 @@ namespace CleanArchitecture.Infrastructure.Services
                 throw new ApiException($"Error occured while reseting the password.");
             }
         }
+
+        // Email templates are now centralized in EmailTemplateService
     }
 }
