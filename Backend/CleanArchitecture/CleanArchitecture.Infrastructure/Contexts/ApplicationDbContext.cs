@@ -44,6 +44,10 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<VideoInterview> VideoInterviews { get; set; }
         public DbSet<VideoInterviewQa> VideoInterviewQas { get; set; }
 
+        public DbSet<MarketSkillStat> MarketSkillStats { get; set; }
+        public DbSet<MarketPositionStat> MarketPositionStats { get; set; }
+        public DbSet<MarketLocationStat> MarketLocationStats { get; set; }
+
         // Read Models
         public DbSet<CandidateRankingView> CandidateRankingViews { get; set; }
         public DbSet<ActiveJobPostingsView> ActiveJobPostingsViews { get; set; }
@@ -235,6 +239,28 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 .OnDelete(DeleteBehavior.Cascade);
             builder.Entity<VideoInterviewQa>()
                 .HasIndex(viq => viq.VideoInterviewId);
+
+            // Market Stats Configuration
+            builder.Entity<MarketSkillStat>()
+                .HasKey(m => m.Id);
+            builder.Entity<MarketSkillStat>()
+                .Property(m => m.Name).IsRequired().HasMaxLength(200);
+            builder.Entity<MarketSkillStat>()
+                .HasIndex(m => m.Name).IsUnique();
+
+            builder.Entity<MarketPositionStat>()
+                .HasKey(m => m.Id);
+            builder.Entity<MarketPositionStat>()
+                .Property(m => m.Name).IsRequired().HasMaxLength(200);
+            builder.Entity<MarketPositionStat>()
+                .HasIndex(m => m.Name).IsUnique();
+
+            builder.Entity<MarketLocationStat>()
+                .HasKey(m => m.Id);
+            builder.Entity<MarketLocationStat>()
+                .Property(m => m.Name).IsRequired().HasMaxLength(200);
+            builder.Entity<MarketLocationStat>()
+                .HasIndex(m => m.Name).IsUnique();
 
 
             // CvUpload Configuration

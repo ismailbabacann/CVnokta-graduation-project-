@@ -437,6 +437,78 @@
              </remarks>
              <returns>Oluşturulan davet kaydının Id'si</returns>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.StatisticsController.UpdateSkills(CleanArchitecture.Core.Features.MarketStats.Commands.UpdateSkillStats.UpdateSkillStatsCommand)">
+             <summary>
+             NLP sisteminden gelen dil/yetenek listesini veritabanına upsert eder.
+             </summary>
+             <remarks>
+             Gelen her dil/yetenek BÜYÜK HARFE dönüştürülerek kaydedilir.
+             Eğer kayıt varsa kullanım sayısı (UsageCount) +1 artırılır; yoksa yeni kayıt oluşturulur.
+            
+             Örnek istek:
+            
+                 POST /api/v1/Statistics/skills
+                 {
+                     "skills": ["C#", "Java", "python", "c#"]
+                 }
+            
+             Dönen: İşlenen eleman sayısı
+             </remarks>
+             <returns>İşlenen yetenek/dil sayısı</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.StatisticsController.UpdatePositions(CleanArchitecture.Core.Features.MarketStats.Commands.UpdatePositionStats.UpdatePositionStatsCommand)">
+             <summary>
+             NLP sisteminden gelen pozisyon (iş unvanı) listesini veritabanına upsert eder.
+             </summary>
+             <remarks>
+             Gelen her pozisyon BÜYÜK HARFE dönüştürülerek kaydedilir.
+             Eğer kayıt varsa kullanım sayısı (UsageCount) +1 artırılır; yoksa yeni kayıt oluşturulur.
+            
+             Örnek istek:
+            
+                 POST /api/v1/Statistics/positions
+                 {
+                     "positions": ["Backend Developer", "Software Engineer", "backend developer"]
+                 }
+            
+             Dönen: İşlenen eleman sayısı
+             </remarks>
+             <returns>İşlenen pozisyon sayısı</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.StatisticsController.UpdateLocations(CleanArchitecture.Core.Features.MarketStats.Commands.UpdateLocationStats.UpdateLocationStatsCommand)">
+             <summary>
+             NLP sisteminden gelen şehir/lokasyon listesini veritabanına upsert eder.
+             </summary>
+             <remarks>
+             Gelen her şehir BÜYÜK HARFE dönüştürülerek kaydedilir.
+             Eğer kayıt varsa kullanım sayısı (UsageCount) +1 artırılır; yoksa yeni kayıt oluşturulur.
+            
+             Örnek istek:
+            
+                 POST /api/v1/Statistics/locations
+                 {
+                     "locations": ["Istanbul", "Ankara", "istanbul"]
+                 }
+            
+             Dönen: İşlenen eleman sayısı
+             </remarks>
+             <returns>İşlenen lokasyon sayısı</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.StatisticsController.GetTopStats(System.Int32)">
+             <summary>
+             En çok aranan yetenek, pozisyon ve şehirlerin sıralı listesini döner (Dashboard için).
+             </summary>
+             <remarks>
+             Örnek: GET /api/v1/Statistics/top?topN=10
+            
+             Dönen nesne:
+             - topSkills: [{ name: "C#", usageCount: 45 }, ...]
+             - topPositions: [{ name: "BACKEND DEVELOPER", usageCount: 30 }, ...]
+             - topLocations: [{ name: "İSTANBUL", usageCount: 120 }, ...]
+             </remarks>
+             <param name="topN">Kaç adet kayıt döneceği (varsayılan: 10)</param>
+             <returns>En çok kullanılan yetenek, pozisyon ve şehir listeleri</returns>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.VideoInterviewsController.Sync(CleanArchitecture.Core.Features.VideoInterviews.Commands.SyncVideoInterview.SyncVideoInterviewCommand)">
              <summary>
              Dış sistem tarafından yönetilen video mülakat verisini backend'e aktarır (Sync / Webhook).
