@@ -215,5 +215,11 @@
                     "meetingLink": "https://meet.google.com/...", "meetingType": "FINAL_INTERVIEW" }
             </summary>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.VideoInterviewsController.Sync(CleanArchitecture.Core.Features.VideoInterviews.Commands.SyncVideoInterview.SyncVideoInterviewCommand)">
+            <summary>
+            Dış sistem tarafından yönetilen video mülakat verisinin (sorular, cevaplar, linkler vb.) backend'e aktarılmasını (sync) sağlar.
+            POST /api/v1/VideoInterviews/sync
+            </summary>
+        </member>
     </members>
 </doc>
