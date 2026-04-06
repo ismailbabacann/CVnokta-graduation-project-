@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Core.DTOs.Account;
+using CleanArchitecture.Core.DTOs.Account;
 using CleanArchitecture.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -30,8 +30,9 @@ namespace CleanArchitecture.WebApi.Controllers
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code)
         {
-            var origin = Request.Headers["origin"].FirstOrDefault() ?? "https://localhost:9001";
-            return Ok(await _accountService.ConfirmEmailAsync(userId, code));
+            var origin = Request.Headers["origin"].FirstOrDefault() ?? "http://localhost:3000";
+            await _accountService.ConfirmEmailAsync(userId, code);
+            return Redirect(origin);
         }
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest model)
