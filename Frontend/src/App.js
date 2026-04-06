@@ -16,6 +16,11 @@ import CompanyCandidates from './Pages/CompanyPanel/Candidates/CompanyCandidates
 import ForgotPassword from './Pages/ForgotPassword/ForgotPassword.js';
 import ResetPassword from './Pages/ResetPassword/ResetPassword.js';
 import Insights from './Pages/Insights/Insights.js';
+import UserLayout from './Pages/UserProfile/Layout/UserLayout.js';
+import MyProfile from './Pages/UserProfile/MyProfile/MyProfile.js';
+import MyApplications from './Pages/UserProfile/MyApplications/MyApplications.js';
+import ProfileJobs from './Pages/UserProfile/Jobs/ProfileJobs.js';
+import Help from './Pages/UserProfile/Help/Help.js';
 import './App.css';
 
 function App() {
@@ -27,11 +32,13 @@ function App() {
   };
 
   const isCompanyRoute = location.pathname.startsWith('/company');
+  const isProfileRoute = location.pathname.startsWith('/profile');
+  const hideMainHeaderFooter = isCompanyRoute || isProfileRoute;
 
   return (
     <div className="app">
-      {!isCompanyRoute && <Header user={user} />}
-      <main className={isCompanyRoute ? "" : "main"}>
+      {!hideMainHeaderFooter && <Header user={user} />}
+      <main className={hideMainHeaderFooter ? "" : "main"}>
         <Routes>
           <Route path="/" element={<Mainpage />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
@@ -48,9 +55,16 @@ function App() {
             <Route path="create-job" element={<CreateJob />} />
             <Route path="candidates" element={<CompanyCandidates />} />
           </Route>
+          <Route path="/profile" element={<UserLayout />}>
+            <Route index element={<MyProfile />} />
+            <Route path="me" element={<MyProfile />} />
+            <Route path="applications" element={<MyApplications />} />
+            <Route path="jobs" element={<ProfileJobs />} />
+            <Route path="help" element={<Help />} />
+          </Route>
         </Routes>
       </main>
-      {!isCompanyRoute && <Footer />}
+      {!hideMainHeaderFooter && <Footer />}
     </div>
   );
 }

@@ -94,7 +94,7 @@ function Header({ user }) {
 
         <div className={styles.authButtons}>
           {user ? (
-            <button className={styles.signupBtn} onClick={() => navigate('/')}>
+            <button className={styles.signupBtn} onClick={() => navigate('/profile')}>
               Hesabım
             </button>
           ) : (

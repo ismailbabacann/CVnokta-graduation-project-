@@ -1,0 +1,272 @@
+.applicationsContainer {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+}
+
+.tabsHeader {
+    display: flex;
+    gap: 15px;
+    border-bottom: 2px solid #eef0f4;
+    margin-bottom: 30px;
+}
+
+.tabBtn {
+    background: none;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.tabBtn:hover {
+    color: #4cd5a0;
+}
+
+.tabBtn.active {
+    color: #4cd5a0;
+}
+
+.tabBtn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #4cd5a0;
+    border-radius: 3px 3px 0 0;
+}
+
+.listWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 25px;
+    border: 1px solid #eef0f4;
+    border-radius: 10px;
+    background: #fff;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.card:hover {
+    border-color: #d1dde5;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.cardExpanded {
+    border-color: #4cd5a0;
+    box-shadow: 0 4px 15px rgba(76, 213, 160, 0.1);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.cardInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.jobTitle {
+    margin: 0;
+    font-size: 17px;
+    color: #1e2235;
+    font-weight: 700;
+}
+
+.companyName {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.jobExtraInfo {
+    display: flex;
+    gap: 15px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #555;
+    background: #f8f9fc;
+    padding: 8px 12px;
+    border-radius: 6px;
+    width: fit-content;
+}
+
+.cardMeta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.date {
+    font-size: 13px;
+    color: #888;
+}
+
+.statusBadge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.statusPending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.statusSuccess {
+    background: #d4edda;
+    color: #155724;
+}
+
+.statusDanger {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 50px 20px;
+    color: #888;
+    background: #fafbfa;
+    border-radius: 8px;
+    border: 1px dashed #ddd;
+    font-size: 15px;
+}
+
+.cardBody {
+    margin-top: 10px;
+    cursor: default;
+}
+
+.divider {
+    border: none;
+    border-top: 1px dashed #eef0f4;
+    margin: 15px 0;
+}
+
+.stepperHeader {
+    font-size: 15px;
+    color: #333;
+    margin: 0 0 20px 0;
+}
+
+/* Stepper CSS */
+.stepperContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.stepperBox {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    padding: 0 20px;
+}
+
+.stepperLineTrack {
+    position: absolute;
+    top: 15px;
+    left: 40px;
+    right: 40px;
+    height: 3px;
+    background: #eef0f4;
+    z-index: 0;
+}
+
+.stepItem {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100px;
+}
+
+.stepCircle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #eef0f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: #aaa;
+    transition: all 0.3s;
+}
+
+.stepTitle {
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Completed Step */
+.stepCompleted .stepCircle {
+    border-color: #4cd5a0;
+    background: #4cd5a0;
+    color: white;
+}
+.stepCompleted .stepTitle {
+    color: #4cd5a0;
+}
+
+/* Pending Step (Default) */
+.stepPending .stepCircle { }
+
+/* Rejected Step */
+.stepRejected .stepCircle {
+    border-color: #e74c3c;
+    background: #e74c3c;
+    color: white;
+}
+.stepRejected .stepTitle {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+.rejectionBox {
+    background: #fdf5f5;
+    border: 1px solid #fad2d2;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.rejectionTitle {
+    color: #c0392b;
+    margin: 0 0 10px 0;
+    font-size: 15px;
+}
+
+.rejectionText {
+    margin: 0;
+    color: #555;
+    font-size: 14px;
+    line-height: 1.6;
+}
