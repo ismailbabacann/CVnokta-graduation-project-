@@ -16,9 +16,7 @@ function ProfileJobs() {
     const [locationFilter, setLocationFilter] = useState('');
     const [sortOrder, setSortOrder] = useState('newest');
 
-    // Modal state
-    const [selectedJob, setSelectedJob] = useState(null);
-    const [isApplying, setIsApplying] = useState(false);
+    // Modal state was here previously, now removed.
 
     useEffect(() => {
         const fetchJobs = async () => {
@@ -76,22 +74,8 @@ function ProfileJobs() {
     // Distinct locations for drop-down
     const uniqueLocations = [...new Set(jobs.map(j => j.location).filter(Boolean))];
 
-    const handleApplyClick = (job) => {
-        setSelectedJob(job);
-    };
-
-    const handleCloseModal = () => {
-        setSelectedJob(null);
-    };
-
-    const handleFastApply = () => {
-        setIsApplying(true);
-        // Simulate API call to apply with profile data
-        setTimeout(() => {
-            setIsApplying(false);
-            setSelectedJob(null);
-            alert('Tebrikler! Profilinizdeki mevcut CV ve bilgileriniz kullanılarak başvurunuz başarıyla iletildi. Süreci "Başvurduğum İlanlar" sekmesinden takip edebilirsiniz.');
-        }, 1200);
+    const handleApplyClick = (id) => {
+        navigate(`/profile/jobs/${id}`);
     };
 
     return (
@@ -174,7 +158,7 @@ function ProfileJobs() {
                                 </div>
                                 <button
                                     className={styles.applyBtn}
-                                    onClick={() => handleApplyClick(job)}
+                                    onClick={() => handleApplyClick(job.id)}
                                 >
                                     İncele ve Başvur
                                 </button>
@@ -183,53 +167,6 @@ function ProfileJobs() {
                     ))
                 )}
             </div>
-
-            {/* Job Detail & Fast Apply Modal */}
-            {selectedJob && (
-                <div className={styles.modalOverlay} onClick={handleCloseModal}>
-                    <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-                        <button className={styles.closeBtn} onClick={handleCloseModal}>×</button>
-                        
-                        <div className={styles.modalHeader}>
-                            <div className={styles.modalLogo}>
-                                <img src={jobLogo} alt="Job Logo" />
-                            </div>
-                            <div className={styles.modalTitleArea}>
-                                <h2 className={styles.modalJobTitle}>{selectedJob.jobTitle}</h2>
-                                <p className={styles.modalCompanyName}>{selectedJob.companyName || 'Şirket Gizli'}</p>
-                            </div>
-                        </div>
-
-                        <div className={styles.modalTags}>
-                            <span className={styles.modalTag}>📍 {selectedJob.location || 'Genel'}</span>
-                            <span className={styles.modalTag}>💼 {selectedJob.workType || 'Tam Zamanlı'}</span>
-                            <span className={styles.modalTag}>🏢 {selectedJob.department || 'Bilinmiyor'}</span>
-                        </div>
-
-                        <div className={styles.modalBody}>
-                            <h3>İş Tanımı ve Detaylar</h3>
-                            <p>
-                                {selectedJob.description || 
-                                'Bu ilan için sisteme girilmiş detaylı bir açıklama bulunmamaktadır. Firmanın yayınladığı temel gereksinimleri karşıladığınızı düşünüyorsanız tek tıkla hızlı başvurunuzu tamamlayabilirsiniz.'}
-                            </p>
-                        </div>
-
-                        <div className={styles.modalFooter}>
-                            <div className={styles.profileNotice}>
-                                <span className={styles.infoIcon}>ℹ️</span>
-                                <p>Sistemde kayıtlı profil verileriniz (Ad, Soyad, Telefon, Önyazı, mevcut CV vb.) bu başvuru için kullanılacaktır.</p>
-                            </div>
-                            <button 
-                                className={styles.fastApplyBtn} 
-                                onClick={handleFastApply}
-                                disabled={isApplying}
-                            >
-                                {isApplying ? 'Başvuru İletiliyor...' : 'Profil Bilgilerimle Tek Tıkla Başvur'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

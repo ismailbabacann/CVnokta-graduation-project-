@@ -20,6 +20,7 @@ import UserLayout from './Pages/UserProfile/Layout/UserLayout.js';
 import MyProfile from './Pages/UserProfile/MyProfile/MyProfile.js';
 import MyApplications from './Pages/UserProfile/MyApplications/MyApplications.js';
 import ProfileJobs from './Pages/UserProfile/Jobs/ProfileJobs.js';
+import ProfileJobView from './Pages/UserProfile/Jobs/ProfileJobView.js';
 import Help from './Pages/UserProfile/Help/Help.js';
 import './App.css';
 
@@ -60,6 +61,7 @@ function App() {
             <Route path="me" element={<MyProfile />} />
             <Route path="applications" element={<MyApplications />} />
             <Route path="jobs" element={<ProfileJobs />} />
+            <Route path="jobs/:id" element={<ProfileJobView />} />
             <Route path="help" element={<Help />} />
           </Route>
         </Routes>

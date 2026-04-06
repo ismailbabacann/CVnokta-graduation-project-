@@ -5,7 +5,7 @@
 }
 
 .header {
-    background: #1e2235;
+    background: #764ba2;
     color: white;
     padding: 40px;
     border-radius: 12px;
@@ -30,13 +30,13 @@
 .headerText h2 {
     margin: 0 0 10px 0;
     font-size: 28px;
-    color: #4cd5a0;
+    color: #eef0f4;
 }
 
 .headerText p {
     margin: 0;
     font-size: 15px;
-    color: #a0a5ba;
+    color: #eef0f4;
     line-height: 1.6;
     max-width: 600px;
 }
@@ -58,7 +58,7 @@
 }
 
 .faqItem.open {
-    border-color: #4cd5a0;
+    border-color: #764ba2;
     box-shadow: 0 4px 20px rgba(76, 213, 160, 0.1);
 }
 
@@ -88,7 +88,7 @@
 .icon {
     font-size: 24px;
     font-weight: 300;
-    color: #4cd5a0;
+    color: #764ba2;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -131,7 +131,7 @@
 }
 
 .contactSupport {
-    background: #f8f9fc;
+    background: #d0d4e4;
     border: 1px dashed #d0d4e4;
     padding: 40px;
     border-radius: 12px;
@@ -152,7 +152,7 @@
 
 .contactBtn {
     display: inline-block;
-    background: #1e2235;
+    background: #764ba2;
     color: #fff;
     text-decoration: none;
     padding: 14px 30px;

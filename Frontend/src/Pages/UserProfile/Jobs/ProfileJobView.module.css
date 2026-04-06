@@ -1,0 +1,176 @@
+.jobviewContainer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding-bottom: 40px;
+}
+
+.centeredMessage {
+    text-align: center;
+    padding: 100px;
+    background: #fff;
+    border-radius: 12px;
+    color: #666;
+    margin-top: 40px;
+}
+
+.errorMessage {
+    color: #e74c3c;
+    background: #fdf5f5;
+}
+
+.backBtn {
+    background: transparent;
+    border: none;
+    color: #6a4cd5;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 25px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.2s;
+}
+
+.backBtn:hover {
+    color: #764ba2;
+}
+
+.jobHeader {
+    background: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    margin-bottom: 30px;
+}
+
+.jobHeader h1 {
+    font-size: 32px;
+    color: #1e2235;
+    margin: 0 0 10px 0;
+}
+
+.jobDepartment {
+    font-size: 16px;
+    color: #764ba2;
+    font-weight: 500;
+    margin: 0 0 20px 0;
+}
+
+.jobMeta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.jobMeta span {
+    background: #f8f9fc;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+}
+
+.jobSection {
+    background: #fff;
+    padding: 35px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    margin-bottom: 25px;
+}
+
+.jobSection h2 {
+    font-size: 20px;
+    color: #1e2235;
+    margin: 0 0 20px 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eef0f4;
+}
+
+.jobSection p {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.8;
+    white-space: pre-line;
+    margin: 0;
+}
+
+.benefitsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.benefitCard {
+    background: #fafbfa;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #eef0f4;
+    text-align: center;
+}
+
+.benefitCard h3 {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.applyActionBox {
+    background: #1e2235;
+    padding: 40px;
+    border-radius: 12px;
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(30, 34, 53, 0.1);
+}
+
+.profileNotice {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    max-width: 700px;
+}
+
+.infoIcon {
+    font-size: 24px;
+}
+
+.profileNotice p {
+    margin: 0;
+    font-size: 14px;
+    color: #e2e5f1;
+    line-height: 1.6;
+}
+
+.fastApplyBtn {
+    background: #764ba2;
+    color: white;
+    border: none;
+    padding: 16px 40px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 4px 15px rgba(76, 213, 160, 0.3);
+}
+
+.fastApplyBtn:hover {
+    background: #a54bff;
+    transform: translateY(-2px);
+}
+
+.fastApplyBtn:disabled {
+    background: #89e2be;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}

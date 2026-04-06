@@ -17,7 +17,7 @@
     padding: 25px 20px;
     font-size: 20px;
     font-weight: bold;
-    color: #4cd5a0;
+    color: #f8f9fc;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -51,7 +51,7 @@
 .navItem.active {
     background-color: rgba(255, 255, 255, 0.1);
     color: white;
-    border-left: 4px solid #4cd5a0;
+    border-left: 4px solid #764ba2;
 }
 
 .navIcon {
@@ -133,7 +133,7 @@
 }
 
 .avatar {
-    background-color: #4cd5a0;
+    background-color: #764ba2;
     color: white;
     width: 40px;
     height: 40px;

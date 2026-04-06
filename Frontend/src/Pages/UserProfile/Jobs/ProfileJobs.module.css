@@ -58,7 +58,7 @@
 
 .filterInput:focus,
 .filterSelect:focus {
-    border-color: #4cd5a0;
+    border-color: #764ba2;
     box-shadow: 0 0 0 3px rgba(76, 213, 160, 0.1);
 }
 
@@ -82,7 +82,7 @@
 .jobCard:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    border-color: #4cd5a0;
+    border-color: #764ba2;
 }
 
 .cardHeader {
@@ -161,8 +161,8 @@
 
 .applyBtn {
     background: transparent;
-    color: #4cd5a0;
-    border: 1px solid #4cd5a0;
+    color: #764ba2;
+    border: 1px solid #c58bff;
     padding: 6px 14px;
     border-radius: 6px;
     font-size: 13px;
@@ -172,7 +172,7 @@
 }
 
 .jobCard:hover .applyBtn {
-    background: #4cd5a0;
+    background: #764ba2;
     color: #fff;
 }
 
@@ -195,8 +195,11 @@
 /* Modal CSS */
 .modalOverlay {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.4);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -209,7 +212,7 @@
     width: 100%;
     max-width: 650px;
     border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -218,7 +221,8 @@
 
 .closeBtn {
     position: absolute;
-    top: 20px; right: 20px;
+    top: 20px;
+    right: 20px;
     background: transparent;
     border: none;
     font-size: 28px;
@@ -240,7 +244,8 @@
 }
 
 .modalLogo {
-    width: 60px; height: 60px;
+    width: 60px;
+    height: 60px;
     border-radius: 12px;
     background: #f8f9fc;
     display: flex;
@@ -249,7 +254,8 @@
 }
 
 .modalLogo img {
-    width: 40px; height: auto;
+    width: 40px;
+    height: auto;
 }
 
 .modalTitleArea {
@@ -335,7 +341,7 @@
 }
 
 .fastApplyBtn {
-    background: #4cd5a0;
+    background: #764ba2;
     color: white;
     border: none;
     padding: 16px;
@@ -348,7 +354,7 @@
 }
 
 .fastApplyBtn:hover {
-    background: #3eb587;
+    background: #691fb4;
 }
 
 .fastApplyBtn:disabled {

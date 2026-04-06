@@ -120,7 +120,7 @@
 }
 
 .uploadBtn:hover {
-    background: #4cd5a0;
+    background: #764ba2;
     color: #fff;
 }
 
@@ -133,7 +133,7 @@
 }
 
 .saveBtn {
-    background: #4cd5a0;
+    background: #764ba2;
     color: #fff;
     border: none;
     padding: 14px 28px;
@@ -145,7 +145,7 @@
 }
 
 .saveBtn:hover {
-    background: #3eb587;
+    background: #a851ff;
 }
 
 .saveBtn:disabled {
