@@ -53,6 +53,8 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
                         select new CandidatePoolDto
                         {
                             ApplicationId = a.Id,
+                            CandidateId = a.CandidateId,
+                            JobPostingId = a.JobPostingId,
                             CandidateDisplayId = p.Id.ToString().Substring(0, 8),
                             FirstName = GetFirstName(p.FullName),
                             LastName = GetLastName(p.FullName),

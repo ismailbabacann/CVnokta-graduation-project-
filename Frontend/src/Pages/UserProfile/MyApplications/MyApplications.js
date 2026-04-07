@@ -1,73 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import styles from './MyApplications.module.css';
-
 function MyApplications() {
     const [activeTab, setActiveTab] = useState('ilanlar'); // 'ilanlar' or 'sonuclar'
     const [expandedCardId, setExpandedCardId] = useState(null);
+    const [applications, setApplications] = useState([]);
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Mock data for applications
-    const applications = [
-        { 
-            id: 1, 
-            title: 'Senior Frontend Developer', 
-            company: 'TechNova', 
-            status: 'Değerlendirmede', 
-            date: '21 Ekim 2026',
-            location: 'İstanbul, Türkiye',
-            workType: 'Remote',
-            currentStep: 2, // 1: İletildi, 2: Ön Değerleme, 3: Mülakat, 4: Sonuç
-            isRejected: false
-        },
-        { 
-            id: 2, 
-            title: 'Yazılım Mühendisi', 
-            company: 'Global Solutions', 
-            status: 'Görüşme Bekleniyor', 
-            date: '18 Ekim 2026',
-            location: 'Ankara, Türkiye',
-            workType: 'Hibrit',
-            currentStep: 3,
-            isRejected: false
-        },
-        { 
-            id: 3, 
-            title: 'UI/UX Designer', 
-            company: 'Creative Studio', 
-            status: 'İncelendi', 
-            date: '15 Ekim 2026',
-            location: 'İzmir, Türkiye',
-            workType: 'Tam Zamanlı',
-            currentStep: 2,
-            isRejected: false
-        },
-    ];
+    const mapStatusToStep = (status) => {
+        if (!status) return 1;
+        const s = status.toUpperCase();
+        if (s.includes('SUBMITTED') || s.includes('İLETİLDİ')) return 1;
+        if (s.includes('REVIEW') || s.includes('INCELEME') || s.includes('İNCELENİYOR')) return 2;
+        if (s.includes('INTERVIEW') || s.includes('MÜLAKAT')) return 3;
+        if (s.includes('ACCEPT') || s.includes('REJECT') || s.includes('OLUMLU') || s.includes('OLUMSUZ') || s.includes('KABUL')) return 4;
+        return 1;
+    };
 
-    // Mock data for results
-    const results = [
-        { 
-            id: 4, 
-            title: 'Fullstack Developer', 
-            company: 'DevCorp', 
-            status: 'Kabul Edildi', 
-            date: '10 Ekim 2026',
-            location: 'Remote',
-            workType: 'Tam Zamanlı',
-            currentStep: 4,
-            isRejected: false
-        },
-        { 
-            id: 5, 
-            title: 'Frontend Developer', 
-            company: 'WebAgency', 
-            status: 'Olumsuz', 
-            date: '05 Ekim 2026',
-            location: 'İstanbul, Türkiye',
-            workType: 'Tam Zamanlı',
-            currentStep: 3, // Reddedildiği aşama (örneğin mülakattan sonra)
-            isRejected: true,
-            rejectionReason: 'Sahip olduğunuz yetkinlikler bu pozisyon için oldukça değerli olmakla birlikte, bu ilan özelinde aradığımız ileri seviye React Native tecrübesinin eksik olması sebebiyle başvurunuzu olumsuz olarak değerlendirmek durumunda kaldık. Kariyer yolculuğunuzda başarılar dileriz.'
-        },
-    ];
+    const isStatusRejected = (status) => {
+        if (!status) return false;
+        const s = status.toUpperCase();
+        return s.includes('REJECT') || s.includes('OLUMSUZ');
+    };
+
+    const isStatusResult = (status) => {
+        if (!status) return false;
+        const s = status.toUpperCase();
+        return s.includes('ACCEPT') || s.includes('REJECT') || s.includes('OLUMLU') || s.includes('OLUMSUZ') || s.includes('KABUL');
+    };
+
+    useEffect(() => {
+        const fetchApplications = async () => {
+            try {
+                const token = localStorage.getItem('jwToken');
+                if (!token) {
+                    setLoading(false);
+                    return;
+                }
+
+                // Decode token to get candidateId (nameidentifier or sub or uid)
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const candidateId = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || payload.uid || payload.sub;
+
+                if (!candidateId) {
+                    setLoading(false);
+                    return;
+                }
+
+                const response = await axios.get(`https://localhost:9001/api/v1/Applications/my-applications/${candidateId}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                if (response.data) {
+                    const allData = response.data.map(a => ({
+                        id: a.applicationId,
+                        title: a.jobTitle,
+                        company: a.department, // Using department as company name placeholder since the query handler sets Department
+                        status: a.applicationStatus || 'SUBMITTED',
+                        date: new Date(a.appliedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
+                        location: a.location,
+                        workType: a.workType,
+                        currentStep: mapStatusToStep(a.applicationStatus),
+                        isRejected: isStatusRejected(a.applicationStatus),
+                        rejectionReason: 'Başvurunuz değerlendirme sonucu olumsuz sonuçlanmıştır.'
+                    }));
+
+                    const appsList = allData.filter(a => !isStatusResult(a.status));
+                    const resList = allData.filter(a => isStatusResult(a.status));
+
+                    setApplications(appsList);
+                    setResults(resList);
+                }
+            } catch (err) {
+                console.error("Error fetching applications", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchApplications();
+    }, []);
 
     const toggleCard = (id) => {
         if (expandedCardId === id) setExpandedCardId(null);
@@ -174,16 +189,20 @@ function MyApplications() {
             <div className={styles.tabContent}>
                 {activeTab === 'ilanlar' && (
                     <div className={styles.listWrapper}>
-                        {applications.length > 0 ? applications.map(renderCard) : (
-                            <p className={styles.emptyState}>Henüz hiçbir ilana başvurmadınız.</p>
+                        {loading ? <p className={styles.emptyState}>Yükleniyor...</p> : (
+                            applications.length > 0 ? applications.map(renderCard) : (
+                                <p className={styles.emptyState}>Henüz hiçbir ilana başvurmadınız.</p>
+                            )
                         )}
                     </div>
                 )}
 
                 {activeTab === 'sonuclar' && (
                     <div className={styles.listWrapper}>
-                        {results.length > 0 ? results.map(renderCard) : (
-                            <p className={styles.emptyState}>Sonuçlanmış bir başvurunuz bulunmuyor.</p>
+                        {loading ? <p className={styles.emptyState}>Yükleniyor...</p> : (
+                            results.length > 0 ? results.map(renderCard) : (
+                                <p className={styles.emptyState}>Sonuçlanmış bir başvurunuz bulunmuyor.</p>
+                            )
                         )}
                     </div>
                 )}

@@ -5,6 +5,8 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
     public class CandidatePoolDto
     {
         public Guid ApplicationId { get; set; }
+        public Guid CandidateId { get; set; }
+        public Guid JobPostingId { get; set; }
         public string CandidateDisplayId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

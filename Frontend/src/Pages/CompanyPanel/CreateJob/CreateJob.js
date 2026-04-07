@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import * as pdfjsLib from 'pdfjs-dist';
 import styles from './CreateJob.module.css';
-
-// Set up the worker for pdf.js (Same version as ApplicationForm)
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 function CreateJob() {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [isParsing, setIsParsing] = useState(false);
     const [error, setError] = useState('');
     const [createdJobId, setCreatedJobId] = useState('');
+    
+    // AI State
+    const [aiPrompt, setAiPrompt] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const [formData, setFormData] = useState({
         jobTitle: '',
@@ -31,78 +30,46 @@ function CreateJob() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleFileUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file || file.type !== 'application/pdf') return;
+    const handleGenerateFromAI = async () => {
+        if (!aiPrompt.trim()) {
+            alert('Lütfen iş tanımı ile ilgili bir metin girin.');
+            return;
+        }
 
         try {
-            setIsParsing(true);
+            setIsGenerating(true);
             setError('');
+            const token = localStorage.getItem('jwToken');
             
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            let text = '';
-
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const content = await page.getTextContent();
-                const strings = content.items.map(item => item.str);
-                text += strings.join(' ') + '\n';
-            }
-            
-            console.log("--- RAW PDF TEXT ---");
-            console.log(text);
-            console.log("--------------------");
-
-            // Check if it's a valid template
-            const lowerText = text.toLowerCase();
-            if (!lowerText.includes('ilan') && !lowerText.includes('departman') && !lowerText.includes('about the role') && !lowerText.includes('responsibilities')) {
-                alert("Uyarı: Yüklenen PDF dosyasında beklenen standart başlıklar (Örn: 'İlan Başlığı', 'About The Role') bulunamadı. Metinler yanlış yerlere dolabilir.");
-            }
-
-            // A more resilient extraction function that looks for keywords with or without colons, 
-            // and captures everything up to the next known keyword.
-            const extractSection = (startKeywords, endKeywords, fallback = '') => {
-                const startRegex = new RegExp(`(?:${startKeywords.join('|')})\\s*:?\\s*`, 'i');
-                const startMatch = text.match(startRegex);
-                
-                if (!startMatch) return fallback;
-                
-                const startIndex = startMatch.index + startMatch[0].length;
-                let endIndex = text.length;
-
-                if (endKeywords && endKeywords.length > 0) {
-                    const endRegex = new RegExp(`(?:${endKeywords.join('|')})\\s*:?\\s*`, 'i');
-                    // Search for the end keyword ONLY AFTER the start index
-                    const remainingText = text.substring(startIndex);
-                    const endMatch = remainingText.match(endRegex);
-                    if (endMatch) {
-                        endIndex = startIndex + endMatch.index;
-                    }
+            const response = await axios.post('https://localhost:9001/api/v1/JobPostings/generate-details', {
+                applicationContext: aiPrompt
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
                 }
+            });
 
-                const extracted = text.substring(startIndex, endIndex).trim();
-                return extracted || fallback;
-            };
-
-            const parsedData = {
-                jobTitle: extractSection(['İlan Başlığı', 'Pozisyon', 'Job Title'], ['Departman', 'About the Team', 'About The Role']) || formData.jobTitle,
-                department: extractSection(['Departman', 'Bölüm', 'Department'], ['Şirket Hakkında', 'Biz Kimiz', 'About the Team']) || formData.department,
-                aboutCompany: extractSection(['Şirket Hakkında', 'Biz Kimiz', 'Hakkımızda', 'About Company', 'About the Team'], ['Rol Hakkında', 'İş Tanımı', 'Sorumluluklar', 'Aranan Nitelikler', 'Görevler', 'About The Role', 'Responsibilities']) || formData.aboutCompany,
-                aboutRole: extractSection(['Rol Hakkında', 'İş Tanımı', 'Position Overview', 'About The Role'], ['Sorumluluklar', 'Görevler', 'Aranan Nitelikler', 'İstenen Yetenekler', 'Ayrıcalıklar', 'Responsibilities']) || formData.aboutRole,
-                responsibilities: extractSection(['Sorumluluklar', 'Görevler', 'İş Tanımı', 'Responsibilities'], ['Aranan Nitelikler', 'İstenen Yetenekler', 'Beklentilerimiz', 'Ayrıcalıklar', 'Yan Haklar', 'Expected Qualifications', 'What We Offer', 'Take the Next Step']) || formData.responsibilities,
-                requiredQualifications: extractSection(['Aranan Nitelikler', 'İstenen Yetenekler', 'Beklentilerimiz', 'Qualifications', 'Requirements', 'Expected Qualifications'], ['Ayrıcalıklar', 'Yan Haklar', 'Sunduklarımız', 'Benefits', 'What We Offer', 'Take the Next Step']) || formData.requiredQualifications,
-                benefits: extractSection(['Ayrıcalıklar', 'Yan Haklar', 'Sunduklarımız', 'Faydalar', 'Benefits', 'What We Offer'], ['Take the Next Step']) || formData.benefits
-            };
-
-            setFormData(prev => ({ ...prev, ...parsedData }));
-
+            if (response.data) {
+                const aiData = response.data;
+                setFormData(prev => ({
+                    ...prev,
+                    jobTitle: aiData.jobTitle || prev.jobTitle,
+                    department: aiData.department || prev.department,
+                    location: aiData.location || prev.location,
+                    workType: aiData.workType || prev.workType,
+                    workModel: aiData.workModel || prev.workModel,
+                    aboutCompany: aiData.aboutCompany || prev.aboutCompany,
+                    aboutRole: aiData.aboutRole || prev.aboutRole,
+                    responsibilities: aiData.responsibilities || prev.responsibilities,
+                    requiredQualifications: aiData.requiredQualifications || prev.requiredQualifications,
+                    benefits: Array.isArray(aiData.benefits) ? aiData.benefits.join(', ') : (aiData.benefits || prev.benefits)
+                }));
+            }
         } catch (err) {
-            console.error('PDF Parsing Error:', err);
-            setError('PDF Okunurken bir hata oluştu. Dosyanın şifreli veya bozuk olmadığından emin olun.');
+            console.error('AI Generation Error:', err);
+            alert('AI ile içerik oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
         } finally {
-            setIsParsing(false);
-            e.target.value = null; // reset file input
+            setIsGenerating(false);
         }
     };
 
@@ -237,20 +204,27 @@ function CreateJob() {
             <form className={styles.formContainer} onSubmit={(e) => handleSubmit(e, false)}>
                 {error && <div style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
 
-                {/* PDF Upload Banner */}
+                {/* AI Prompt Section */}
                 <div style={{ backgroundColor: '#eef2ff', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px dashed #6366f1' }}>
-                    <h3 style={{ margin: '0 0 10px 0', color: '#4f46e5' }}>🤖 Yapay Zeka ile Otomatik Doldur (İsteğe Bağlı)</h3>
+                    <h3 style={{ margin: '0 0 10px 0', color: '#4f46e5' }}>🤖 Yapay Zeka ile İş İlanı Detayı Oluştur (İsteğe Bağlı)</h3>
                     <p style={{ margin: '0 0 15px 0', fontSize: '14px', color: '#4b5563' }}>
-                        Standart İlan Taslağınızı (PDF) yükleyin, sistem "İlan Başlığı:", "Sorumluluklar:" vb. başlıkları algılayıp formu sizin yerinize doldursun.
+                        Aradığınız adayın ve işin özelliklerini kısaca yazın (Örn: Fintech şirketi için 3 yıl deneyimli .NET backend developer arıyoruz). Yapay Zeka, tüm formu detaylı şekilde doldursun.
                     </p>
-                    <input 
-                        type="file" 
-                        accept="application/pdf" 
-                        onChange={handleFileUpload}
-                        disabled={isParsing}
-                        style={{ display: 'block', padding: '10px', backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', width: '100%', maxWidth: '400px' }}
+                    <textarea 
+                        value={aiPrompt}
+                        onChange={(e) => setAiPrompt(e.target.value)}
+                        placeholder="İlan hakkında yönergelerinizi yazın..."
+                        style={{ width: '100%', minHeight: '80px', padding: '10px', borderRadius: '6px', border: '1px solid #c7d2fe', marginBottom: '10px', fontFamily: 'Inter, sans-serif' }}
                     />
-                    {isParsing && <span style={{display: 'block', marginTop: '10px', color: '#4f46e5', fontWeight: 'bold'}}>PDF Analiz ediliyor...</span>}
+                    <button 
+                        type="button" 
+                        onClick={handleGenerateFromAI} 
+                        disabled={isGenerating}
+                        style={{ padding: '10px 20px', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                        {isGenerating ? 'Yapay Zeka Çalışıyor...' : '✨ Otomatik Doldur'}
+                    </button>
+                    {isGenerating && <span style={{display: 'inline-block', marginLeft: '10px', color: '#4f46e5', fontWeight: '500'}}>Form alanları dolduruluyor...</span>}
                 </div>
 
                 {/* Box 1: Basic Info */}

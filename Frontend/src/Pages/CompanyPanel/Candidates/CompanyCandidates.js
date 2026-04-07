@@ -9,9 +9,33 @@ function CompanyCandidates() {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Stats State
+    const [stats, setStats] = useState({
+        totalCandidates: 0,
+        newApplicationsToday: 0,
+        averageNlpScore: 0
+    });
+    const [statsLoading, setStatsLoading] = useState(true);
+
     // Modal State
     const [selectedCandidate, setSelectedCandidate] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Test Exam Modal State
+    const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+    const [testContext, setTestContext] = useState('');
+    const [testLoading, setTestLoading] = useState(false);
+    const [generatedTest, setGeneratedTest] = useState(null);
+
+    // Meeting Invitation Modal State
+    const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
+    const [meetingData, setMeetingData] = useState({
+        meetingTitle: '',
+        scheduledDate: '',
+        meetingLink: '',
+        meetingType: 'FINAL_INTERVIEW'
+    });
+    const [meetingLoading, setMeetingLoading] = useState(false);
 
     const openModal = (cand) => {
         setSelectedCandidate(cand);
@@ -21,6 +45,64 @@ function CompanyCandidates() {
     const closeModal = () => {
         setSelectedCandidate(null);
         setIsModalOpen(false);
+        setIsTestModalOpen(false);
+        setIsMeetingModalOpen(false);
+        setGeneratedTest(null);
+        setTestContext('');
+    };
+
+    const handleGenerateTest = async () => {
+        if (!testContext.trim()) {
+            alert("Lütfen test bağlamını (soru detaylarını) giriniz.");
+            return;
+        }
+        try {
+            setTestLoading(true);
+            const token = localStorage.getItem('jwToken');
+            const res = await axios.post(`https://localhost:9001/api/v1/JobPostings/generate-exam`, {
+                testContext
+            }, {
+                 headers: { Authorization: `Bearer ${token}` }
+            });
+            if(res.data) {
+                setGeneratedTest(res.data);
+            }
+        } catch(err) {
+            console.error("Test generate error:", err);
+            alert("Test oluşturulurken bir hata meydana geldi.");
+        } finally {
+            setTestLoading(false);
+        }
+    };
+
+    const handleSendMeeting = async () => {
+        if (!meetingData.meetingTitle || !meetingData.scheduledDate || !meetingData.meetingLink) {
+            alert("Lütfen tüm mülakat alanlarını doldurun.");
+            return;
+        }
+        try {
+            setMeetingLoading(true);
+            const token = localStorage.getItem('jwToken');
+            await axios.post(`https://localhost:9001/api/v1/Meetings/invite`, {
+                applicationId: selectedCandidate.applicationId,
+                jobPostingId: selectedCandidate.jobPostingId || "00000000-0000-0000-0000-000000000000",
+                candidateId: selectedCandidate.candidateId || "00000000-0000-0000-0000-000000000000",
+                meetingTitle: meetingData.meetingTitle,
+                scheduledDate: new Date(meetingData.scheduledDate).toISOString(),
+                meetingLink: meetingData.meetingLink,
+                meetingType: meetingData.meetingType
+            }, {
+                 headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            alert("Mülakat başarıyla oluşturuldu kullanıcıya ve tarafınıza gönderildi.");
+            setIsMeetingModalOpen(false);
+        } catch(err) {
+            console.error("Meeting invite error:", err);
+            alert("Mülakat daveti gönderilirken bir hata oluştu.");
+        } finally {
+            setMeetingLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -56,6 +138,29 @@ function CompanyCandidates() {
         fetchCandidates();
     }, [sortBy]);
 
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const token = localStorage.getItem('jwToken');
+                const res = await axios.get('https://localhost:9001/api/v1/Applications/stats/pool-summary', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (res.data) {
+                    setStats({
+                        totalCandidates: res.data.totalCandidates || 0,
+                        newApplicationsToday: res.data.newApplicationsToday || 0,
+                        averageNlpScore: res.data.averageNlpScore || 0
+                    });
+                }
+            } catch (err) {
+                console.error('Error fetching pool stats:', err);
+            } finally {
+                setStatsLoading(false);
+            }
+        };
+        fetchStats();
+    }, []);
+
     const filteredCandidates = candidates.filter(cand => {
         const trm = searchTerm.toLowerCase();
         const fullName = `${cand.firstName} ${cand.lastName}`.toLowerCase();
@@ -70,6 +175,31 @@ function CompanyCandidates() {
                 <div>
                     <h1 className={styles.title}>Aday Havuzu</h1>
                     <p className={styles.subtitle}>Adaylarınızı yapay zeka uyum (NLP) skoruna göre inceleyin ve önceliklendirin.</p>
+                </div>
+            </div>
+
+            {/* Stats Cards */}
+            <div className={styles.statsGrid}>
+                <div className={styles.statCard}>
+                    <div className={`${styles.iconBg} ${styles.blueBg}`}>👥</div>
+                    <div className={styles.statInfo}>
+                        <span className={styles.statLabel}>Toplam Aday Havuzu</span>
+                        <span className={styles.statValue}>{statsLoading ? '...' : stats.totalCandidates}</span>
+                    </div>
+                </div>
+                <div className={styles.statCard}>
+                    <div className={`${styles.iconBg} ${styles.greenBg}`}>📅</div>
+                    <div className={styles.statInfo}>
+                        <span className={styles.statLabel}>Bugün Gelen Başvurular</span>
+                        <span className={styles.statValue}>{statsLoading ? '...' : stats.newApplicationsToday}</span>
+                    </div>
+                </div>
+                <div className={styles.statCard}>
+                    <div className={`${styles.iconBg} ${styles.purpleBg}`}>🧠</div>
+                    <div className={styles.statInfo}>
+                        <span className={styles.statLabel}>Ort. Yapay Zeka Uyum Skoru</span>
+                        <span className={styles.statValue}>{statsLoading ? '...' : `%${stats.averageNlpScore}`}</span>
+                    </div>
                 </div>
             </div>
 
@@ -102,7 +232,6 @@ function CompanyCandidates() {
                             <th>ADAY BİLGİSİ</th>
                             <th>BAŞVURDUĞU POZİSYON</th>
                             <th>BAŞVURU TARİHİ</th>
-                            <th>DENEYİM & EĞİTİM</th>
                             <th>YAPAY ZEKA (NLP) SKORU</th>
                             <th>AKSİYON</th>
                         </tr>
@@ -134,12 +263,6 @@ function CompanyCandidates() {
                                 <td>
                                     <div className={styles.dateText}>
                                         {new Date(cand.applicationDate).toLocaleDateString('tr-TR')}
-                                    </div>
-                                </td>
-                                <td>
-                                    <div className={styles.expEduText}>
-                                        <span className={styles.tag}>{cand.experienceYears !== null ? `${cand.experienceYears} Yıl` : 'Bilinmiyor'}</span>
-                                        <span className={styles.tag}>{cand.educationLevel || 'Bilinmiyor'}</span>
                                     </div>
                                 </td>
                                 <td>
@@ -197,12 +320,6 @@ function CompanyCandidates() {
 
                             <hr style={{ borderColor: '#eee', margin: '20px 0' }} />
 
-                            <h4>Deneyim ve Eğitim</h4>
-                            <p><strong>Deneyim Yılı:</strong> {selectedCandidate.experienceYears !== null ? `${selectedCandidate.experienceYears} Yıl` : 'Belirtilmemiş'}</p>
-                            <p><strong>Öğrenim Durumu:</strong> {selectedCandidate.educationLevel || 'Belirtilmemiş'}</p>
-
-                            <hr style={{ borderColor: '#eee', margin: '20px 0' }} />
-
                             <h4>Ön Yazı</h4>
                             <div style={{ background: '#f9f9f9', padding: '15px', borderRadius: '8px', minHeight: '80px', whiteSpace: 'pre-wrap' }}>
                                 {selectedCandidate.coverLetter || 'Aday ön yazı eklemedi.'}
@@ -216,7 +333,140 @@ function CompanyCandidates() {
                                 ) : (
                                     <span style={{ color: '#999', padding: '12px', display: 'flex', alignItems: 'center' }}>CV yüklenmedi.</span>
                                 )}
+                                
+                                <button style={{ ...cvBtnStyle, backgroundColor: '#9b59b6', border: 'none', cursor: 'pointer' }} onClick={() => setIsTestModalOpen(true)}>
+                                    📝 Test Gönder
+                                </button>
+                                
+                                <button style={{ ...cvBtnStyle, backgroundColor: '#e67e22', border: 'none', cursor: 'pointer' }} onClick={() => setIsMeetingModalOpen(true)}>
+                                    📅 Mülakat Gönder
+                                </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* AI Test Generate Modal */}
+            {isTestModalOpen && selectedCandidate && (
+                <div style={{...modalOverlayStyle, zIndex: 1010}}>
+                    <div style={{...modalContentStyle, width: '700px'}}>
+                        <div style={modalHeaderStyle}>
+                            <h2 style={{ margin: 0, color: '#4f46e5' }}>🤖 AI ile Uzmanlık Testi Üret</h2>
+                            <button onClick={() => setIsTestModalOpen(false)} style={closeBtnStyle}>X</button>
+                        </div>
+                        <div style={modalBodyStyle}>
+                            <p style={{marginBottom: '15px', color: '#666'}}>Adaya değerlendirme için göndermek istediğiniz testin bağlamını ve beklentilerinizi yazın.</p>
+                            
+                            <textarea 
+                                value={testContext}
+                                onChange={e => setTestContext(e.target.value)}
+                                placeholder="Örn: Bu iş için temel İngilizce iletişim ve C# bilgisi gerekiyor, 3 soru hazırla."
+                                style={{ width: '100%', minHeight: '80px', padding: '10px', borderRadius: '6px', border: '1px solid #c7d2fe', marginBottom: '15px', fontFamily: 'Inter, sans-serif' }}
+                            />
+                            
+                            <button 
+                                onClick={handleGenerateTest} 
+                                disabled={testLoading}
+                                style={{ padding: '10px 20px', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', marginBottom: '20px' }}
+                            >
+                                {testLoading ? 'AI Test Hazırlıyor...' : '✨ Soruları Üret'}
+                            </button>
+
+                            {generatedTest && (
+                                <div style={{ backgroundColor: '#f8f9fc', padding: '20px', borderRadius: '8px', border: '1px solid #eef0f4' }}>
+                                    <h3 style={{marginTop: 0, color: '#333'}}>{generatedTest.title || 'Oluşturulan Test'}</h3>
+                                    <p style={{color: '#666', marginBottom: '20px'}}>{generatedTest.description}</p>
+                                    
+                                    {generatedTest.questions?.map((q, idx) => (
+                                        <div key={idx} style={{marginBottom: '20px'}}>
+                                            <div style={{fontWeight: 'bold', marginBottom: '10px'}}>Soru {idx + 1}: {q.questionText}</div>
+                                            <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '10px'}}>
+                                                {q.options?.map((opt, oIdx) => (
+                                                    <div key={oIdx} style={{padding: '8px', backgroundColor: '#fff', borderRadius: '4px', border: opt === q.correctAnswer ? '1px solid #2ecc71' : '1px solid #ddd'}}>
+                                                        {opt} {opt === q.correctAnswer && <span style={{color: '#2ecc71', fontWeight: 'bold', marginLeft: '10px'}}>✓ Doğru</span>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    
+                                    <button 
+                                        onClick={() => { alert('Test adaya başarıyla atandı!'); setIsTestModalOpen(false); }}
+                                        style={{ padding: '10px 20px', backgroundColor: '#2ecc71', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', width: '100%', marginTop: '10px' }}
+                                    >
+                                        Adaya Gönder
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Meeting Modal */}
+            {isMeetingModalOpen && selectedCandidate && (
+                <div style={{...modalOverlayStyle, zIndex: 1010}}>
+                    <div style={{...modalContentStyle, width: '500px'}}>
+                        <div style={modalHeaderStyle}>
+                            <h2 style={{ margin: 0, color: '#e67e22' }}>📅 Mülakat Daveti Oluştur</h2>
+                            <button onClick={() => setIsMeetingModalOpen(false)} style={closeBtnStyle}>X</button>
+                        </div>
+                        <div style={modalBodyStyle}>
+                            <p style={{marginBottom: '20px', color: '#666'}}>Aday <strong>{selectedCandidate.firstName} {selectedCandidate.lastName}</strong> için bir görüşme planlayın.</p>
+                            
+                            <div style={{marginBottom: '15px'}}>
+                                <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>Mülakat Başlığı *</label>
+                                <input 
+                                    type="text" 
+                                    value={meetingData.meetingTitle}
+                                    onChange={e => setMeetingData({...meetingData, meetingTitle: e.target.value})}
+                                    placeholder="Örn: Final Mülakatı - Backend"
+                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}
+                                />
+                            </div>
+
+                            <div style={{marginBottom: '15px'}}>
+                                <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>Tarih ve Saat *</label>
+                                <input 
+                                    type="datetime-local" 
+                                    value={meetingData.scheduledDate}
+                                    onChange={e => setMeetingData({...meetingData, scheduledDate: e.target.value})}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}
+                                />
+                            </div>
+
+                            <div style={{marginBottom: '15px'}}>
+                                <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>Görüşme Linki (Meet / Zoom / Teams) *</label>
+                                <input 
+                                    type="url" 
+                                    value={meetingData.meetingLink}
+                                    onChange={e => setMeetingData({...meetingData, meetingLink: e.target.value})}
+                                    placeholder="https://meet.google.com/..."
+                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}
+                                />
+                            </div>
+
+                            <div style={{marginBottom: '20px'}}>
+                                <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>Görüşme Tipi</label>
+                                <select 
+                                    value={meetingData.meetingType}
+                                    onChange={e => setMeetingData({...meetingData, meetingType: e.target.value})}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}
+                                >
+                                    <option value="HR_SCREENING">İK Ön Görüşme</option>
+                                    <option value="TECHNICAL_INTERVIEW">Teknik Mülakat</option>
+                                    <option value="FINAL_INTERVIEW">Final Mülakatı</option>
+                                </select>
+                            </div>
+
+                            <button 
+                                onClick={handleSendMeeting} 
+                                disabled={meetingLoading}
+                                style={{ padding: '12px 20px', backgroundColor: '#e67e22', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', width: '100%' }}
+                            >
+                                {meetingLoading ? 'Gönderiliyor...' : 'Daveti Oluştur ve Gönder'}
+                            </button>
                         </div>
                     </div>
                 </div>
