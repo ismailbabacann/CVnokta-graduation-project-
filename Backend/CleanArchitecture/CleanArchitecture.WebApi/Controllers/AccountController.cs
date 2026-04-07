@@ -24,7 +24,8 @@ namespace CleanArchitecture.WebApi.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
-            var origin = Request.Headers["origin"];
+            // Use the backend server's URL instead of the frontend origin for the confirmation link
+            var origin = $"{Request.Scheme}://{Request.Host.Value}";
             return Ok(await _accountService.RegisterAsync(request, origin));
         }
         [HttpGet("confirm-email")]
