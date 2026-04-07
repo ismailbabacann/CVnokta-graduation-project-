@@ -269,5 +269,23 @@ namespace CleanArchitecture.Infrastructure.Services
         }
 
         // Email templates are now centralized in EmailTemplateService
+
+        public async Task<string> ChangePasswordAsync(string userId, ChangePasswordRequest model)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                throw new ApiException("Kullanıcı bulunamadı.");
+
+            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            if (result.Succeeded)
+            {
+                return "Şifreniz başarıyla değiştirildi.";
+            }
+            else
+            {
+                var errors = string.Join(" ", result.Errors.Select(e => e.Description));
+                throw new ApiException($"Şifre değiştirme hatası: {errors}");
+            }
+        }
     }
 }

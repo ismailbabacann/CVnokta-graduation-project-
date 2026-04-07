@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Core.DTOs.Account;
+using CleanArchitecture.Core.DTOs.Account;
 using CleanArchitecture.Core.DTOs.Email;
 using CleanArchitecture.Core.Wrappers;
 using System.Threading.Tasks;
@@ -12,5 +12,6 @@ namespace CleanArchitecture.Core.Interfaces
         Task<string> ConfirmEmailAsync(string userId, string code);
         Task<EmailRequest> ForgotPassword(ForgotPasswordRequest model, string origin);
         Task<string> ResetPassword(ResetPasswordRequest model);
+        Task<string> ChangePasswordAsync(string userId, ChangePasswordRequest model);
     }
 }

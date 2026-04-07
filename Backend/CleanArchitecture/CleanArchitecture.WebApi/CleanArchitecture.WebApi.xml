@@ -4,6 +4,22 @@
         <name>CleanArchitecture.WebApi</name>
     </assembly>
     <members>
+        <member name="M:CleanArchitecture.WebApi.Controllers.AccountController.ChangePassword(CleanArchitecture.Core.DTOs.Account.ChangePasswordRequest)">
+             <summary>
+             Oturum açmış kullanıcının şifresini değiştirir.
+             </summary>
+             <remarks>
+             Örnek istek:
+            
+                 POST /api/Account/change-password
+                 {
+                     "currentPassword": "EskiSifre123!",
+                     "newPassword": "YeniSifre456!",
+                     "confirmNewPassword": "YeniSifre456!"
+                 }
+             </remarks>
+             <returns>Başarı mesajı</returns>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.ApplicationsController.ApplyToJob(CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob.ApplyToJobCommand)">
              <summary>
              Adayın "Başvur" butonuna bastığında çağrılan endpoint.
@@ -117,6 +133,30 @@
                  }
              </remarks>
              <returns>Oluşturulan aday profilinin Id'si</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.CandidatesController.UpdateProfile(System.Guid,CleanArchitecture.Core.Features.Candidates.Commands.UpdateCandidateProfile.UpdateCandidateProfileCommand)">
+             <summary>
+             Adayın profil bilgilerini günceller (ad, soyad, e-posta, telefon, konum, linkedin vb.).
+             </summary>
+             <remarks>
+             Örnek istek:
+            
+                 PUT /api/v1/Candidates/3fa85f64-5717-4562-b3fc-2c963f66afa6
+                 {
+                     "fullName": "Ahmet Yılmaz",
+                     "email": "ahmet@yenimail.com",
+                     "phone": "+90 555 987 6543",
+                     "location": "Ankara, Türkiye",
+                     "summary": "6 yıl deneyimli Full Stack Developer",
+                     "experienceYears": 6,
+                     "educationLevel": "Yüksek Lisans",
+                     "linkedInProfile": "https://linkedin.com/in/ahmetyilmaz",
+                     "currentCompany": "XYZ Yazılım"
+                 }
+             </remarks>
+             <param name="userId">Kullanıcı Id'si (GUID)</param>
+             <param name="command">Güncellenecek profil bilgileri</param>
+             <returns>Güncelleme başarı durumu ve güncel profil verisi</returns>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.CandidatesController.UploadCv(CleanArchitecture.Core.Features.Candidates.Commands.UploadCv.UploadCvCommand)">
             <summary>

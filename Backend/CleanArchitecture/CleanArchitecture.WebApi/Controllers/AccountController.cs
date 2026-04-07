@@ -48,6 +48,36 @@ namespace CleanArchitecture.WebApi.Controllers
 
             return Ok(await _accountService.ResetPassword(model));
         }
+
+        /// <summary>
+        /// Oturum açmış kullanıcının şifresini değiştirir.
+        /// </summary>
+        /// <remarks>
+        /// Örnek istek:
+        ///
+        ///     POST /api/Account/change-password
+        ///     {
+        ///         "currentPassword": "EskiSifre123!",
+        ///         "newPassword": "YeniSifre456!",
+        ///         "confirmNewPassword": "YeniSifre456!"
+        ///     }
+        /// </remarks>
+        /// <returns>Başarı mesajı</returns>
+        [HttpPost("change-password")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest model)
+        {
+            // JWT'den kullanıcı Id'sini al
+            var userId = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { Message = "Kullanıcı kimliği doğrulanamadı." });
+
+            var result = await _accountService.ChangePasswordAsync(userId, model);
+            return Ok(new { Succeeded = true, Message = result });
+        }
+
         private string GenerateIPAddress()
         {
             if (Request.Headers.ContainsKey("X-Forwarded-For"))
