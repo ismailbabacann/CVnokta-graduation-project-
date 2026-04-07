@@ -1,4 +1,5 @@
 using CleanArchitecture.Core.Features.Candidates.Commands.CreateCandidateProfile;
+using CleanArchitecture.Core.Features.Candidates.Commands.UpdateCandidateProfile;
 using CleanArchitecture.Core.Features.Candidates.Commands.UploadCv;
 using CleanArchitecture.Core.Features.Candidates.Queries.GetCandidateProfile;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +36,40 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         }
 
         /// <summary>
+        /// Adayın profil bilgilerini günceller (ad, soyad, e-posta, telefon, konum, linkedin vb.).
+        /// </summary>
+        /// <remarks>
+        /// Örnek istek:
+        ///
+        ///     PUT /api/v1/Candidates/3fa85f64-5717-4562-b3fc-2c963f66afa6
+        ///     {
+        ///         "fullName": "Ahmet Yılmaz",
+        ///         "email": "ahmet@yenimail.com",
+        ///         "phone": "+90 555 987 6543",
+        ///         "location": "Ankara, Türkiye",
+        ///         "summary": "6 yıl deneyimli Full Stack Developer",
+        ///         "experienceYears": 6,
+        ///         "educationLevel": "Yüksek Lisans",
+        ///         "linkedInProfile": "https://linkedin.com/in/ahmetyilmaz",
+        ///         "currentCompany": "XYZ Yazılım"
+        ///     }
+        /// </remarks>
+        /// <param name="userId">Kullanıcı Id'si (GUID)</param>
+        /// <param name="command">Güncellenecek profil bilgileri</param>
+        /// <returns>Güncelleme başarı durumu ve güncel profil verisi</returns>
+        [HttpPut("{userId}")]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> UpdateProfile(Guid userId, [FromBody] UpdateCandidateProfileCommand command)
+        {
+            command.UserId = userId;
+            var result = await Mediator.Send(command);
+            if (!result.Succeeded) return BadRequest(result);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Adayın özgeçmiş dosyasını (CV) sisteme yükler. multipart/form-data formatında gönderilmelidir.
         /// </summary>
         /// <remarks>
@@ -66,3 +101,4 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         }
     }
 }
+

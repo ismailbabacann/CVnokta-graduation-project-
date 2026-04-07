@@ -1,0 +1,14 @@
+﻿C:\Users\dici-\OneDrive\Masa├╝st├╝\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Infrastructure\CleanArchitecture.Infrastructure.csproj : warning NU1902: 'MimeKit' 2.9.1 paketinde ├Ânem derecesi orta olan bilinen bir https://github.com/advisories/GHSA-g7hc-96xr-gvvx g├╝venlik a├ğ─▒─ş─▒ var
+C:\Users\dici-\OneDrive\Masa├╝st├╝\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Application\CleanArchitecture.Core.csproj : warning NU1903: 'AutoMapper' 14.0.0 paketinde ├Ânem derecesi y├╝ksek olan bilinen bir https://github.com/advisories/GHSA-rvv3-g6hj-g44x g├╝venlik a├ğ─▒─ş─▒ var
+  CleanArchitecture.Core -> C:\Users\dici-\OneDrive\Masa├╝st├╝\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Application\bin\Debug\net8.0\CleanArchitecture.Core.dll
+  CleanArchitecture.Infrastructure -> C:\Users\dici-\OneDrive\Masa├╝st├╝\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Infrastructure\bin\Debug\net8.0\CleanArchitecture.Infrastructure.dll
+  CleanArchitecture.WebApi -> C:\Users\dici-\OneDrive\Masa├╝st├╝\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.WebApi\bin\Debug\net8.0\CleanArchitecture.WebApi.dll
+
+Olu┼şturma ba┼şar─▒l─▒ oldu.
+
+C:\Users\dici-\OneDrive\Masa├╝st├╝\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Infrastructure\CleanArchitecture.Infrastructure.csproj : warning NU1902: 'MimeKit' 2.9.1 paketinde ├Ânem derecesi orta olan bilinen bir https://github.com/advisories/GHSA-g7hc-96xr-gvvx g├╝venlik a├ğ─▒─ş─▒ var
+C:\Users\dici-\OneDrive\Masa├╝st├╝\bitirme-proje\CVnokta-graduation-project-\Backend\CleanArchitecture\CleanArchitecture.Application\CleanArchitecture.Core.csproj : warning NU1903: 'AutoMapper' 14.0.0 paketinde ├Ânem derecesi y├╝ksek olan bilinen bir https://github.com/advisories/GHSA-rvv3-g6hj-g44x g├╝venlik a├ğ─▒─ş─▒ var
+    2 Uyar─▒
+    0 Hata
+
+Ge├ğen S├╝re 00:00:01.45
