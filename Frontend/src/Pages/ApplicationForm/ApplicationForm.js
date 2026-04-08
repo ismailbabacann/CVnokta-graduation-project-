@@ -24,7 +24,6 @@ function ApplicationForm({ onBack }) {
     phone: '',
     linkedIn: '',
     currentLocation: '',
-    currentCompany: '',
     cvUrl: '',
     cvOriginalName: '',
     coverLetter: '',
@@ -171,7 +170,6 @@ function ApplicationForm({ onBack }) {
         phone: formData.phone,
         location: formData.currentLocation,
         linkedInProfile: formData.linkedIn,
-        currentCompany: formData.currentCompany,
         coverLetter: formData.coverLetter,
         cvUrl: formData.cvUrl
       };
@@ -216,7 +214,6 @@ function ApplicationForm({ onBack }) {
         <FormField label="Telefon" name="phone" type="tel" value={formData.phone} onChange={handleChange} error={errors.phone} required />
         <FormField label="Bulunduğunuz Yer" name="currentLocation" value={formData.currentLocation} onChange={handleChange} error={errors.currentLocation} required />
         <FormField label="LinkedIn" name="linkedIn" type="url" value={formData.linkedIn} onChange={handleChange} error={errors.linkedIn} required />
-        <FormField label="Mevcut Şirket" name="currentCompany" value={formData.currentCompany} onChange={handleChange} />
 
         <div className="form-group">
           <label>CV/Özgeçmiş <span className="required">*</span></label>

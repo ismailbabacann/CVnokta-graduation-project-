@@ -8,6 +8,8 @@ function CompanyCandidates() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterJobId, setFilterJobId] = useState('All');
+    const [companyJobs, setCompanyJobs] = useState([]);
 
     // Stats State
     const [stats, setStats] = useState({
@@ -114,7 +116,8 @@ function CompanyCandidates() {
                     params: {
                         PageNumber: 1,
                         PageSize: 50,
-                        SortBy: sortBy
+                        SortBy: sortBy,
+                        JobPostingId: filterJobId === 'All' ? undefined : filterJobId
                     },
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -136,7 +139,24 @@ function CompanyCandidates() {
         };
 
         fetchCandidates();
-    }, [sortBy]);
+    }, [sortBy, filterJobId]);
+
+    useEffect(() => {
+        const fetchJobs = async () => {
+             try {
+                 const token = localStorage.getItem('jwToken');
+                 const res = await axios.get('https://localhost:9001/api/v1/JobPostings/dashboard/list', {
+                     headers: { Authorization: `Bearer ${token}` }
+                 });
+                 if (res.data && res.data.data) {
+                     setCompanyJobs(res.data.data);
+                 }
+             } catch(err) {
+                 console.error('Error fetching jobs for filter:', err);
+             }
+        };
+        fetchJobs();
+    }, []);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -216,6 +236,18 @@ function CompanyCandidates() {
                     <div className={styles.filters}>
                         <select
                             className={styles.filterSelect}
+                            value={filterJobId}
+                            onChange={(e) => setFilterJobId(e.target.value)}
+                        >
+                            <option value="All">Filtre: Tüm İlanlar</option>
+                            {companyJobs.map(job => (
+                                <option key={job.jobId || job.id} value={job.jobId || job.id}>
+                                    İlan: {job.jobTitle}
+                                </option>
+                            ))}
+                        </select>
+                        <select
+                            className={styles.filterSelect}
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
                         >
@@ -287,59 +319,76 @@ function CompanyCandidates() {
 
             {/* Candidate Details Modal */}
             {isModalOpen && selectedCandidate && (
-                <div style={modalOverlayStyle}>
-                    <div style={modalContentStyle}>
-                        <div style={modalHeaderStyle}>
-                            <h2 style={{ margin: 0 }}>Aday Detayları</h2>
-                            <button onClick={closeModal} style={closeBtnStyle}>X</button>
-                        </div>
-                        <div style={modalBodyStyle}>
-                            <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-                                <div className={styles.avatar} style={{ width: '60px', height: '60px', fontSize: '24px' }}>
+                <div style={{...modalOverlayStyle, backdropFilter: 'blur(4px)'}}>
+                    <div style={{...modalContentStyle, width: '800px', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)'}}>
+                        {/* Header Area with Gradient */}
+                        <div style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', padding: '30px', color: 'white', position: 'relative' }}>
+                            <button onClick={closeModal} style={{...closeBtnStyle, position: 'absolute', top: '20px', right: '20px', color: 'white', background: 'rgba(255,255,255,0.2)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>X</button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: 'white', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>
                                     {(selectedCandidate.firstName?.charAt(0) || '') + (selectedCandidate.lastName?.charAt(0) || '')}
                                 </div>
                                 <div>
-                                    <h3 style={{ margin: '0 0 5px 0' }}>{selectedCandidate.firstName} {selectedCandidate.lastName}</h3>
-                                    <p style={{ margin: 0, color: '#666' }}>{selectedCandidate.appliedPosition} (ID: #{selectedCandidate.candidateDisplayId})</p>
-                                    <p style={{ margin: '5px 0 0 0', fontWeight: 'bold', color: selectedCandidate.nlpMatchScore >= 75 ? '#20B2AA' : '#f39c12' }}>
-                                        🌟 NLP Uyum Skoru: %{selectedCandidate.nlpMatchScore}
-                                    </p>
+                                    <h2 style={{ margin: '0 0 5px 0', fontSize: '28px' }}>{selectedCandidate.firstName} {selectedCandidate.lastName}</h2>
+                                    <p style={{ margin: 0, opacity: 0.9, fontSize: '15px' }}>{selectedCandidate.appliedPosition} (ID: #{selectedCandidate.candidateDisplayId})</p>
+                                    <div style={{ marginTop: '10px', display: 'inline-block', padding: '4px 12px', borderRadius: '20px', background: 'rgba(255,255,255,0.2)', fontSize: '14px', fontWeight: '500' }}>
+                                        {selectedCandidate.nlpMatchScore >= 75 ? '🌟 Yüksek Uyum :' : '📉 Uyum Skoru :'} %{selectedCandidate.nlpMatchScore}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Body Area with Grid Layout */}
+                        <div style={{ padding: '30px', overflowY: 'auto', backgroundColor: '#f8fafc' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                {/* Left Column */}
+                                <div>
+                                    <div style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', height: '100%' }}>
+                                        <h4 style={{ color: '#475569', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span role="img" aria-label="contact">📱</span> İletişim Bilgileri
+                                        </h4>
+                                        <div style={{ color: '#334155', lineHeight: '1.8' }}>
+                                            <p style={{ margin: '10px 0' }}><strong>✉️ Email:</strong> <a href={`mailto:${selectedCandidate.email}`} style={{color: '#4f46e5', textDecoration: 'none'}}>{selectedCandidate.email || 'Belirtilmemiş'}</a></p>
+                                            <p style={{ margin: '10px 0' }}><strong>📞 Telefon:</strong> {selectedCandidate.phone || 'Belirtilmemiş'}</p>
+                                            <p style={{ margin: '10px 0' }}>
+                                                <strong>🔗 LinkedIn:</strong> {selectedCandidate.linkedInProfile ? (
+                                                    <a href={selectedCandidate.linkedInProfile} target="_blank" rel="noopener noreferrer" style={{color: '#4f46e5', textDecoration: 'none'}}>Profili Görüntüle</a>
+                                                ) : 'Belirtilmemiş'}
+                                            </p>
+                                            <p style={{ margin: '10px 0' }}><strong>📍 Konum:</strong> {selectedCandidate.location || 'Belirtilmemiş'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Right Column */}
+                                <div>
+                                    <div style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', height: '100%' }}>
+                                        <h4 style={{ color: '#475569', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span role="img" aria-label="letter">✍️</span> Ön Yazı / Hedef
+                                        </h4>
+                                        <div style={{ background: '#f1f5f9', padding: '15px', borderRadius: '8px', minHeight: '120px', whiteSpace: 'pre-wrap', color: '#475569', fontStyle: 'italic', fontSize: '14px', lineHeight: '1.6' }}>
+                                            "{selectedCandidate.coverLetter || 'Aday bu başvuru için ön yazı eklemeyi tercih etmemiş.'}"
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <hr style={{ borderColor: '#eee', margin: '20px 0' }} />
-
-                            <h4>İletişim Bilgileri</h4>
-                            <p><strong>Email:</strong> {selectedCandidate.email || 'Belirtilmemiş'}</p>
-                            <p><strong>Telefon:</strong> {selectedCandidate.phone || 'Belirtilmemiş'}</p>
-                            <p>
-                                <strong>LinkedIn:</strong> {selectedCandidate.linkedInProfile ? (
-                                    <a href={selectedCandidate.linkedInProfile} target="_blank" rel="noopener noreferrer">Görüntüle</a>
-                                ) : 'Belirtilmemiş'}
-                            </p>
-
-                            <hr style={{ borderColor: '#eee', margin: '20px 0' }} />
-
-                            <h4>Ön Yazı</h4>
-                            <div style={{ background: '#f9f9f9', padding: '15px', borderRadius: '8px', minHeight: '80px', whiteSpace: 'pre-wrap' }}>
-                                {selectedCandidate.coverLetter || 'Aday ön yazı eklemedi.'}
-                            </div>
-
+                            {/* Action Buttons */}
                             <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
                                 {selectedCandidate.cvUrl ? (
-                                    <a href={selectedCandidate.cvUrl} target="_blank" rel="noopener noreferrer" style={{ ...cvBtnStyle, backgroundColor: '#3498db' }}>
-                                        📄 CV'yi İncele
+                                    <a href={selectedCandidate.cvUrl} target="_blank" rel="noopener noreferrer" style={{ ...cvBtnStyle, backgroundColor: '#cbd5e1', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        📄 CV Görüntüle
                                     </a>
                                 ) : (
-                                    <span style={{ color: '#999', padding: '12px', display: 'flex', alignItems: 'center' }}>CV yüklenmedi.</span>
+                                    <span style={{ color: '#94a3b8', padding: '12px', display: 'flex', alignItems: 'center' }}>CV yüklenmedi.</span>
                                 )}
                                 
-                                <button style={{ ...cvBtnStyle, backgroundColor: '#9b59b6', border: 'none', cursor: 'pointer' }} onClick={() => setIsTestModalOpen(true)}>
-                                    📝 Test Gönder
+                                <button style={{ ...cvBtnStyle, backgroundColor: '#8b5cf6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setIsTestModalOpen(true)}>
+                                    📝 AI Test Gönder
                                 </button>
                                 
-                                <button style={{ ...cvBtnStyle, backgroundColor: '#e67e22', border: 'none', cursor: 'pointer' }} onClick={() => setIsMeetingModalOpen(true)}>
-                                    📅 Mülakat Gönder
+                                <button style={{ ...cvBtnStyle, backgroundColor: '#ec4899', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setIsMeetingModalOpen(true)}>
+                                    📅 Mülakat Ayarla
                                 </button>
                             </div>
                         </div>

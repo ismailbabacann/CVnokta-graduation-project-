@@ -393,6 +393,13 @@
             <param name="command">Yeni durum (newStatus: "Active" | "Closed")</param>
             <returns>Durum güncelleme başarı bilgisi</returns>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.Delete(System.Guid)">
+            <summary>
+            İlanı siler (Soft Delete).
+            </summary>
+            <param name="id">İş ilanı Id'si (GUID)</param>
+            <returns>Silme başarı durumu</returns>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetById(System.Guid)">
             <summary>
             Tek bir iş ilanının detaylarını getirir (düzenleme / önizleme için).
