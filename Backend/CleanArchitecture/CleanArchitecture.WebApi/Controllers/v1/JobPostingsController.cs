@@ -1,6 +1,7 @@
 using CleanArchitecture.Core.Features.JobPostings.Commands.CreateJobPosting;
 using CleanArchitecture.Core.Features.JobPostings.Commands.PublishJobPosting;
 using CleanArchitecture.Core.Features.JobPostings.Commands.UpdateJobPostingStatus;
+using CleanArchitecture.Core.Features.JobPostings.Commands.DeleteJobPosting;
 using CleanArchitecture.Core.Features.JobPostings.Queries.GetActiveJobPostings;
 using CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs;
 using CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardSummary;
@@ -132,6 +133,23 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         {
             if (id != command.Id) return BadRequest("URL id ile body id eşleşmiyor.");
             return Ok(await Mediator.Send(command));
+        }
+
+        /// <summary>
+        /// İlanı siler (Soft Delete).
+        /// </summary>
+        /// <param name="id">İş ilanı Id'si (GUID)</param>
+        /// <returns>Silme başarı durumu</returns>
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "HiringManager,SuperAdmin")]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var result = await Mediator.Send(new DeleteJobPostingCommand { Id = id });
+            if (!result) return BadRequest(new { Message = "İlan silinemedi veya bulunamadı." });
+            return Ok(new { Success = true });
         }
 
         /// <summary>
