@@ -107,13 +107,23 @@ function ProfileJobView() {
                     <span className={styles.infoIcon}>ℹ️</span>
                     <p>Sistemde kayıtlı önyazınız, eğitim bilgileriniz ve güncel özgeçmiş dosyanız bu ilan için şirkete doğrudan iletilecektir. Hızlı başvuru işlemini aşağıdan tamamlayabilirsiniz.</p>
                 </div>
-                <button 
-                    className={styles.fastApplyBtn} 
-                    onClick={handleFastApply}
-                    disabled={isApplying}
-                >
-                    {isApplying ? 'Başvuru İletiliyor...' : 'Profil Bilgilerimle Bu İlana Başvur'}
-                </button>
+                {job.status === 'Active' ? (
+                    <button 
+                        className={styles.fastApplyBtn} 
+                        onClick={handleFastApply}
+                        disabled={isApplying}
+                    >
+                        {isApplying ? 'Başvuru İletiliyor...' : 'Profil Bilgilerimle Bu İlana Başvur'}
+                    </button>
+                ) : (
+                    <button 
+                        className={styles.fastApplyBtn} 
+                        style={{backgroundColor: '#cbd5e1', cursor: 'not-allowed', color: '#475569'}}
+                        disabled
+                    >
+                        İlan Kapalıdır (Closed)
+                    </button>
+                )}
             </div>
         </div>
     );

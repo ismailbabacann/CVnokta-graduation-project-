@@ -107,6 +107,29 @@ function CompanyCandidates() {
         }
     };
 
+    const handleRejectCand = async () => {
+        if (!selectedCandidate || !selectedCandidate.applicationId) return;
+        
+        if (!window.confirm("Bu adayı elemek istediğinize emin misiniz? İşlem geri alınamaz.")) return;
+
+        try {
+            const token = localStorage.getItem('jwToken');
+            await axios.put(`https://localhost:9001/api/v1/Applications/status/bulk`, {
+                applicationIds: [selectedCandidate.applicationId],
+                stage: 'REJECTED'
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            alert("Aday başarıyla elendi.");
+            setCandidates(prev => prev.filter(c => c.applicationId !== selectedCandidate.applicationId));
+            closeModal();
+        } catch(err) {
+            console.error("Reject candidate error:", err);
+            alert("Aday reddedilirken bir hata oluştu.");
+        }
+    };
+
     useEffect(() => {
         const fetchCandidates = async () => {
             try {
@@ -389,6 +412,10 @@ function CompanyCandidates() {
                                 
                                 <button style={{ ...cvBtnStyle, backgroundColor: '#ec4899', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setIsMeetingModalOpen(true)}>
                                     📅 Mülakat Ayarla
+                                </button>
+                                
+                                <button style={{ ...cvBtnStyle, backgroundColor: '#ef4444', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={handleRejectCand}>
+                                    ❌ Adayı Ele (Reddet)
                                 </button>
                             </div>
                         </div>
