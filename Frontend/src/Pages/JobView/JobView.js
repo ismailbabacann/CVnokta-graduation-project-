@@ -86,9 +86,15 @@ function JobView() {
         </section>
       )}
 
-      <button className="apply-button" onClick={handleApplyClick}>
-        Apply for this Job
-      </button>
+      {job.status === 'Active' ? (
+        <button className="apply-button" onClick={handleApplyClick}>
+          Apply for this Job
+        </button>
+      ) : (
+        <button className="apply-button" style={{backgroundColor: '#ccc', cursor: 'not-allowed', color: '#666'}} disabled>
+          İlan Kapalıdır (Closed)
+        </button>
+      )}
     </div>
   );
 }

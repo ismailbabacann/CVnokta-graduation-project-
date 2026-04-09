@@ -27,6 +27,7 @@ function CompanyJobs() {
     const [selectedCandIds, setSelectedCandIds] = useState([]);
     const [isTestPromptOpen, setIsTestPromptOpen] = useState(false);
     const [testContext, setTestContext] = useState('');
+    const [testType, setTestType] = useState('AI Özel Test');
     const [bulkLoading, setBulkLoading] = useState(false);
 
     const openJobModal = async (job) => {
@@ -111,27 +112,31 @@ function CompanyJobs() {
             alert("Lütfen test göndermek için en az bir aday seçiniz.");
             return;
         }
-        if (!testContext.trim()) {
-            alert("Test bağlamı boş bırakılamaz.");
+        if (testType === 'AI Özel Test' && !testContext.trim()) {
+            alert("Lütfen test bağlamını textarea içerisine yazın.");
             return;
         }
+
         try {
             setBulkLoading(true);
             const token = localStorage.getItem('jwToken');
-            // This generates the exam for all selected candidates
+            
+            let assignedContext = testContext;
+            if (testType === 'Genel Yetenek Testi') assignedContext = 'Adayların analitik sorgulama ve problem çözme becerilerini ölçen sorular.';
+            else if (testType === 'İngilizce Testi') assignedContext = 'Adayların iş ingilizcesi bilgilerini ölçen çoktan seçmeli sorular.';
+
             const testPayload = {
-               testContext: testContext,
-               // Optionally the backend API could be extended to accept target candidate arrays
-               // For now, it might be a mock or generic generation that is shared in text
+                candidateApplicationIds: selectedCandIds,
+                context: assignedContext
             };
             await axios.post(`https://localhost:9001/api/v1/JobPostings/generate-exam`, testPayload, {
                  headers: { Authorization: `Bearer ${token}` }
             });
             
-            // To simulate the bulk assignment since bulk exam assigning is mocked:
             alert(`${selectedCandIds.length} adaya otomatik sınav maili gönderildi ve bağlam atandı.`);
             setIsTestPromptOpen(false);
             setTestContext('');
+            setTestType('AI Özel Test');
             setSelectedCandIds([]);
         } catch (err) {
             console.error("Toplu test gönderme hatası:", err);
@@ -375,13 +380,15 @@ function CompanyJobs() {
                                     </td>
                                     <td>
                                         {job.isDraft || job.status === 'Draft' ? (
-                                            <span className={styles.calcText}>Hesaplanmıyor (Taslak)</span>
+                                            <span className={styles.calcText}>-</span>
                                         ) : (
                                             <div className={styles.nlpWrapper}>
-                                                <span className={styles.nlpText}>{job.nlpScoreSummary || 'Hesaplanıyor...'}</span>
-                                                <div className={styles.progressBar}>
-                                                    <div className={styles.progressFill} style={{ width: `${job.nlpScorePercentage || 0}%` }}></div>
-                                                </div>
+                                                <span className={styles.nlpText}>{job.nlpScoreSummary || ''}</span>
+                                                {job.nlpScorePercentage ? (
+                                                    <div className={styles.progressBar}>
+                                                        <div className={styles.progressFill} style={{ width: `${job.nlpScorePercentage}%` }}></div>
+                                                    </div>
+                                                ) : null}
                                             </div>
                                         )}
                                     </td>
@@ -473,43 +480,55 @@ function CompanyJobs() {
                                         />
                                         <div style={{ display: 'flex', gap: '10px' }}>
                                             <button 
-                                                onClick={() => setIsTestPromptOpen(!isTestPromptOpen)} 
+                                                onClick={() => setIsTestPromptOpen(true)} 
                                                 style={{...actionBtnStyle, backgroundColor: '#9b59b6'}}
                                                 disabled={selectedCandIds.length === 0}
                                             >
-                                                📝 Toplu Test ({selectedCandIds.length})
-                                            </button>
-                                            <button 
-                                                onClick={() => handleBulkStatusUpdate('INTERVIEW_INVITED')} 
-                                                style={{...actionBtnStyle, backgroundColor: '#3498db'}}
-                                                disabled={selectedCandIds.length === 0 || bulkLoading}
-                                            >
-                                                📅 Toplu Davet
-                                            </button>
-                                            <button 
-                                                onClick={() => handleBulkStatusUpdate('REJECTED')} 
-                                                style={{...actionBtnStyle, backgroundColor: '#e74c3c'}}
-                                                disabled={selectedCandIds.length === 0 || bulkLoading}
-                                            >
-                                                ❌ Toplu Red
+                                                📝 Adaylara Test Ata ({selectedCandIds.length})
                                             </button>
                                         </div>
                                     </div>
 
                                     {isTestPromptOpen && (
-                                        <div style={{ backgroundColor: '#f8f9fc', padding: '15px', borderRadius: '8px', marginBottom: '15px', border: '1px solid #c7d2fe' }}>
-                                            <h4 style={{ margin: '0 0 10px 0', color: '#4f46e5' }}>🤖 AI Test Bağlamı</h4>
-                                            <textarea 
-                                                value={testContext}
-                                                onChange={e => setTestContext(e.target.value)}
-                                                placeholder="Seçili adaylara gönderilecek test için soruların konusunu / beklentinizi yazın..."
-                                                style={{ width: '100%', minHeight: '60px', padding: '10px', borderRadius: '6px', border: '1px solid #c7d2fe', marginBottom: '10px' }}
-                                            />
-                                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                                                <button onClick={() => setIsTestPromptOpen(false)} style={{ padding: '8px 15px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer' }}>İptal</button>
-                                                <button onClick={handleBulkGenerateTest} disabled={bulkLoading} style={{ padding: '8px 15px', backgroundColor: '#4f46e5', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer' }}>
-                                                    {bulkLoading ? 'Gönderiliyor...' : 'Gönder'}
-                                                </button>
+                                        <div style={{...modalOverlayStyle, zIndex: 1050, backdropFilter: 'blur(4px)'}}>
+                                            <div style={{...modalContentStyle, width: '600px', borderRadius: '12px', overflow: 'hidden'}}>
+                                                <div style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)', padding: '20px', color: 'white' }}>
+                                                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>🤖 Sınav / Test Seçimi</h3>
+                                                </div>
+                                                <div style={{ padding: '25px', backgroundColor: '#f8fafc' }}>
+                                                    <p style={{ marginBottom: '15px', color: '#475569' }}>
+                                                        Seçilen <strong>{selectedCandIds.length} aday</strong> için atanacak test tipini belirleyin. Standart testler veya AI destekli özel bağlam oluşturabilirsiniz.
+                                                    </p>
+                                                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#334155' }}>Sınav Türü Seçin:</label>
+                                                    <select 
+                                                        value={testType} 
+                                                        onChange={(e) => setTestType(e.target.value)} 
+                                                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '20px' }}
+                                                    >
+                                                        <option value="Genel Yetenek Testi">Genel Yetenek Testi</option>
+                                                        <option value="İngilizce Testi">İngilizce Testi</option>
+                                                        <option value="AI Özel Test">🤖 AI İle Özel Test Oluştur</option>
+                                                    </select>
+
+                                                    {testType === 'AI Özel Test' && (
+                                                        <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+                                                            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#334155' }}>Bağlam ve Sorularınız:</label>
+                                                            <textarea 
+                                                                value={testContext}
+                                                                onChange={e => setTestContext(e.target.value)}
+                                                                placeholder="AI'ın baz alacağı mülakat bağlamını veya spesifik soruları buraya yazın..."
+                                                                style={{ width: '100%', minHeight: '100px', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '10px', resize: 'vertical' }}
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
+                                                        <button onClick={() => setIsTestPromptOpen(false)} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 'bold' }}>İptal</button>
+                                                        <button onClick={handleBulkGenerateTest} disabled={bulkLoading} style={{ padding: '10px 20px', backgroundColor: '#8b5cf6', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            {bulkLoading ? 'Gönderiliyor...' : '🚀 Testleri Gönder'}
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     )}
