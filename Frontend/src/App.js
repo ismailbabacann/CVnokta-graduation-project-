@@ -23,6 +23,7 @@ import ProfileJobs from './Pages/UserProfile/Jobs/ProfileJobs.js';
 import ProfileJobView from './Pages/UserProfile/Jobs/ProfileJobView.js';
 import Help from './Pages/UserProfile/Help/Help.js';
 import CompanyHelp from './Pages/CompanyPanel/Help/CompanyHelp.js';
+import Exam from './Pages/Exam/Exam.js';
 import './App.css';
 
 function App() {
@@ -35,7 +36,8 @@ function App() {
 
   const isCompanyRoute = location.pathname.startsWith('/company');
   const isProfileRoute = location.pathname.startsWith('/profile');
-  const hideMainHeaderFooter = isCompanyRoute || isProfileRoute;
+  const isExamRoute = location.pathname.startsWith('/exam');
+  const hideMainHeaderFooter = isCompanyRoute || isProfileRoute || isExamRoute;
 
   return (
     <div className="app">
@@ -48,6 +50,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/insights" element={<Insights />} />
+          <Route path="/exam" element={<Exam />} />
           <Route path="/jobs" element={<JobList />} />
           <Route path="/jobs/:id" element={<JobView />} />
           <Route path="/apply/:id" element={<ApplicationForm onBack={handleBack} />} />
