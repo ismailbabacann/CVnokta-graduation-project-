@@ -15,57 +15,64 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
         private readonly IGenericRepositoryAsync<JobApplication> _applicationRepository;
         private readonly IGenericRepositoryAsync<CandidateProfile> _profileRepository;
         private readonly IGenericRepositoryAsync<JobPosting> _jobPostingRepository;
-        private readonly IGenericRepositoryAsync<CandidateRankingView> _rankingRepository;
         private readonly IAuthenticatedUserService _authenticatedUserService;
 
         public GetCandidatePoolQueryHandler(
             IGenericRepositoryAsync<JobApplication> applicationRepository,
             IGenericRepositoryAsync<CandidateProfile> profileRepository,
             IGenericRepositoryAsync<JobPosting> jobPostingRepository,
-            IGenericRepositoryAsync<CandidateRankingView> rankingRepository,
             IAuthenticatedUserService authenticatedUserService)
         {
             _applicationRepository = applicationRepository;
             _profileRepository = profileRepository;
             _jobPostingRepository = jobPostingRepository;
-            _rankingRepository = rankingRepository;
             _authenticatedUserService = authenticatedUserService;
         }
 
         public async Task<PagedResponse<CandidatePoolDto>> Handle(GetCandidatePoolQuery request, CancellationToken cancellationToken)
         {
             var userId = _authenticatedUserService.UserId;
-            
+            if (string.IsNullOrEmpty(userId))
+            {
+                return new PagedResponse<CandidatePoolDto>(new List<CandidatePoolDto>(), request.PageNumber, request.PageSize);
+            }
+
             var apps = await _applicationRepository.GetAllAsync();
             var profiles = await _profileRepository.GetAllAsync();
-            // Filter jobs by the logged in Hiring Manager
-            var jobs = (await _jobPostingRepository.GetAllAsync())
-                        .Where(j => j.HiringManagerId == Guid.Parse(userId)).ToList();
-            var rankings = await _rankingRepository.GetAllAsync();
 
+            // SuperAdmin / Admin sees everyone; HiringManager sees only their own postings
+            bool isAdmin = _authenticatedUserService.Roles != null &&
+                           _authenticatedUserService.Roles.Any(r => r == "SuperAdmin" || r == "Admin");
+
+            Guid.TryParse(userId, out var currentUserId);
+
+            var allJobs = (await _jobPostingRepository.GetAllAsync()).ToList();
+            var jobs = isAdmin
+                ? allJobs
+                : allJobs.Where(j => j.HiringManagerId == currentUserId).ToList();
+
+            // LEFT JOIN: profiles olmayan adaylar da görünsün
             var query = from a in apps
-                        join p in profiles on a.CandidateId equals p.Id
                         join j in jobs on a.JobPostingId equals j.Id
-                        // Ensure we filter by specific job if requested
+                        join p in profiles on a.CandidateId equals p.Id into profileGroup
+                        from p in profileGroup.DefaultIfEmpty()
                         where !request.JobPostingId.HasValue || a.JobPostingId == request.JobPostingId.Value
-                        join r in rankings on a.Id equals r.ApplicationId into rankingGroup
-                        from r in rankingGroup.DefaultIfEmpty()
                         select new CandidatePoolDto
                         {
                             ApplicationId = a.Id,
                             CandidateId = a.CandidateId,
                             JobPostingId = a.JobPostingId,
-                            CandidateDisplayId = p.Id.ToString().Substring(0, 8),
-                            FirstName = GetFirstName(p.FullName),
-                            LastName = GetLastName(p.FullName),
+                            CandidateDisplayId = a.CandidateId.ToString().Substring(0, 8),
+                            FirstName = p != null ? GetFirstName(p.FullName) : "Aday",
+                            LastName = p != null ? GetLastName(p.FullName) : "",
                             AppliedPosition = j.JobTitle,
                             ApplicationDate = a.AppliedAt,
-                            ExperienceYears = p.ExperienceYears,
-                            EducationLevel = p.EducationLevel,
-                            NlpMatchScore = r?.CvAnalysisScore ?? 0m,
-                            Email = p.Email,
-                            Phone = p.Phone,
-                            LinkedInProfile = p.LinkedInProfile,
+                            ExperienceYears = p != null ? p.ExperienceYears : 0,
+                            EducationLevel = p != null ? p.EducationLevel : "",
+                            NlpMatchScore = 0m, // View bağımsız - ranking sayfasında ayrıca gösteriliyor
+                            Email = p != null ? p.Email : "",
+                            Phone = p != null ? p.Phone : "",
+                            LinkedInProfile = p != null ? p.LinkedInProfile : "",
                             CvUrl = a.CvUrl,
                             CoverLetter = a.CoverLetter
                         };
@@ -115,15 +122,18 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
         private string GetFirstName(string fullName)
         {
             if (string.IsNullOrWhiteSpace(fullName)) return "";
-            var parts = fullName.Trim().Split(' ');
-            if (parts.Length == 1) return parts[0];
+            var parts = fullName.Trim().Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length <= 1) return parts.Length == 0 ? "" : parts[0];
+            // Everything except the last word is first name
             return string.Join(" ", parts.Take(parts.Length - 1));
         }
 
         private string GetLastName(string fullName)
         {
             if (string.IsNullOrWhiteSpace(fullName)) return "";
-            var parts = fullName.Trim().Split(' ');
+            var parts = fullName.Trim().Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+            // If only one word, return empty to avoid duplication in UI
+            if (parts.Length <= 1) return "";
             return parts.Last();
         }
     }

@@ -37,18 +37,15 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs
     {
         private readonly IGenericRepositoryAsync<JobPosting> _jobRepository;
         private readonly IGenericRepositoryAsync<JobApplication> _appRepository;
-        private readonly IGenericRepositoryAsync<CandidateRankingView> _rankingRepository;
         private readonly IAuthenticatedUserService _authenticatedUserService;
 
         public GetDashboardJobsQueryHandler(
             IGenericRepositoryAsync<JobPosting> jobRepository,
             IGenericRepositoryAsync<JobApplication> appRepository,
-            IGenericRepositoryAsync<CandidateRankingView> rankingRepository,
             IAuthenticatedUserService authenticatedUserService)
         {
             _jobRepository = jobRepository;
             _appRepository = appRepository;
-            _rankingRepository = rankingRepository;
             _authenticatedUserService = authenticatedUserService;
         }
 
@@ -56,15 +53,23 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs
         {
             var jobs = await _jobRepository.GetAllAsync();
             var apps = await _appRepository.GetAllAsync();
-            var rankings = await _rankingRepository.GetAllAsync();
 
-            var currentUserId = Guid.Parse(_authenticatedUserService.UserId);
-            var query = jobs.Where(j => j.HiringManagerId == currentUserId).AsQueryable();
+            // Safety check for user ID
+            if (string.IsNullOrEmpty(_authenticatedUserService.UserId) || !Guid.TryParse(_authenticatedUserService.UserId, out var currentUserId))
+                return new PagedResponse<DashboardJobDto>(new System.Collections.Generic.List<DashboardJobDto>(), request.PageNumber, request.PageSize);
+
+            // SuperAdmin / Admin sees all jobs; HiringManager sees only their own postings
+            bool isAdmin = _authenticatedUserService.Roles != null &&
+                           _authenticatedUserService.Roles.Any(r => r == "SuperAdmin" || r == "Admin");
+
+            var query = isAdmin
+                ? jobs.AsQueryable()
+                : jobs.Where(j => j.HiringManagerId == currentUserId).AsQueryable();
 
             if (!string.IsNullOrEmpty(request.SearchTerm))
             {
                 var term = request.SearchTerm.ToLower();
-                query = query.Where(j => j.JobTitle.ToLower().Contains(term));
+                query = query.Where(j => !string.IsNullOrEmpty(j.JobTitle) && j.JobTitle.ToLower().Contains(term));
             }
 
             if (!string.IsNullOrEmpty(request.DepartmentFilter) && request.DepartmentFilter != "All")
@@ -90,17 +95,17 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs
             foreach(var job in pagedJobs)
             {
                 var jobApps = apps.Where(a => a.JobPostingId == job.Id).ToList();
-                var jobRankings = rankings.Where(r => r.JobPostingId == job.Id && r.CvAnalysisScore.HasValue).ToList();
 
                 int totalInterviews = jobApps.Count(a => a.ApplicationStatus == "INTERVIEW_INVITED" || a.ApplicationStatus == "HIRED");
                 
-                // NLP Skoru Yüksek (örneğin %80 veya %85 üstü)
-                int highScoresCount = jobRankings.Count(r => r.CvAnalysisScore.Value >= 80);
-                string nlpSummary = highScoresCount > 0 ? $"%80 Üstü: {highScoresCount} Aday" : "Hesaplanıyor...";
-                
-                decimal nlpPercent = jobApps.Count > 0 ? Math.Min(100, Math.Round((decimal)highScoresCount / jobApps.Count * 100)) : 0;
+                // Count apps by status for NLP summary (no view dependency)
+                int reviewedCount = jobApps.Count(a => a.ApplicationStatus != null && a.ApplicationStatus != "PENDING" && a.ApplicationStatus != "REJECTED");
+                string nlpSummary = jobApps.Count > 0 ? $"Toplam: {jobApps.Count} Başvuru" : "Henüz başvuru yok";
+                decimal nlpPercent = jobApps.Count > 0 ? Math.Min(100, (decimal)reviewedCount / jobApps.Count * 100) : 0;
 
-                string displayId = job.JobTitle.Length >= 3 ? job.JobTitle.Substring(0, 3).ToUpper() + "-" + job.Id.ToString().Substring(0, 4) : "JOB-" + job.Id.ToString().Substring(0,4);
+                string displayId = (!string.IsNullOrEmpty(job.JobTitle) && job.JobTitle.Length >= 3)
+                    ? job.JobTitle.Substring(0, 3).ToUpper() + "-" + job.Id.ToString().Substring(0, 4)
+                    : "JOB-" + job.Id.ToString().Substring(0, 4);
 
                 resultList.Add(new DashboardJobDto
                 {

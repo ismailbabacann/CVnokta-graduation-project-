@@ -21,6 +21,7 @@ function CompanyLayout() {
             case '/company': return 'Panel';
             case '/company/jobs': return 'İş İlanları';
             case '/company/candidates': return 'Aday Havuzu';
+            case '/company/best-candidates': return 'En İyi Adaylar';
             case '/company/create-job': return 'Yeni İş İlanı';
             default: return 'Panel';
         }
@@ -42,6 +43,9 @@ function CompanyLayout() {
                     </NavLink>
                     <NavLink to="/company/candidates" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}>👥</span> Aday Havuzu
+                    </NavLink>
+                    <NavLink to="/company/best-candidates" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
+                        <span className={styles.navIcon}>🏆</span> En İyi Adaylar
                     </NavLink>
                     <NavLink to="/company/help" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}>❓</span> Yardım & Destek

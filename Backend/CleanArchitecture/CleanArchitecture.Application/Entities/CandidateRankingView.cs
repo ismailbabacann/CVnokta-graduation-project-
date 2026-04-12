@@ -8,6 +8,8 @@ namespace CleanArchitecture.Core.Entities
         public Guid CandidateId { get; set; }
         public Guid ApplicationId { get; set; }
         public string CandidateFullName { get; set; }
+        public string Email { get; set; }
+        public string CvUrl { get; set; }
         public decimal? CvAnalysisScore { get; set; }
         public decimal? GeneralTestScore { get; set; }
         public decimal? AiInterviewScore { get; set; }

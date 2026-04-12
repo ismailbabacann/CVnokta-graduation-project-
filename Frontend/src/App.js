@@ -23,6 +23,7 @@ import ProfileJobs from './Pages/UserProfile/Jobs/ProfileJobs.js';
 import ProfileJobView from './Pages/UserProfile/Jobs/ProfileJobView.js';
 import Help from './Pages/UserProfile/Help/Help.js';
 import CompanyHelp from './Pages/CompanyPanel/Help/CompanyHelp.js';
+import BestCandidates from './Pages/CompanyPanel/BestCandidates/BestCandidates.js';
 import Exam from './Pages/Exam/Exam.js';
 import './App.css';
 
@@ -68,6 +69,7 @@ function App() {
             <Route path="jobs" element={<CompanyJobs />} />
             <Route path="create-job" element={<CreateJob />} />
             <Route path="candidates" element={<CompanyCandidates />} />
+            <Route path="best-candidates" element={<BestCandidates />} />
             <Route path="help" element={<CompanyHelp />} />
           </Route>
           <Route path="/profile" element={<UserLayout />}>
