@@ -489,6 +489,18 @@
              </remarks>
              <returns>Oluşturulan davet kaydının Id'si</returns>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.PipelineController.GetSummary(System.Guid)">
+            <summary>
+            Pipeline stage summary for a job posting.
+            GET /api/v1/Pipeline/{jobId}/summary
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.PipelineController.UpdateThreshold(System.Guid,CleanArchitecture.WebApi.Controllers.v1.UpdateThresholdRequest)">
+            <summary>
+            Update pass threshold for a job posting's pipeline.
+            PUT /api/v1/Pipeline/{jobId}/threshold
+            </summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.StatisticsController.UpdateSkills(CleanArchitecture.Core.Features.MarketStats.Commands.UpdateSkillStats.UpdateSkillStatsCommand)">
              <summary>
              NLP sisteminden gelen dil/yetenek listesini veritabanına upsert eder.

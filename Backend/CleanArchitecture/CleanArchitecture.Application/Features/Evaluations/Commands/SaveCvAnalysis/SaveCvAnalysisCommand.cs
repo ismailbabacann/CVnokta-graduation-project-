@@ -24,15 +24,18 @@ namespace CleanArchitecture.Core.Features.Evaluations.Commands.SaveCvAnalysis
         private readonly IGenericRepositoryAsync<JobApplication> _applicationRepository;
         private readonly IGenericRepositoryAsync<ApplicationStage> _stageRepository;
         private readonly IGenericRepositoryAsync<CvAnalysisResult> _cvAnalysisRepository;
+        private readonly IPipelineService _pipelineService;
 
         public SaveCvAnalysisCommandHandler(
             IGenericRepositoryAsync<JobApplication> applicationRepository,
             IGenericRepositoryAsync<ApplicationStage> stageRepository,
-            IGenericRepositoryAsync<CvAnalysisResult> cvAnalysisRepository)
+            IGenericRepositoryAsync<CvAnalysisResult> cvAnalysisRepository,
+            IPipelineService pipelineService)
         {
             _applicationRepository = applicationRepository;
             _stageRepository = stageRepository;
             _cvAnalysisRepository = cvAnalysisRepository;
+            _pipelineService = pipelineService;
         }
 
         public async Task<bool> Handle(SaveCvAnalysisCommand request, CancellationToken cancellationToken)
@@ -43,19 +46,11 @@ namespace CleanArchitecture.Core.Features.Evaluations.Commands.SaveCvAnalysis
                 return false;
             }
 
-            // Adayın mevcut aşamasını bulalim (Eğer loglanmışsa, yoksa Guid.Empty kalabilir, ama zorunluysa fake veya default bir Id olabilir)
-            // Sistemde IGenericRepositoryAsync kullanarak IReadOnlyList dönebildiğinden eminsek GetAllAsync kullanabiliriz, 
-            // ya da direkt DB baglantisi. Varsayim: GetAllAsync() ile listelenip filtrelenir veya GetPagedReponseAsync ile alinir.
-            // CQRS kurallari gereği Repository uzerinden islem yapacagiz. En basit senaryoda sadece ilk stage'i veya dummy stage alacagiz. 
-            // StageId required ise ve bulamazsak yeni bir tane ekleyebiliriz.
-
-            // Mevcut bir CvAnalysisResult var mi bakalim
             var allAnalyses = await _cvAnalysisRepository.GetAllAsync();
             var existingAnalysis = allAnalyses.FirstOrDefault(x => x.ApplicationId == request.ApplicationId);
 
             if (existingAnalysis != null)
             {
-                // Guncelle
                 existingAnalysis.AnalysisScore = request.AnalysisScore;
                 existingAnalysis.MatchingSkills = request.MatchingSkills;
                 existingAnalysis.MissingSkills = request.MissingSkills;
@@ -63,24 +58,19 @@ namespace CleanArchitecture.Core.Features.Evaluations.Commands.SaveCvAnalysis
                 existingAnalysis.EducationMatchScore = request.EducationMatchScore;
                 existingAnalysis.OverallAssessment = request.OverallAssessment;
                 existingAnalysis.AnalysisDate = DateTime.UtcNow;
-
                 await _cvAnalysisRepository.UpdateAsync(existingAnalysis);
             }
             else
             {
-                // Yeni Kayit
-                
-                // Sahip oldugu Stage'i bulmaya calis. 
                 var stages = await _stageRepository.GetAllAsync();
                 var currentStage = stages.Where(s => s.ApplicationId == request.ApplicationId).OrderByDescending(s => s.Created).FirstOrDefault();
-                
                 var stageId = currentStage?.Id ?? Guid.Empty;
 
                 var newAnalysis = new CvAnalysisResult
                 {
                     ApplicationId = request.ApplicationId,
                     StageId = stageId,
-                    CvId = application.CvId ?? Guid.Empty, // Eger CV yoksa empty
+                    CvId = application.CvId ?? Guid.Empty,
                     AnalysisScore = request.AnalysisScore,
                     MatchingSkills = request.MatchingSkills,
                     MissingSkills = request.MissingSkills,
@@ -89,9 +79,15 @@ namespace CleanArchitecture.Core.Features.Evaluations.Commands.SaveCvAnalysis
                     OverallAssessment = request.OverallAssessment,
                     AnalysisDate = DateTime.UtcNow
                 };
-
                 await _cvAnalysisRepository.AddAsync(newAnalysis);
             }
+
+            // ── Pipeline: automatically advance or reject based on NLP score ──
+            try
+            {
+                await _pipelineService.AdvanceIfEligibleAsync(request.ApplicationId, "NLP_REVIEW", request.AnalysisScore);
+            }
+            catch { /* pipeline failures must not block the analysis save */ }
 
             return true;
         }

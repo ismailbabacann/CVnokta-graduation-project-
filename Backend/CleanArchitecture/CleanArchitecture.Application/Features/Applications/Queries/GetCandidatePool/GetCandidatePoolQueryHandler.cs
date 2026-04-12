@@ -69,12 +69,15 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
                             ApplicationDate = a.AppliedAt,
                             ExperienceYears = p != null ? p.ExperienceYears : 0,
                             EducationLevel = p != null ? p.EducationLevel : "",
-                            NlpMatchScore = 0m, // View bağımsız - ranking sayfasında ayrıca gösteriliyor
+                            NlpMatchScore = 0m,
                             Email = p != null ? p.Email : "",
                             Phone = p != null ? p.Phone : "",
                             LinkedInProfile = p != null ? p.LinkedInProfile : "",
                             CvUrl = a.CvUrl,
-                            CoverLetter = a.CoverLetter
+                            CoverLetter = a.CoverLetter,
+                            Location = p != null ? p.Location : "",
+                            CurrentPipelineStage = a.CurrentPipelineStage ?? "NLP_REVIEW",
+                            RejectionReason = a.RejectionReason
                         };
 
             // SEARCH

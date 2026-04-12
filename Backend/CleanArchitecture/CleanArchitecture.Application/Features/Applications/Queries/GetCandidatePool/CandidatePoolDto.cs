@@ -20,5 +20,10 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
         public string LinkedInProfile { get; set; }
         public string CvUrl { get; set; }
         public string CoverLetter { get; set; }
+        public string Location { get; set; }
+        /// <summary>Current automated pipeline stage for this application.</summary>
+        public string CurrentPipelineStage { get; set; }
+        /// <summary>Human-readable rejection reason (if stage starts with REJECTED_).</summary>
+        public string RejectionReason { get; set; }
     }
 }
