@@ -115,7 +115,7 @@ namespace CleanArchitecture.Infrastructure
             services.AddTransient<IDateTimeService, DateTimeService>();
             services.AddTransient<IEmailService, ResendEmailService>();
             services.AddTransient<IAiJobPostingGenerationService, MockAiJobPostingGenerationService>();
-
+            services.AddTransient<IPipelineService, PipelineService>();
 
             #region Repositories
             services.AddTransient(typeof(IGenericRepositoryAsync<>), typeof(GenericRepositoryAsync<>));

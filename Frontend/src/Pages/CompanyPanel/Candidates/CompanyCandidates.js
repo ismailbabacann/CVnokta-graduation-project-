@@ -396,6 +396,65 @@ function CompanyCandidates() {
                                 </div>
                             </div>
 
+                            {/* Pipeline Stage Timeline */}
+                            {selectedCandidate.currentPipelineStage && (
+                                <div style={{ marginTop: '20px', background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                                    <h4 style={{ color: '#475569', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        📊 Pipeline Durumu
+                                    </h4>
+                                    {(() => {
+                                        const stage = selectedCandidate.currentPipelineStage;
+                                        const stages = [
+                                            { key: 'NLP_REVIEW',           label: 'CV Analizi',      icon: '🔍', color: '#667eea' },
+                                            { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',    icon: '📝', color: '#ed8936' },
+                                            { key: 'ENGLISH_TEST_PENDING', label: 'İngilizce Testi', icon: '🇬🇧', color: '#00b4db' },
+                                            { key: 'AI_INTERVIEW_PENDING', label: 'AI Mülakat',      icon: '🤖', color: '#f5576c' },
+                                            { key: 'COMPLETED',            label: 'Tamamlandı',      icon: '🎉', color: '#48bb78' },
+                                        ];
+                                        const order = { NLP_REVIEW:0, SKILLS_TEST_PENDING:1, ENGLISH_TEST_PENDING:2, AI_INTERVIEW_PENDING:3, COMPLETED:4, REJECTED_NLP:0, REJECTED_SKILLS:1, REJECTED_ENGLISH:2, REJECTED_AI:3 };
+                                        const currentIdx = order[stage] ?? 0;
+                                        const rejected   = stage?.startsWith('REJECTED_');
+                                        const completed  = stage === 'COMPLETED';
+                                        return (
+                                            <div>
+                                                <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '16px' }}>
+                                                    {stages.map((s, idx) => {
+                                                        let bg = '#f1f5f9', textCol = '#94a3b8', borderCol = '#e2e8f0';
+                                                        if (completed) { bg = s.color; textCol = '#fff'; borderCol = s.color; }
+                                                        else if (rejected) {
+                                                            if (idx < currentIdx) { bg = '#48bb78'; textCol = '#fff'; borderCol = '#48bb78'; }
+                                                            else if (idx === currentIdx) { bg = '#e53e3e'; textCol = '#fff'; borderCol = '#e53e3e'; }
+                                                        } else {
+                                                            if (idx < currentIdx) { bg = '#48bb78'; textCol = '#fff'; borderCol = '#48bb78'; }
+                                                            else if (idx === currentIdx) { bg = s.color + '22'; textCol = s.color; borderCol = s.color; }
+                                                        }
+                                                        const mark = completed ? '✓' : (rejected && idx === currentIdx) ? '✕' : (idx < currentIdx ? '✓' : s.icon);
+                                                        return (
+                                                            <div key={s.key} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '0 0 auto', minWidth: '60px' }}>
+                                                                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: bg, border: `2px solid ${borderCol}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: textCol, fontWeight: '700' }}>
+                                                                        {mark}
+                                                                    </div>
+                                                                    <div style={{ fontSize: '10px', color: idx === currentIdx ? (rejected ? '#e53e3e' : s.color) : (idx < currentIdx ? '#48bb78' : '#94a3b8'), textAlign: 'center', marginTop: '6px', fontWeight: idx === currentIdx ? '700' : '500' }}>{s.label}</div>
+                                                                </div>
+                                                                {idx < stages.length - 1 && (
+                                                                    <div style={{ flex: 1, height: '2px', background: idx < currentIdx ? '#48bb78' : '#e2e8f0', margin: '0 2px', marginBottom: '20px' }} />
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                                {rejected && selectedCandidate.rejectionReason && (
+                                                    <div style={{ background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', color: '#c53030' }}>
+                                                        <strong>Elenme sebebi:</strong> {selectedCandidate.rejectionReason}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            )}
+
                             {/* Action Buttons */}
                             <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
                                 {selectedCandidate.cvUrl ? (

@@ -30,34 +30,105 @@ function CompanyJobs() {
     const [testType, setTestType] = useState('AI Özel Test');
     const [bulkLoading, setBulkLoading] = useState(false);
 
+    // Pipeline tab states
+    const [modalTab, setModalTab] = useState('candidates'); // 'candidates' | 'pipeline'
+    const [pipelineSummary, setPipelineSummary] = useState(null);
+    const [pipelineLoading, setPipelineLoading] = useState(false);
+    const [thresholdInput, setThresholdInput] = useState(70);
+    const [thresholdSaving, setThresholdSaving] = useState(false);
+    const [aiRejectLoading, setAiRejectLoading] = useState(false);
+    const [aiRejectResults, setAiRejectResults] = useState(null);
+    const [aiRejectThreshold, setAiRejectThreshold] = useState(40);
+
+    const loadPipelineSummary = async (jobId) => {
+        setPipelineLoading(true);
+        try {
+            const token = localStorage.getItem('jwToken');
+            const res = await axios.get(`https://localhost:9001/api/v1/Pipeline/${jobId}/summary`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setPipelineSummary(res.data);
+            setThresholdInput(res.data.passThreshold || 70);
+        } catch (e) {
+            console.error('Pipeline summary error:', e);
+        } finally {
+            setPipelineLoading(false);
+        }
+    };
+
+    const handleSaveThreshold = async () => {
+        if (!selectedJob) return;
+        setThresholdSaving(true);
+        try {
+            const token = localStorage.getItem('jwToken');
+            const jobId = selectedJob.jobId || selectedJob.id;
+            await axios.put(`https://localhost:9001/api/v1/Pipeline/${jobId}/threshold`,
+                { passThreshold: parseInt(thresholdInput) },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            alert('Eşik değeri kaydedildi.');
+            loadPipelineSummary(jobId);
+        } catch (e) {
+            alert('Kayıt hatası: ' + (e.response?.data?.message || 'Bilinmeyen hata'));
+        } finally {
+            setThresholdSaving(false);
+        }
+    };
+
+    const handleAiBulkReject = async () => {
+        if (!selectedJob) return;
+        if (!window.confirm(`NLP skoru %${aiRejectThreshold} altındaki adaylar elenecek. Devam edilsin mi?`)) return;
+        setAiRejectLoading(true);
+        try {
+            const token = localStorage.getItem('jwToken');
+            const jobId = selectedJob.jobId || selectedJob.id;
+            // Filter candidates with NLP score below threshold and bulk reject them
+            const toReject = jobCandidates
+                .filter(c => (c.nlpScore || c.analysisScore || 0) < aiRejectThreshold)
+                .map(c => c.applicationId);
+            if (toReject.length === 0) {
+                alert('Bu eşiğin altında elenecek aday bulunamadı.');
+                setAiRejectLoading(false);
+                return;
+            }
+            await axios.post(`https://localhost:9001/api/v1/Applications/bulk-status-update`,
+                { applicationIds: toReject, newStatus: 'Rejected' },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            alert(`${toReject.length} aday elendi ve bildirim mailleri gönderildi.`);
+            setAiRejectResults(toReject.length);
+            loadPipelineSummary(jobId);
+        } catch (e) {
+            alert('AI eleme hatası: ' + (e.response?.data?.message || 'Bilinmeyen hata'));
+        } finally {
+            setAiRejectLoading(false);
+        }
+    };
+
     const openJobModal = async (job) => {
         setSelectedJob(job);
         setIsModalOpen(true);
         setModalLoading(true);
+        setModalTab('candidates');
+        setPipelineSummary(null);
+        setAiRejectResults(null);
         
+        const jobId = job.jobId || job.id;
         try {
             const token = localStorage.getItem('jwToken');
             const response = await axios.get(`https://localhost:9001/api/v1/Applications/pool`, {
-                params: {
-                    JobPostingId: job.jobId || job.id,
-                    PageNumber: 1,
-                    PageSize: 100,
-                    SortBy: 'nlpscoredesc'
-                },
+                params: { JobPostingId: jobId, PageNumber: 1, PageSize: 100, SortBy: 'nlpscoredesc' },
                 headers: { Authorization: `Bearer ${token}` }
             });
-            
-            if (response.data && response.data.data) {
-                setJobCandidates(response.data.data);
-            } else {
-                setJobCandidates([]);
-            }
+            setJobCandidates(response.data?.data || []);
         } catch (err) {
             console.error("Error fetching job candidates:", err);
             setJobCandidates([]);
         } finally {
             setModalLoading(false);
         }
+        // Load pipeline summary in parallel
+        loadPipelineSummary(jobId);
     };
 
     const closeModal = () => {
@@ -486,8 +557,103 @@ function CompanyJobs() {
                             </div>
                             
                             <hr style={{ borderColor: '#eee', margin: '20px 0' }} />
-                            
-                            <h3 style={{marginBottom: '10px'}}>Bu İlana Başvuran Adaylar</h3>
+
+                            {/* Modal Tabs */}
+                            <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: '2px solid #eee', paddingBottom: '0' }}>
+                                <button
+                                    onClick={() => setModalTab('candidates')}
+                                    style={{
+                                        padding: '10px 20px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: '600',
+                                        color: modalTab === 'candidates' ? '#764ba2' : '#888',
+                                        borderBottom: modalTab === 'candidates' ? '3px solid #764ba2' : '3px solid transparent',
+                                        fontSize: '14px'
+                                    }}
+                                >👥 Adaylar ({jobCandidates.length})</button>
+                                <button
+                                    onClick={() => setModalTab('pipeline')}
+                                    style={{
+                                        padding: '10px 20px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: '600',
+                                        color: modalTab === 'pipeline' ? '#764ba2' : '#888',
+                                        borderBottom: modalTab === 'pipeline' ? '3px solid #764ba2' : '3px solid transparent',
+                                        fontSize: '14px'
+                                    }}
+                                >📊 Pipeline Durumu</button>
+                            </div>
+
+                            {/* Pipeline Tab */}
+                            {modalTab === 'pipeline' && (
+                                <div>
+                                    {pipelineLoading ? (
+                                        <p style={{ textAlign: 'center', color: '#666' }}>Pipeline verisi yükleniyor...</p>
+                                    ) : pipelineSummary ? (
+                                        <div>
+                                            {/* Stage counts */}
+                                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' }}>
+                                                {[
+                                                    { label: 'NLP İnceleme',    count: pipelineSummary.nlpReview,          color: '#667eea' },
+                                                    { label: 'Beceri Testi',    count: pipelineSummary.skillsTestPending,   color: '#ed8936' },
+                                                    { label: 'İngilizce Testi', count: pipelineSummary.englishTestPending,  color: '#00b4db' },
+                                                    { label: 'AI Mülakat',      count: pipelineSummary.aiInterviewPending,  color: '#f5576c' },
+                                                    { label: 'Tamamlanan',      count: pipelineSummary.completed,           color: '#48bb78' },
+                                                    { label: 'Elenen',          count: pipelineSummary.rejected,            color: '#e53e3e' },
+                                                ].map(({ label, count, color }) => (
+                                                    <div key={label} style={{ flex: '1', minWidth: '100px', background: '#f8f9fa', borderRadius: '10px', padding: '14px 10px', textAlign: 'center', borderTop: `4px solid ${color}` }}>
+                                                        <div style={{ fontSize: '22px', fontWeight: '700', color }}>{count ?? 0}</div>
+                                                        <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{label}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Threshold setting */}
+                                            <div style={{ background: '#f8f9fa', borderRadius: '10px', padding: '18px', marginBottom: '20px' }}>
+                                                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#333' }}>⚙️ Geçiş Eşiği</h4>
+                                                <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#666' }}>Tüm aşamalar (NLP, Beceri, İngilizce, AI Mülakat) için geçiş eşiği. Bu değere ulaşan adaylar otomatik ileri alınır.</p>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                    <input
+                                                        type="number" min="1" max="100"
+                                                        value={thresholdInput}
+                                                        onChange={e => setThresholdInput(e.target.value)}
+                                                        style={{ width: '80px', padding: '8px', borderRadius: '8px', border: '2px solid #764ba2', fontSize: '16px', fontWeight: '700', textAlign: 'center' }}
+                                                    />
+                                                    <span style={{ color: '#555', fontWeight: '600' }}>%</span>
+                                                    <button
+                                                        onClick={handleSaveThreshold}
+                                                        disabled={thresholdSaving}
+                                                        style={{ padding: '8px 20px', background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+                                                    >{thresholdSaving ? 'Kaydediliyor...' : 'Kaydet'}</button>
+                                                </div>
+                                            </div>
+
+                                            {/* Bulk actions */}
+                                            <div style={{ background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: '10px', padding: '18px' }}>
+                                                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#c53030' }}>🤖 AI ile Ele</h4>
+                                                <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#666' }}>Belirttiğiniz NLP eşiğinin altındaki tüm adayları otomatik olarak eler ve bildirim maili gönderir.</p>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                                                    <label style={{ fontSize: '13px', color: '#555', fontWeight: '600' }}>NLP &lt;</label>
+                                                    <input
+                                                        type="number" min="1" max="100"
+                                                        value={aiRejectThreshold}
+                                                        onChange={e => setAiRejectThreshold(Number(e.target.value))}
+                                                        style={{ width: '70px', padding: '8px', borderRadius: '8px', border: '2px solid #e53e3e', fontSize: '15px', fontWeight: '700', textAlign: 'center' }}
+                                                    />
+                                                    <span style={{ color: '#555' }}>% olanları ele</span>
+                                                    <button
+                                                        onClick={handleAiBulkReject}
+                                                        disabled={aiRejectLoading}
+                                                        style={{ padding: '8px 20px', background: 'linear-gradient(135deg,#e53e3e,#c53030)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+                                                    >{aiRejectLoading ? 'İşleniyor...' : '🚫 AI ile Ele'}</button>
+                                                    {aiRejectResults !== null && <span style={{ color: '#48bb78', fontWeight: '600', fontSize: '13px' }}>✓ {aiRejectResults} aday elendi</span>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p style={{ textAlign: 'center', color: '#aaa' }}>Pipeline verisi yok.</p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Candidates Tab */}
+                            {modalTab === 'candidates' && <h3 style={{marginBottom: '10px'}}>Bu İlana Başvuran Adaylar</h3>}
                             {modalLoading ? (
                                 <p style={{textAlign: 'center', color: '#666'}}>Adaylar yükleniyor...</p>
                             ) : jobCandidates.length === 0 ? (

@@ -33,6 +33,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
         private class AuthenticatedUserServiceStub : IAuthenticatedUserService
         {
             public string UserId => "system-migration-user";
+            public System.Collections.Generic.List<string> Roles => new System.Collections.Generic.List<string>();
         }
     }
 }

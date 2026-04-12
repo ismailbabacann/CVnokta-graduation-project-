@@ -1,5 +1,7 @@
-﻿using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 
 namespace CleanArchitecture.WebApi.Services
@@ -8,9 +10,12 @@ namespace CleanArchitecture.WebApi.Services
     {
         public AuthenticatedUserService(IHttpContextAccessor httpContextAccessor)
         {
-            UserId = httpContextAccessor.HttpContext?.User?.FindFirstValue("uid");
+            var user = httpContextAccessor.HttpContext?.User;
+            UserId = user?.FindFirstValue("uid");
+            Roles = user?.FindAll("role").Select(c => c.Value).ToList() ?? new List<string>();
         }
 
         public string UserId { get; }
+        public List<string> Roles { get; }
     }
 }
