@@ -96,7 +96,7 @@ function CompanyJobs() {
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert("Seçili adayların durumu başarıyla güncellendi.");
+            alert("Seçili adayların durumu güncellendi ve otomatik bilgilendirme e-postaları gönderildi.");
             // Reset selection
             setSelectedCandIds([]);
         } catch (err) {
@@ -250,6 +250,9 @@ function CompanyJobs() {
     const departments = ['All', ...new Set(jobs.map(j => j.department).filter(Boolean))];
 
     const filteredJobs = jobs.filter(job => {
+        // İlan silindiyse veya "Beklemede/Pending" durumundaysa gösterme (Kullanıcı Talebi: silindiğinde ve beklemede gözükmesin)
+        if (job.status === 'Deleted' || job.status === 'Pending' || job.isDeleted) return false;
+
         const matchesSearch = (job.jobTitle || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             (job.displayId || job.jobId || '').toLowerCase().includes(searchTerm.toLowerCase());
         const matchesDept = filterDept === 'All' || job.department === filterDept;
@@ -380,15 +383,14 @@ function CompanyJobs() {
                                     </td>
                                     <td>
                                         {job.isDraft || job.status === 'Draft' ? (
-                                            <span className={styles.calcText}>-</span>
+                                            <span style={{ color: '#f39c12', fontWeight: 'bold' }}>Hesaplanıyor...</span>
+                                        ) : job.status === 'Deleted' ? (
+                                            <span></span>
                                         ) : (
                                             <div className={styles.nlpWrapper}>
-                                                <span className={styles.nlpText}>{job.nlpScoreSummary || ''}</span>
-                                                {job.nlpScorePercentage ? (
-                                                    <div className={styles.progressBar}>
-                                                        <div className={styles.progressFill} style={{ width: `${job.nlpScorePercentage}%` }}></div>
-                                                    </div>
-                                                ) : null}
+                                                <span className={styles.nlpText} style={{fontWeight: '500'}}>
+                                                    %70 Üzeri Eşleşme: <span style={{color: '#20B2AA', fontWeight: 'bold'}}>{job.nlpHighMatchCount || 0} Aday</span>
+                                                </span>
                                             </div>
                                         )}
                                     </td>
@@ -448,7 +450,29 @@ function CompanyJobs() {
                                         Mevcut Durum: {selectedJob.status === 'Active' ? <span style={{color: 'green'}}>Aktif</span> : <span style={{color: 'orange'}}>{selectedJob.status}</span>}
                                     </p>
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px' }}>
+                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '500px' }}>
+                                    <button 
+                                        onClick={() => {
+                                            const link = `${window.location.origin}/jobs/${selectedJob.jobId || selectedJob.id}`;
+                                            navigator.clipboard.writeText(link);
+                                            alert("İlan linki kopyalandı!");
+                                        }}
+                                        style={{ ...actionBtnStyle, backgroundColor: '#f1c40f', color: '#333' }}
+                                    >
+                                        🔗 Linki Kopyala
+                                    </button>
+                                    <button 
+                                        onClick={() => navigate('/company/create-job', { state: { jobToCopy: selectedJob } })}
+                                        style={{ ...actionBtnStyle, backgroundColor: '#3498db' }}
+                                    >
+                                        📄 Şablonu Kullan
+                                    </button>
+                                    <button 
+                                        onClick={() => navigate('/company/create-job', { state: { jobToEdit: selectedJob } })}
+                                        style={{ ...actionBtnStyle, backgroundColor: '#9b59b6' }}
+                                    >
+                                        ✏️ İlanı Düzenle
+                                    </button>
                                     <button 
                                         onClick={() => handleToggleStatus(selectedJob.jobId || selectedJob.id, selectedJob.status !== 'Active')}
                                         style={{ ...actionBtnStyle, backgroundColor: selectedJob.status === 'Active' ? '#f39c12' : '#2ecc71' }}
@@ -479,6 +503,17 @@ function CompanyJobs() {
                                             style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc', width: '250px' }}
                                         />
                                         <div style={{ display: 'flex', gap: '10px' }}>
+                                            <button 
+                                                onClick={() => {
+                                                    if(window.confirm("Seçili adayları elemek istediğinize emin misiniz? Adaylara otomatik olarak Ret Maili gönderilecektir.")) {
+                                                        handleBulkStatusUpdate('Rejected');
+                                                    }
+                                                }}
+                                                style={{...actionBtnStyle, backgroundColor: '#e74c3c'}}
+                                                disabled={selectedCandIds.length === 0}
+                                            >
+                                                🚫 Toplu Eleme ({selectedCandIds.length})
+                                            </button>
                                             <button 
                                                 onClick={() => setIsTestPromptOpen(true)} 
                                                 style={{...actionBtnStyle, backgroundColor: '#9b59b6'}}

@@ -45,13 +45,16 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
     {
         private readonly IGenericRepositoryAsync<JobApplication> _applicationRepo;
         private readonly IGenericRepositoryAsync<JobPosting>     _jobPostingRepo;
+        private readonly IGenericRepositoryAsync<CandidateProfile> _candidateRepo;
 
         public GetMyApplicationsQueryHandler(
             IGenericRepositoryAsync<JobApplication> applicationRepo,
-            IGenericRepositoryAsync<JobPosting>     jobPostingRepo)
+            IGenericRepositoryAsync<JobPosting>     jobPostingRepo,
+            IGenericRepositoryAsync<CandidateProfile> candidateRepo)
         {
             _applicationRepo = applicationRepo;
             _jobPostingRepo  = jobPostingRepo;
+            _candidateRepo   = candidateRepo;
         }
 
         public async Task<IEnumerable<MyApplicationDto>> Handle(
@@ -59,9 +62,13 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
         {
             var myApps    = await _applicationRepo.GetAllAsync();
             var jobPostings = await _jobPostingRepo.GetAllAsync();
+            var allCandidates = await _candidateRepo.GetAllAsync();
+
+            var candidate = allCandidates.FirstOrDefault(c => c.Id == request.CandidateId || c.UserId == request.CandidateId);
+            var actualCandidateId = candidate?.Id ?? request.CandidateId;
 
             var result = myApps
-                .Where(a => a.CandidateId == request.CandidateId)
+                .Where(a => a.CandidateId == actualCandidateId)
                 .OrderByDescending(a => a.AppliedAt)
                 .Select(a =>
                 {

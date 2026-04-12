@@ -406,10 +406,7 @@ function CompanyCandidates() {
                                     <span style={{ color: '#94a3b8', padding: '12px', display: 'flex', alignItems: 'center' }}>CV yüklenmedi.</span>
                                 )}
                                 
-                                <button style={{ ...cvBtnStyle, backgroundColor: '#8b5cf6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setIsTestModalOpen(true)}>
-                                    📝 AI Test Gönder
-                                </button>
-                                
+
                                 <button style={{ ...cvBtnStyle, backgroundColor: '#ec4899', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setIsMeetingModalOpen(true)}>
                                     📅 Mülakat Ayarla
                                 </button>
