@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from './CreateJob.module.css';
 
 function CreateJob() {
+    const location = useLocation();
+    const navigate = useNavigate();
+
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [createdJobId, setCreatedJobId] = useState('');
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editJobId, setEditJobId] = useState('');
     
     // AI State
     const [aiPrompt, setAiPrompt] = useState('');
@@ -24,6 +30,55 @@ function CreateJob() {
         requiredQualifications: '',
         benefits: '', // we will split this by commas before sending
     });
+
+    useEffect(() => {
+        if (location.state) {
+            const jobData = location.state.jobToEdit || location.state.jobToCopy;
+            if (jobData) {
+                const jobId = jobData.jobId || jobData.id;
+                if (location.state.jobToEdit) {
+                    setIsEditMode(true);
+                    setEditJobId(jobId);
+                }
+                
+                // Fetch full details from backend
+                setLoading(true);
+                axios.get(`https://localhost:9001/api/v1/JobPostings/public/${jobId}`)
+                    .then(response => {
+                        const fullJob = response.data;
+                        setFormData({
+                            jobTitle: fullJob.jobTitle || jobData.jobTitle || '',
+                            department: fullJob.department || jobData.department || '',
+                            location: fullJob.location || jobData.location || '',
+                            workType: fullJob.workType || jobData.workType || 'FullTime',
+                            workModel: fullJob.workModel || jobData.workModel || 'Hybrid',
+                            aboutCompany: fullJob.aboutCompany || '',
+                            aboutRole: fullJob.aboutRole || '',
+                            responsibilities: fullJob.responsibilities || '',
+                            requiredQualifications: fullJob.requiredQualifications || '',
+                            benefits: Array.isArray(fullJob.benefits) ? fullJob.benefits.join(', ') : (fullJob.benefits || '')
+                        });
+                    })
+                    .catch(err => {
+                        console.error("Failed to fetch full job details", err);
+                        // Fallback to basic data 
+                        setFormData({
+                            jobTitle: jobData.jobTitle || '',
+                            department: jobData.department || '',
+                            location: jobData.location || '',
+                            workType: jobData.workType || 'FullTime',
+                            workModel: jobData.workModel || 'Hybrid',
+                            aboutCompany: jobData.aboutCompany || '',
+                            aboutRole: jobData.aboutRole || '',
+                            responsibilities: jobData.responsibilities || '',
+                            requiredQualifications: jobData.requiredQualifications || '',
+                            benefits: Array.isArray(jobData.benefits) ? jobData.benefits.join(', ') : (jobData.benefits || '')
+                        });
+                    })
+                    .finally(() => setLoading(false));
+            }
+        }
+    }, [location.state]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -108,13 +163,23 @@ function CreateJob() {
                 saveAsDraft: saveAsDraft
             };
 
-            const response = await axios.post('https://localhost:9001/api/v1/JobPostings', payload, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            let response;
+            if (isEditMode) {
+                payload.id = editJobId;
+                response = await axios.put(`https://localhost:9001/api/v1/JobPostings/${editJobId}`, payload, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+            } else {
+                response = await axios.post('https://localhost:9001/api/v1/JobPostings', payload, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+            }
 
-            console.log('Create job response:', response.data);
+            console.log('Job response:', response.data);
 
             if (response.data && response.data.data && response.data.data.id) {
                 setCreatedJobId(response.data.data.id);
@@ -169,7 +234,7 @@ function CreateJob() {
             <div className={styles.container}>
                 <div className={styles.successCard}>
                     <div className={styles.successIcon}>✓</div>
-                    <h2 className={styles.successTitle}>Job Posting Successfully Created!</h2>
+                    <h2 className={styles.successTitle}>{isEditMode ? 'Job Posting Successfully Updated!' : 'Job Posting Successfully Created!'}</h2>
                     <p className={styles.successText}>
                         You can now share this posting with candidates and start collecting applications.
                     </p>
@@ -196,9 +261,10 @@ function CreateJob() {
         <div className={styles.container}>
             <div className={styles.header}>
                 <div>
-                    <h2 className={styles.title}>Create New Job Posting</h2>
+                    <h2 className={styles.title}>{isEditMode ? 'Edit Job Posting' : 'Create New Job Posting'}</h2>
                     <p className={styles.subtitle}>Enter the core details of the job to find the right talent for your company.</p>
                 </div>
+                <button type="button" onClick={() => navigate('/company/jobs')} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer' }}>Geri Dön</button>
             </div>
 
             <form className={styles.formContainer} onSubmit={(e) => handleSubmit(e, false)}>
@@ -308,7 +374,7 @@ function CreateJob() {
                         {loading ? 'Saving...' : 'Save as Draft'}
                     </button>
                     <button type="submit" className={styles.publishBtn} disabled={loading}>
-                        {loading ? 'Publishing...' : 'Publish Job'}
+                        {loading ? 'Publishing...' : (isEditMode ? 'Update Job' : 'Publish Job')}
                     </button>
                 </div>
             </form>

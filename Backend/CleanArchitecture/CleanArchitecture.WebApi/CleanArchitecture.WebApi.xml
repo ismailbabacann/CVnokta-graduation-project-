@@ -378,6 +378,11 @@
              </remarks>
              <returns>Oluşturulan iş ilanının Id'si</returns>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.Update(System.Guid,CleanArchitecture.Core.Features.JobPostings.Commands.UpdateJobPosting.UpdateJobPostingCommand)">
+            <summary>
+            İlanı düzenler.
+            </summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.Publish(System.Guid)">
             <summary>
             Taslak bir iş ilanını yayına alır.

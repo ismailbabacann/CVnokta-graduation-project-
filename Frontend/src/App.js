@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Header from './Components/Header/Header.js';
 import Footer from './Components/Footer/Footer.js';
@@ -30,6 +30,15 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
+  
+  useEffect(() => {
+    const token = localStorage.getItem('jwToken');
+    const userName = localStorage.getItem('userName');
+    if (token) {
+      setUser({ userName: userName || 'Kullanıcı' });
+    }
+  }, []);
+
   const handleBack = () => {
     navigate('/jobs');
   };

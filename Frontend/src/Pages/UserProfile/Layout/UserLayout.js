@@ -13,7 +13,7 @@ function UserLayout() {
         localStorage.removeItem('jwToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('userName');
-        navigate('/login');
+        window.location.href = '/';
     };
 
     const getPageTitle = () => {

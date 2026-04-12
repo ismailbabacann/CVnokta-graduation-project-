@@ -1,6 +1,7 @@
 using CleanArchitecture.Core.Features.JobPostings.Commands.CreateJobPosting;
 using CleanArchitecture.Core.Features.JobPostings.Commands.PublishJobPosting;
 using CleanArchitecture.Core.Features.JobPostings.Commands.UpdateJobPostingStatus;
+using CleanArchitecture.Core.Features.JobPostings.Commands.UpdateJobPosting;
 using CleanArchitecture.Core.Features.JobPostings.Commands.DeleteJobPosting;
 using CleanArchitecture.Core.Features.JobPostings.Queries.GetActiveJobPostings;
 using CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs;
@@ -98,6 +99,21 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         public async Task<IActionResult> Create([FromBody] CreateJobPostingCommand command)
         {
             var result = await Mediator.Send(command);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// İlanı düzenler.
+        /// </summary>
+        [HttpPut("{id}")]
+        [Authorize(Roles = "HiringManager,SuperAdmin")]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateJobPostingCommand command)
+        {
+            if (id != command.Id) return BadRequest("URL id ile body id eşleşmiyor.");
+            var result = await Mediator.Send(command);
+            if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
 
