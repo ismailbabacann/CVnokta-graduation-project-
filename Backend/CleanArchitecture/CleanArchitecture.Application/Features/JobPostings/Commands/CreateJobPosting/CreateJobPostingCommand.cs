@@ -59,6 +59,7 @@ namespace CleanArchitecture.Core.Features.JobPostings.Commands.CreateJobPosting
         public List<string> Benefits { get; set; } = new List<string>();
 
         // ── Additional Info ──────────────────────────────────────────────────
+        public string LanguageLevel { get; set; }
         public decimal? SalaryMin { get; set; }
         public decimal? SalaryMax { get; set; }
         public int TotalPositions { get; set; } = 1;

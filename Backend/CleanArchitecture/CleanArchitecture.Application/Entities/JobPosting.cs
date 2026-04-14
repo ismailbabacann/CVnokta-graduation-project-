@@ -35,6 +35,8 @@ namespace CleanArchitecture.Core.Entities
         /// <summary>Legacy general skills field (kept for backward compatibility)</summary>
         public string RequiredSkills { get; set; }
 
+        public string LanguageLevel { get; set; }
+
         public decimal? SalaryMin { get; set; }
         public decimal? SalaryMax { get; set; }
         public int TotalPositions { get; set; }

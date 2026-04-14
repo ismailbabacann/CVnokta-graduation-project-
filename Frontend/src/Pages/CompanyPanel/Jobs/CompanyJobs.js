@@ -680,13 +680,6 @@ function CompanyJobs() {
                                             >
                                                 🚫 Toplu Eleme ({selectedCandIds.length})
                                             </button>
-                                            <button 
-                                                onClick={() => setIsTestPromptOpen(true)} 
-                                                style={{...actionBtnStyle, backgroundColor: '#9b59b6'}}
-                                                disabled={selectedCandIds.length === 0}
-                                            >
-                                                📝 Adaylara Test Ata ({selectedCandIds.length})
-                                            </button>
                                         </div>
                                     </div>
 

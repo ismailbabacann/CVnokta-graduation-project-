@@ -24,6 +24,7 @@ function CreateJob() {
         location: '',
         workType: 'FullTime',
         workModel: 'Hybrid',
+        languageLevel: 'B2',
         aboutCompany: '',
         aboutRole: '',
         responsibilities: '',
@@ -52,6 +53,7 @@ function CreateJob() {
                             location: fullJob.location || jobData.location || '',
                             workType: fullJob.workType || jobData.workType || 'FullTime',
                             workModel: fullJob.workModel || jobData.workModel || 'Hybrid',
+                            languageLevel: fullJob.languageLevel || jobData.languageLevel || 'B2',
                             aboutCompany: fullJob.aboutCompany || '',
                             aboutRole: fullJob.aboutRole || '',
                             responsibilities: fullJob.responsibilities || '',
@@ -68,6 +70,7 @@ function CreateJob() {
                             location: jobData.location || '',
                             workType: jobData.workType || 'FullTime',
                             workModel: jobData.workModel || 'Hybrid',
+                            languageLevel: jobData.languageLevel || 'B2',
                             aboutCompany: jobData.aboutCompany || '',
                             aboutRole: jobData.aboutRole || '',
                             responsibilities: jobData.responsibilities || '',
@@ -152,6 +155,7 @@ function CreateJob() {
                 location: formData.location,
                 workType: formData.workType,
                 workModel: formData.workModel,
+                languageLevel: formData.languageLevel,
                 aboutCompany: formData.aboutCompany,
                 aboutRole: formData.aboutRole,
                 responsibilities: formData.responsibilities,
@@ -221,6 +225,7 @@ function CreateJob() {
             location: '',
             workType: 'FullTime',
             workModel: 'Hybrid',
+            languageLevel: 'B2',
             aboutCompany: '',
             aboutRole: '',
             responsibilities: '',
@@ -331,6 +336,18 @@ function CreateJob() {
                                 <option value="Remote">Remote</option>
                                 <option value="Hybrid">Hybrid</option>
                                 <option value="OnSite">On-Site</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                            <label>🌐 Dil Seviyesi (İngilizce)</label>
+                            <select name="languageLevel" value={formData.languageLevel} onChange={handleChange} className={styles.select}>
+                                <option value="A2">A2 – Başlangıç</option>
+                                <option value="B1">B1 – Orta</option>
+                                <option value="B2">B2 – Orta Üstü</option>
+                                <option value="C1">C1 – İleri</option>
                             </select>
                         </div>
                     </div>
