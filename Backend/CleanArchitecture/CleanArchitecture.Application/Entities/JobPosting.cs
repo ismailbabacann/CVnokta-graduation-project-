@@ -35,6 +35,8 @@ namespace CleanArchitecture.Core.Entities
         /// <summary>Legacy general skills field (kept for backward compatibility)</summary>
         public string RequiredSkills { get; set; }
 
+        public string LanguageLevel { get; set; }
+
         public decimal? SalaryMin { get; set; }
         public decimal? SalaryMax { get; set; }
         public int TotalPositions { get; set; }
@@ -67,5 +69,13 @@ namespace CleanArchitecture.Core.Entities
         // --- Exam Settings ---
         public bool HasEnglishExam { get; set; }
         public virtual JobPostingExam EnglishExam { get; set; }
+
+        // --- Pipeline Settings ---
+        /// <summary>
+        /// Minimum score (0-100) required to advance to next pipeline stage.
+        /// Same threshold applies to NLP, Skills, English and AI Interview stages.
+        /// Default: 70. HR can change per job posting.
+        /// </summary>
+        public int PipelinePassThreshold { get; set; } = 70;
     }
 }

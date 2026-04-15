@@ -68,6 +68,8 @@ function Login({ setUser }) {
             console.error('Login error:', err);
             if (err.response && err.response.data && err.response.data.message) {
                 setError(err.response.data.message);
+            } else if (err.response && err.response.data && err.response.data.Message) {
+                setError(err.response.data.Message);
             } else if (err.response && err.response.status === 401) {
                 setError('Invalid email or password.');
             } else {

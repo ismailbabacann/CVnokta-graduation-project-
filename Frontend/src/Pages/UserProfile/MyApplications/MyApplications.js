@@ -1,123 +1,165 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import styles from './MyApplications.module.css';
 
-function MyApplications() {
-    const [activeTab, setActiveTab] = useState('ilanlar'); // 'ilanlar' or 'sonuclar'
-    const [expandedCardId, setExpandedCardId] = useState(null);
+// ── Pipeline stage config ────────────────────────────────────────────────────
+const PIPELINE_STAGES = [
+    { key: 'NLP_REVIEW',           label: 'CV Analizi',       icon: '🔍' },
+    { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',     icon: '📝' },
+    { key: 'ENGLISH_TEST_PENDING', label: 'İngilizce Testi',  icon: '🇬🇧' },
+    { key: 'AI_INTERVIEW_PENDING', label: 'AI Mülakat',       icon: '🤖' },
+    { key: 'COMPLETED',            label: 'Tamamlandı',       icon: '🎉' },
+];
 
-    // Mock data for applications
-    const applications = [
-        { 
-            id: 1, 
-            title: 'Senior Frontend Developer', 
-            company: 'TechNova', 
-            status: 'Değerlendirmede', 
-            date: '21 Ekim 2026',
-            location: 'İstanbul, Türkiye',
-            workType: 'Remote',
-            currentStep: 2, // 1: İletildi, 2: Ön Değerleme, 3: Mülakat, 4: Sonuç
-            isRejected: false
-        },
-        { 
-            id: 2, 
-            title: 'Yazılım Mühendisi', 
-            company: 'Global Solutions', 
-            status: 'Görüşme Bekleniyor', 
-            date: '18 Ekim 2026',
-            location: 'Ankara, Türkiye',
-            workType: 'Hibrit',
-            currentStep: 3,
-            isRejected: false
-        },
-        { 
-            id: 3, 
-            title: 'UI/UX Designer', 
-            company: 'Creative Studio', 
-            status: 'İncelendi', 
-            date: '15 Ekim 2026',
-            location: 'İzmir, Türkiye',
-            workType: 'Tam Zamanlı',
-            currentStep: 2,
-            isRejected: false
-        },
-    ];
+const STAGE_ORDER = {
+    NLP_REVIEW:            0,
+    SKILLS_TEST_PENDING:   1,
+    ENGLISH_TEST_PENDING:  2,
+    AI_INTERVIEW_PENDING:  3,
+    COMPLETED:             4,
+    REJECTED_NLP:          0,
+    REJECTED_SKILLS:       1,
+    REJECTED_ENGLISH:      2,
+    REJECTED_AI:           3,
+};
 
-    // Mock data for results
-    const results = [
-        { 
-            id: 4, 
-            title: 'Fullstack Developer', 
-            company: 'DevCorp', 
-            status: 'Kabul Edildi', 
-            date: '10 Ekim 2026',
-            location: 'Remote',
-            workType: 'Tam Zamanlı',
-            currentStep: 4,
-            isRejected: false
-        },
-        { 
-            id: 5, 
-            title: 'Frontend Developer', 
-            company: 'WebAgency', 
-            status: 'Olumsuz', 
-            date: '05 Ekim 2026',
-            location: 'İstanbul, Türkiye',
-            workType: 'Tam Zamanlı',
-            currentStep: 3, // Reddedildiği aşama (örneğin mülakattan sonra)
-            isRejected: true,
-            rejectionReason: 'Sahip olduğunuz yetkinlikler bu pozisyon için oldukça değerli olmakla birlikte, bu ilan özelinde aradığımız ileri seviye React Native tecrübesinin eksik olması sebebiyle başvurunuzu olumsuz olarak değerlendirmek durumunda kaldık. Kariyer yolculuğunuzda başarılar dileriz.'
-        },
-    ];
+const STAGE_MESSAGES = {
+    NLP_REVIEW:            { text: 'Başvurunuz CV analizi aşamasında inceleniyor.', color: '#667eea' },
+    SKILLS_TEST_PENDING:   { text: '📧 Beceri testi e-postanıza gönderildi. Sınavı tamamlayın.', color: '#ed8936' },
+    ENGLISH_TEST_PENDING:  { text: '📧 İngilizce testi e-postanıza gönderildi.', color: '#00b4db' },
+    AI_INTERVIEW_PENDING:  { text: '📧 AI Mülakat linki e-postanıza gönderildi.', color: '#f5576c' },
+    COMPLETED:             { text: '🎉 Tebrikler! Tüm aşamaları başarıyla tamamladınız. Gerekli değerlendirmeler yapılmaktadır.', color: '#48bb78' },
+    REJECTED_NLP:          { text: 'CV analiz aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
+    REJECTED_SKILLS:       { text: 'Genel beceri testi aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
+    REJECTED_ENGLISH:      { text: 'İngilizce testi aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
+    REJECTED_AI:           { text: 'AI mülakat aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
+};
 
-    const toggleCard = (id) => {
-        if (expandedCardId === id) setExpandedCardId(null);
-        else setExpandedCardId(id);
-    };
+function isRejected(stage) {
+    return stage && stage.startsWith('REJECTED_');
+}
 
-    const renderStepper = (app) => {
-        const steps = ['Başvuru İletildi', 'Ön Değerlendirme', 'Mülakat', 'Sonuç'];
-        
-        return (
-            <div className={styles.stepperContainer}>
-                <div className={styles.stepperBox}>
-                    <div className={styles.stepperLineTrack}></div>
-                    {steps.map((step, index) => {
-                        const stepNum = index + 1;
-                        let stepStatusClass = '';
-                        
-                        if (app.isRejected && stepNum === app.currentStep) {
-                            stepStatusClass = styles.stepRejected; // Reddedildiği adım
-                        } else if (app.isRejected && stepNum > app.currentStep) {
-                            stepStatusClass = styles.stepPending; // Kalan adımlar girilmedi
-                        } else if (stepNum < app.currentStep || (stepNum === app.currentStep && !app.isRejected)) {
-                            stepStatusClass = styles.stepCompleted; // Geçilen veya mevcut olumlu adım
-                        } else {
-                            stepStatusClass = styles.stepPending; // Henüz gelinmeyen adım
-                        }
+function isResult(stage) {
+    return stage === 'COMPLETED' || isRejected(stage);
+}
 
-                        return (
-                            <div key={index} className={`${styles.stepItem} ${stepStatusClass}`}>
-                                <div className={styles.stepCircle}>
-                                    {stepStatusClass === styles.stepCompleted ? '✓' : (stepStatusClass === styles.stepRejected ? '✕' : stepNum)}
-                                </div>
-                                <div className={styles.stepTitle}>{step}</div>
+function PipelineStepper({ stage, rejectionReason }) {
+    const currentIdx  = STAGE_ORDER[stage] ?? 0;
+    const rejected    = isRejected(stage);
+    const completed   = stage === 'COMPLETED';
+    const msgInfo     = STAGE_MESSAGES[stage] || { text: 'Başvurunuz işleme alındı.', color: '#667eea' };
+
+    return (
+        <div className={styles.pipelineWrapper}>
+            {/* Steps */}
+            <div className={styles.pipelineSteps}>
+                {PIPELINE_STAGES.map((s, idx) => {
+                    let stateClass = styles.stepPending;
+                    if (completed) {
+                        stateClass = styles.stepCompleted;
+                    } else if (rejected) {
+                        if (idx < currentIdx)       stateClass = styles.stepCompleted;
+                        else if (idx === currentIdx) stateClass = styles.stepRejected;
+                        else                         stateClass = styles.stepPending;
+                    } else {
+                        if (idx < currentIdx)        stateClass = styles.stepCompleted;
+                        else if (idx === currentIdx) stateClass = styles.stepActive;
+                        else                         stateClass = styles.stepPending;
+                    }
+
+                    const mark = completed
+                        ? '✓'
+                        : (rejected && idx === currentIdx)
+                            ? '✕'
+                            : (idx < currentIdx ? '✓' : s.icon);
+
+                    return (
+                        <React.Fragment key={s.key}>
+                            <div className={`${styles.pipelineStep} ${stateClass}`}>
+                                <div className={styles.stepCircle}>{mark}</div>
+                                <div className={styles.stepLabel}>{s.label}</div>
                             </div>
-                        );
-                    })}
-                </div>
+                            {idx < PIPELINE_STAGES.length - 1 && (
+                                <div className={`${styles.stepConnector} ${idx < currentIdx ? styles.connectorDone : ''}`} />
+                            )}
+                        </React.Fragment>
+                    );
+                })}
+            </div>
 
-                {app.isRejected && app.rejectionReason && (
-                    <div className={styles.rejectionBox}>
-                        <h4 className={styles.rejectionTitle}>Neden Reddedildim?</h4>
-                        <p className={styles.rejectionText}>{app.rejectionReason}</p>
-                    </div>
+            {/* Status message */}
+            <div className={styles.stageMessage} style={{ borderLeftColor: msgInfo.color, background: `${msgInfo.color}10` }}>
+                <p style={{ color: msgInfo.color }}>{msgInfo.text}</p>
+                {rejected && rejectionReason && (
+                    <p className={styles.rejectionDetail}>
+                        <strong>Detay:</strong> {rejectionReason}
+                    </p>
                 )}
             </div>
-        );
-    };
+        </div>
+    );
+}
+
+function MyApplications() {
+    const [activeTab, setActiveTab] = useState('ilanlar');
+    const [expandedCardId, setExpandedCardId] = useState(null);
+    const [applications, setApplications] = useState([]);
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchApplications = async () => {
+            try {
+                const token = localStorage.getItem('jwToken');
+                if (!token) { setLoading(false); return; }
+
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const candidateId = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || payload.uid || payload.sub;
+                if (!candidateId) { setLoading(false); return; }
+
+                const response = await axios.get(
+                    `https://localhost:9001/api/v1/Applications/my-applications/${candidateId}`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+
+                if (response.data) {
+                    const allData = response.data.map(a => ({
+                        id:            a.applicationId,
+                        title:         a.jobTitle,
+                        company:       a.department,
+                        date:          new Date(a.appliedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
+                        location:      a.location,
+                        workType:      a.workType,
+                        stage:         a.currentPipelineStage || 'NLP_REVIEW',
+                        rejectionReason: a.rejectionReason,
+                    }));
+
+                    setApplications(allData.filter(a => !isResult(a.stage)));
+                    setResults(allData.filter(a => isResult(a.stage)));
+                }
+            } catch (err) {
+                console.error('Error fetching applications', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchApplications();
+    }, []);
+
+    const toggleCard = (id) => setExpandedCardId(prev => prev === id ? null : id);
 
     const renderCard = (app) => {
         const isExpanded = expandedCardId === app.id;
+        const rejected   = isRejected(app.stage);
+        const completed  = app.stage === 'COMPLETED';
+
+        let badgeClass = styles.statusPending;
+        let badgeLabel = 'İnceleniyor';
+        if (rejected)       { badgeClass = styles.statusDanger;  badgeLabel = 'Elendin'; }
+        else if (completed) { badgeClass = styles.statusSuccess; badgeLabel = 'Tamamlandı'; }
+        else if (app.stage === 'SKILLS_TEST_PENDING')   { badgeLabel = 'Beceri Testi'; }
+        else if (app.stage === 'ENGLISH_TEST_PENDING')  { badgeLabel = 'İngilizce Testi'; }
+        else if (app.stage === 'AI_INTERVIEW_PENDING')  { badgeLabel = 'AI Mülakat'; }
 
         return (
             <div key={app.id} className={`${styles.card} ${isExpanded ? styles.cardExpanded : ''}`} onClick={() => toggleCard(app.id)}>
@@ -125,7 +167,6 @@ function MyApplications() {
                     <div className={styles.cardInfo}>
                         <h3 className={styles.jobTitle}>{app.title}</h3>
                         <p className={styles.companyName}>{app.company}</p>
-                        
                         {isExpanded && (
                             <div className={styles.jobExtraInfo}>
                                 <span>📍 {app.location}</span>
@@ -133,21 +174,17 @@ function MyApplications() {
                             </div>
                         )}
                     </div>
-                    
                     <div className={styles.cardMeta}>
                         <span className={styles.date}>{app.date}</span>
-                        <span className={`${styles.statusBadge} 
-                            ${app.isRejected ? styles.statusDanger : (app.status === 'Kabul Edildi' ? styles.statusSuccess : styles.statusPending)}`}>
-                            {app.status}
-                        </span>
+                        <span className={`${styles.statusBadge} ${badgeClass}`}>{badgeLabel}</span>
                     </div>
                 </div>
 
                 {isExpanded && (
-                    <div className={styles.cardBody} onClick={(e) => e.stopPropagation()}>
+                    <div className={styles.cardBody} onClick={e => e.stopPropagation()}>
                         <hr className={styles.divider} />
                         <h4 className={styles.stepperHeader}>Süreç Detayı</h4>
-                        {renderStepper(app)}
+                        <PipelineStepper stage={app.stage} rejectionReason={app.rejectionReason} />
                     </div>
                 )}
             </div>
@@ -157,16 +194,12 @@ function MyApplications() {
     return (
         <div className={styles.applicationsContainer}>
             <div className={styles.tabsHeader}>
-                <button 
-                    className={`${styles.tabBtn} ${activeTab === 'ilanlar' ? styles.active : ''}`}
-                    onClick={() => { setActiveTab('ilanlar'); setExpandedCardId(null); }}
-                >
+                <button className={`${styles.tabBtn} ${activeTab === 'ilanlar' ? styles.active : ''}`}
+                    onClick={() => { setActiveTab('ilanlar'); setExpandedCardId(null); }}>
                     Başvurduğum İlanlar
                 </button>
-                <button 
-                    className={`${styles.tabBtn} ${activeTab === 'sonuclar' ? styles.active : ''}`}
-                    onClick={() => { setActiveTab('sonuclar'); setExpandedCardId(null); }}
-                >
+                <button className={`${styles.tabBtn} ${activeTab === 'sonuclar' ? styles.active : ''}`}
+                    onClick={() => { setActiveTab('sonuclar'); setExpandedCardId(null); }}>
                     Sonuçlarım
                 </button>
             </div>
@@ -174,16 +207,19 @@ function MyApplications() {
             <div className={styles.tabContent}>
                 {activeTab === 'ilanlar' && (
                     <div className={styles.listWrapper}>
-                        {applications.length > 0 ? applications.map(renderCard) : (
-                            <p className={styles.emptyState}>Henüz hiçbir ilana başvurmadınız.</p>
+                        {loading ? <p className={styles.emptyState}>Yükleniyor...</p> : (
+                            applications.length > 0
+                                ? applications.map(renderCard)
+                                : <p className={styles.emptyState}>Henüz hiçbir ilana başvurmadınız.</p>
                         )}
                     </div>
                 )}
-
                 {activeTab === 'sonuclar' && (
                     <div className={styles.listWrapper}>
-                        {results.length > 0 ? results.map(renderCard) : (
-                            <p className={styles.emptyState}>Sonuçlanmış bir başvurunuz bulunmuyor.</p>
+                        {loading ? <p className={styles.emptyState}>Yükleniyor...</p> : (
+                            results.length > 0
+                                ? results.map(renderCard)
+                                : <p className={styles.emptyState}>Sonuçlanmış bir başvurunuz bulunmuyor.</p>
                         )}
                     </div>
                 )}

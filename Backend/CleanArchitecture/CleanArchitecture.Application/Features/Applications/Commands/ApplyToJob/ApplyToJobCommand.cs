@@ -79,7 +79,9 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
             CandidateProfile candidate = null;
             if (request.CandidateId.HasValue)
             {
-                candidate = await _candidateRepo.GetByIdAsync(request.CandidateId.Value);
+                var allCandidates = await _candidateRepo.GetAllAsync();
+                candidate = System.Linq.Enumerable.FirstOrDefault(
+                    allCandidates, c => c.Id == request.CandidateId.Value || c.UserId == request.CandidateId.Value);
             }
             else if (!string.IsNullOrWhiteSpace(request.Email))
             {
@@ -109,7 +111,7 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
                 // Aday bulunamadı, anonim başvuru için yeni profil oluştur
                 candidate = new CandidateProfile
                 {
-                    UserId = null,
+                    UserId = request.CandidateId,
                     FullName = request.FullName,
                     Email = request.Email,
                     Phone = request.Phone,

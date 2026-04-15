@@ -491,6 +491,11 @@
              </remarks>
              <returns>Oluşturulan iş ilanının Id'si</returns>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.Update(System.Guid,CleanArchitecture.Core.Features.JobPostings.Commands.UpdateJobPosting.UpdateJobPostingCommand)">
+            <summary>
+            İlanı düzenler.
+            </summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.Publish(System.Guid)">
             <summary>
             Taslak bir iş ilanını yayına alır.
@@ -505,6 +510,13 @@
             <param name="id">İş ilanı Id'si (GUID)</param>
             <param name="command">Yeni durum (newStatus: "Active" | "Closed")</param>
             <returns>Durum güncelleme başarı bilgisi</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.Delete(System.Guid)">
+            <summary>
+            İlanı siler (Soft Delete).
+            </summary>
+            <param name="id">İş ilanı Id'si (GUID)</param>
+            <returns>Silme başarı durumu</returns>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetById(System.Guid)">
             <summary>
@@ -589,6 +601,18 @@
              Dönen: Oluşturulan MeetingInvitation Id'si
              </remarks>
              <returns>Oluşturulan davet kaydının Id'si</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.PipelineController.GetSummary(System.Guid)">
+            <summary>
+            Pipeline stage summary for a job posting.
+            GET /api/v1/Pipeline/{jobId}/summary
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.PipelineController.UpdateThreshold(System.Guid,CleanArchitecture.WebApi.Controllers.v1.UpdateThresholdRequest)">
+            <summary>
+            Update pass threshold for a job posting's pipeline.
+            PUT /api/v1/Pipeline/{jobId}/threshold
+            </summary>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.StatisticsController.UpdateSkills(CleanArchitecture.Core.Features.MarketStats.Commands.UpdateSkillStats.UpdateSkillStatsCommand)">
              <summary>

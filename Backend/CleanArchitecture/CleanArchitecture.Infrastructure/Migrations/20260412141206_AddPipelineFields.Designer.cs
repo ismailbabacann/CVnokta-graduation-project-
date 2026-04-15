@@ -4,6 +4,7 @@ using CleanArchitecture.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CleanArchitecture.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260412141206_AddPipelineFields")]
+    partial class AddPipelineFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -373,132 +376,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.ToTable("ApplicationStages");
                 });
 
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.CandidateAnswer", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AnswerText")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("AnsweredAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("AssignmentId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GradingFeedback")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("IsCorrect")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("PointsEarned")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("QuestionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssignmentId");
-
-                    b.HasIndex("QuestionId");
-
-                    b.ToTable("CandidateAnswers");
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.CandidateExamAssignment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("AssignmentBatchId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CandidateId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("ExamId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("ExpiresAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("JobId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("OpenedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal?>("Score")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<DateTime?>("SentAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("StartedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("pending");
-
-                    b.Property<DateTime?>("SubmittedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.HasKey("Id");
-
-                    b.HasAlternateKey("CandidateId", "ExamId");
-
-                    b.HasIndex("AssignmentBatchId");
-
-                    b.HasIndex("ExamId");
-
-                    b.HasIndex("Token")
-                        .IsUnique();
-
-                    b.HasIndex("CandidateId", "JobId");
-
-                    b.HasIndex("JobId", "ExamId", "Status");
-
-                    b.ToTable("CandidateExamAssignments");
-                });
-
             modelBuilder.Entity("CleanArchitecture.Core.Entities.CandidateProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -785,65 +662,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.HasIndex("AggregateType", "AggregateId");
 
                     b.ToTable("EventLogs");
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.Exam", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("ApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ExamType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("IsMandatory")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid>("JobId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("SequenceOrder")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("draft");
-
-                    b.Property<int?>("TimeLimitMinutes")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobId");
-
-                    b.HasIndex("JobId", "Status");
-
-                    b.ToTable("Exams");
                 });
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.ExamQuestion", b =>
@@ -1143,9 +961,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("LanguageLevel")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
 
@@ -1437,57 +1252,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.HasIndex("ScheduledDate");
 
                     b.ToTable("MeetingInvitations");
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.Question", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CorrectAnswer")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("ExamId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OptionsJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OrderIndex")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Points")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(10);
-
-                    b.Property<string>("QuestionText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("QuestionType")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExamId");
-
-                    b.ToTable("Questions");
                 });
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.User", b =>
@@ -1924,52 +1688,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Navigation("Reviewer");
                 });
 
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.CandidateAnswer", b =>
-                {
-                    b.HasOne("CleanArchitecture.Core.Entities.CandidateExamAssignment", "Assignment")
-                        .WithMany("Answers")
-                        .HasForeignKey("AssignmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CleanArchitecture.Core.Entities.Question", "Question")
-                        .WithMany()
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Assignment");
-
-                    b.Navigation("Question");
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.CandidateExamAssignment", b =>
-                {
-                    b.HasOne("CleanArchitecture.Core.Entities.CandidateProfile", "Candidate")
-                        .WithMany()
-                        .HasForeignKey("CandidateId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CleanArchitecture.Core.Entities.Exam", "Exam")
-                        .WithMany()
-                        .HasForeignKey("ExamId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CleanArchitecture.Core.Entities.JobPosting", "Job")
-                        .WithMany()
-                        .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Candidate");
-
-                    b.Navigation("Exam");
-
-                    b.Navigation("Job");
-                });
-
             modelBuilder.Entity("CleanArchitecture.Core.Entities.CandidateProfile", b =>
                 {
                     b.HasOne("CleanArchitecture.Core.Entities.User", "User")
@@ -2033,17 +1751,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.Exam", b =>
-                {
-                    b.HasOne("CleanArchitecture.Core.Entities.JobPosting", "Job")
-                        .WithMany()
-                        .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Job");
                 });
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.ExamQuestion", b =>
@@ -2183,17 +1890,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Navigation("JobPosting");
                 });
 
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.Question", b =>
-                {
-                    b.HasOne("CleanArchitecture.Core.Entities.Exam", "Exam")
-                        .WithMany("Questions")
-                        .HasForeignKey("ExamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Exam");
-                });
-
             modelBuilder.Entity("CleanArchitecture.Core.Entities.VideoInterview", b =>
                 {
                     b.HasOne("CleanArchitecture.Core.Entities.CandidateProfile", "Candidate")
@@ -2273,16 +1969,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.CandidateExamAssignment", b =>
-                {
-                    b.Navigation("Answers");
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.Exam", b =>
-                {
-                    b.Navigation("Questions");
                 });
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.JobPosting", b =>

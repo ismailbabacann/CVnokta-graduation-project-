@@ -490,5 +490,247 @@ namespace CleanArchitecture.Core.Helpers
 
             return WrapInLayout(body, "Your CVNokta password reset token.");
         }
+        // ══════════════════════════════════════════════════════════════════
+        //  6. PIPELINE — SKILLS TEST INVITE
+        // ══════════════════════════════════════════════════════════════════
+        public static string GetSkillsTestInviteTemplate(string candidateName, string jobTitle, int threshold)
+        {
+            var body = $@"
+                    <!-- Header -->
+                    <tr>
+                        <td class='email-header' style='background: linear-gradient(135deg, {PrimaryColor} 0%, {SecondaryColor} 100%);'>
+                            <h1>🎯 Beceri Testi Daveti</h1>
+                            <p>CV analizini başarıyla geçtiniz — sıradaki adım sizi bekliyor!</p>
+                        </td>
+                    </tr>
+                    <!-- Body -->
+                    <tr>
+                        <td class='email-body'>
+                            <h2>Tebrikler, {candidateName}! 🎉</h2>
+                            <p>CV analizinde <strong>%{threshold}</strong> başarı eşiğini geçtiniz. Sizi <strong>{jobTitle}</strong> pozisyonu için Genel Beceri Testi'ne davet ediyoruz.</p>
+
+                            <div class='info-card' style='border-left: 4px solid {PrimaryColor};'>
+                                <table role='presentation' cellpadding='0' cellspacing='0'>
+                                    <tr>
+                                        <td class='label'>Pozisyon</td>
+                                        <td class='value'>{jobTitle}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class='label'>Sonraki Adım</td>
+                                        <td class='value' style='color:{PrimaryColor}; font-weight:600;'>Genel Beceri Testi</td>
+                                    </tr>
+                                    <tr>
+                                        <td class='label'>Geçiş Eşiği</td>
+                                        <td class='value'>%{threshold} ve üzeri</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <p>Sisteme giriş yaparak sınavınıza başlayabilirsiniz. Başarılar! 🍀</p>
+
+                            <hr class='divider' />
+                            <p>Saygılarımızla,<br/><strong>CVNokta İK Ekibi</strong></p>
+                        </td>
+                    </tr>";
+
+            return WrapInLayout(body, $"{jobTitle} için Beceri Testi daveti.");
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  7. PIPELINE — ENGLISH TEST INVITE
+        // ══════════════════════════════════════════════════════════════════
+        public static string GetEnglishTestInviteTemplate(string candidateName, string jobTitle, int threshold)
+        {
+            var body = $@"
+                    <!-- Header -->
+                    <tr>
+                        <td class='email-header' style='background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);'>
+                            <h1>🇬🇧 İngilizce Testi Daveti</h1>
+                            <p>Harika gidiyorsunuz — bir sonraki aşamaya geçtiniz!</p>
+                        </td>
+                    </tr>
+                    <!-- Body -->
+                    <tr>
+                        <td class='email-body'>
+                            <h2>Mükemmel, {candidateName}! 🌟</h2>
+                            <p>Genel beceri testini başarıyla tamamladınız. <strong>{jobTitle}</strong> sürecinin bir sonraki aşamasına geçtiniz: <strong>İngilizce Dil Yeterlilik Testi</strong>.</p>
+
+                            <div class='info-card' style='border-left: 4px solid #00b4db;'>
+                                <table role='presentation' cellpadding='0' cellspacing='0'>
+                                    <tr>
+                                        <td class='label'>Pozisyon</td>
+                                        <td class='value'>{jobTitle}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class='label'>Bu Aşama</td>
+                                        <td class='value' style='color:#0083b0; font-weight:600;'>İngilizce Testi</td>
+                                    </tr>
+                                    <tr>
+                                        <td class='label'>Geçiş Eşiği</td>
+                                        <td class='value'>%{threshold} ve üzeri</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <p>Sisteme giriş yaparak İngilizce testinize başlayabilirsiniz. Bol şans! 🍀</p>
+
+                            <hr class='divider' />
+                            <p>Saygılarımızla,<br/><strong>CVNokta İK Ekibi</strong></p>
+                        </td>
+                    </tr>";
+
+            return WrapInLayout(body, $"{jobTitle} için İngilizce Testi daveti.");
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  8. PIPELINE — AI INTERVIEW INVITE
+        // ══════════════════════════════════════════════════════════════════
+        public static string GetAiInterviewInviteTemplate(string candidateName, string jobTitle, int threshold)
+        {
+            var body = $@"
+                    <!-- Header -->
+                    <tr>
+                        <td class='email-header' style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);'>
+                            <h1>🤖 AI Mülakat Daveti</h1>
+                            <p>Son aşamaya ulaştınız — muhteşem!</p>
+                        </td>
+                    </tr>
+                    <!-- Body -->
+                    <tr>
+                        <td class='email-body'>
+                            <h2>İnanılmaz, {candidateName}! 🏆</h2>
+                            <p>Tüm testleri başarıyla geçtiniz ve <strong>{jobTitle}</strong> sürecinin son aşamasına ulaştınız: <strong>Yapay Zeka Destekli Mülakat</strong>.</p>
+
+                            <div class='info-card' style='border-left: 4px solid #f5576c;'>
+                                <table role='presentation' cellpadding='0' cellspacing='0'>
+                                    <tr>
+                                        <td class='label'>Pozisyon</td>
+                                        <td class='value'>{jobTitle}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class='label'>Son Aşama</td>
+                                        <td class='value' style='color:#f5576c; font-weight:600;'>AI Mülakat</td>
+                                    </tr>
+                                    <tr>
+                                        <td class='label'>Geçiş Eşiği</td>
+                                        <td class='value'>%{threshold} ve üzeri</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <p>Sisteme giriş yaparak AI mülakatınıza başlayabilirsiniz. Kendinize güvenin! 💪</p>
+
+                            <hr class='divider' />
+                            <p>Saygılarımızla,<br/><strong>CVNokta İK Ekibi</strong></p>
+                        </td>
+                    </tr>";
+
+            return WrapInLayout(body, $"{jobTitle} için AI Mülakat daveti.");
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  9. PIPELINE — COMPLETED (All stages passed)
+        // ══════════════════════════════════════════════════════════════════
+        public static string GetPipelineCompletedTemplate(string candidateName, string jobTitle)
+        {
+            var body = $@"
+                    <!-- Header -->
+                    <tr>
+                        <td class='email-header' style='background: linear-gradient(135deg, {SuccessColor} 0%, #38a169 100%);'>
+                            <h1>🎉 Tebrikler!</h1>
+                            <p>Tüm aşamaları başarıyla tamamladınız</p>
+                        </td>
+                    </tr>
+                    <!-- Body -->
+                    <tr>
+                        <td class='email-body'>
+                            <h2>Harika iş çıkardınız, {candidateName}! 🏅</h2>
+                            <p><strong>{jobTitle}</strong> başvurusu kapsamındaki tüm değerlendirme aşamalarını başarıyla tamamladınız.</p>
+
+                            <div class='info-card' style='border-left: 4px solid {SuccessColor};'>
+                                <table role='presentation' cellpadding='0' cellspacing='0'>
+                                    <tr>
+                                        <td class='label'>Pozisyon</td>
+                                        <td class='value'>{jobTitle}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class='label'>Durum</td>
+                                        <td class='value'><span class='badge badge-success'>✅ Tüm Aşamalar Tamamlandı</span></td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <p>İK ekibimiz değerlendirmeleri tamamlayıp en kısa sürede sizinle iletişime geçecektir. Sabırlı olduğunuz için teşekkür ederiz.</p>
+
+                            <div style='background: linear-gradient(135deg, rgba(72,187,120,0.1) 0%, rgba(56,161,105,0.1) 100%); border-radius:12px; padding:20px; margin:24px 0; text-align:center;'>
+                                <p style='margin:0; font-size:16px; color:{TextDark};'>
+                                    🌟 <strong>Süreçleri başarıyla tamamladınız!</strong><br/>
+                                    <span style='font-size:14px; color:{TextMuted};'>Gerekli değerlendirmeler yapılmaktadır.</span>
+                                </p>
+                            </div>
+
+                            <hr class='divider' />
+                            <p>Saygı ve takdirlerimizle,<br/><strong>CVNokta İK Ekibi</strong></p>
+                        </td>
+                    </tr>";
+
+            return WrapInLayout(body, $"Tebrikler! {jobTitle} süreçlerini tamamladınız.");
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  10. PIPELINE — REJECTION (stage-aware)
+        // ══════════════════════════════════════════════════════════════════
+        public static string GetPipelineRejectionTemplate(
+            string candidateName, string jobTitle, string stageName, int score, int threshold)
+        {
+            var body = $@"
+                    <!-- Header -->
+                    <tr>
+                        <td class='email-header'>
+                            <h1>Başvurunuz Hakkında</h1>
+                            <p>Değerlendirme sonucuna ilişkin güncelleme</p>
+                        </td>
+                    </tr>
+                    <!-- Body -->
+                    <tr>
+                        <td class='email-body'>
+                            <h2>Merhaba {candidateName},</h2>
+                            <p>Başvurunuz ve süreçlerimize gösterdiğiniz ilgi için teşekkür ederiz.</p>
+
+                            <div class='info-card' style='border-left: 4px solid {DangerColor};'>
+                                <table role='presentation' cellpadding='0' cellspacing='0'>
+                                    <tr>
+                                        <td class='label'>Pozisyon</td>
+                                        <td class='value'>{jobTitle}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class='label'>Aşama</td>
+                                        <td class='value'>{stageName}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class='label'>Skorunuz</td>
+                                        <td class='value'>%{score}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class='label'>Gerekli Eşik</td>
+                                        <td class='value'>%{threshold}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class='label'>Durum</td>
+                                        <td class='value'><span class='badge badge-danger'>Bu aşamada sonuçlandı</span></td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <p><strong>{stageName}</strong> aşamasında elde ettiğiniz skor, bu pozisyon için belirlenen gerekli eşiğin altında kalmıştır.</p>
+                            <p>Bu karar, yetkinliklerinizin ve deneyimlerinizin değerini azaltmamaktadır. Kendinizi geliştirmeye devam etmenizi ve ileride uygun pozisyonlara başvurmanızı tavsiye ederiz.</p>
+
+                            <hr class='divider' />
+                            <p>Başarılar dileriz,<br/><strong>CVNokta İK Ekibi</strong></p>
+                        </td>
+                    </tr>";
+
+            return WrapInLayout(body, $"{jobTitle} başvurunuz hakkında güncelleme.");
+        }
     }
 }

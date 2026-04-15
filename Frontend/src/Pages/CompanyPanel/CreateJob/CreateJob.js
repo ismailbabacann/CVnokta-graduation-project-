@@ -1,17 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import * as pdfjsLib from 'pdfjs-dist';
 import styles from './CreateJob.module.css';
 
-// Set up the worker for pdf.js (Same version as ApplicationForm)
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
-
 function CreateJob() {
+    const location = useLocation();
+    const navigate = useNavigate();
+
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [isParsing, setIsParsing] = useState(false);
     const [error, setError] = useState('');
     const [createdJobId, setCreatedJobId] = useState('');
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editJobId, setEditJobId] = useState('');
+    
+    // AI State
+    const [aiPrompt, setAiPrompt] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const [formData, setFormData] = useState({
         jobTitle: '',
@@ -19,6 +24,7 @@ function CreateJob() {
         location: '',
         workType: 'FullTime',
         workModel: 'Hybrid',
+        languageLevel: 'B2',
         aboutCompany: '',
         aboutRole: '',
         responsibilities: '',
@@ -26,83 +32,102 @@ function CreateJob() {
         benefits: '', // we will split this by commas before sending
     });
 
+    useEffect(() => {
+        if (location.state) {
+            const jobData = location.state.jobToEdit || location.state.jobToCopy;
+            if (jobData) {
+                const jobId = jobData.jobId || jobData.id;
+                if (location.state.jobToEdit) {
+                    setIsEditMode(true);
+                    setEditJobId(jobId);
+                }
+                
+                // Fetch full details from backend
+                setLoading(true);
+                axios.get(`https://localhost:9001/api/v1/JobPostings/public/${jobId}`)
+                    .then(response => {
+                        const fullJob = response.data;
+                        setFormData({
+                            jobTitle: fullJob.jobTitle || jobData.jobTitle || '',
+                            department: fullJob.department || jobData.department || '',
+                            location: fullJob.location || jobData.location || '',
+                            workType: fullJob.workType || jobData.workType || 'FullTime',
+                            workModel: fullJob.workModel || jobData.workModel || 'Hybrid',
+                            languageLevel: fullJob.languageLevel || jobData.languageLevel || 'B2',
+                            aboutCompany: fullJob.aboutCompany || '',
+                            aboutRole: fullJob.aboutRole || '',
+                            responsibilities: fullJob.responsibilities || '',
+                            requiredQualifications: fullJob.requiredQualifications || '',
+                            benefits: Array.isArray(fullJob.benefits) ? fullJob.benefits.join(', ') : (fullJob.benefits || '')
+                        });
+                    })
+                    .catch(err => {
+                        console.error("Failed to fetch full job details", err);
+                        // Fallback to basic data 
+                        setFormData({
+                            jobTitle: jobData.jobTitle || '',
+                            department: jobData.department || '',
+                            location: jobData.location || '',
+                            workType: jobData.workType || 'FullTime',
+                            workModel: jobData.workModel || 'Hybrid',
+                            languageLevel: jobData.languageLevel || 'B2',
+                            aboutCompany: jobData.aboutCompany || '',
+                            aboutRole: jobData.aboutRole || '',
+                            responsibilities: jobData.responsibilities || '',
+                            requiredQualifications: jobData.requiredQualifications || '',
+                            benefits: Array.isArray(jobData.benefits) ? jobData.benefits.join(', ') : (jobData.benefits || '')
+                        });
+                    })
+                    .finally(() => setLoading(false));
+            }
+        }
+    }, [location.state]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleFileUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file || file.type !== 'application/pdf') return;
+    const handleGenerateFromAI = async () => {
+        if (!aiPrompt.trim()) {
+            alert('Lütfen iş tanımı ile ilgili bir metin girin.');
+            return;
+        }
 
         try {
-            setIsParsing(true);
+            setIsGenerating(true);
             setError('');
+            const token = localStorage.getItem('jwToken');
             
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            let text = '';
-
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const content = await page.getTextContent();
-                const strings = content.items.map(item => item.str);
-                text += strings.join(' ') + '\n';
-            }
-            
-            console.log("--- RAW PDF TEXT ---");
-            console.log(text);
-            console.log("--------------------");
-
-            // Check if it's a valid template
-            const lowerText = text.toLowerCase();
-            if (!lowerText.includes('ilan') && !lowerText.includes('departman') && !lowerText.includes('about the role') && !lowerText.includes('responsibilities')) {
-                alert("Uyarı: Yüklenen PDF dosyasında beklenen standart başlıklar (Örn: 'İlan Başlığı', 'About The Role') bulunamadı. Metinler yanlış yerlere dolabilir.");
-            }
-
-            // A more resilient extraction function that looks for keywords with or without colons, 
-            // and captures everything up to the next known keyword.
-            const extractSection = (startKeywords, endKeywords, fallback = '') => {
-                const startRegex = new RegExp(`(?:${startKeywords.join('|')})\\s*:?\\s*`, 'i');
-                const startMatch = text.match(startRegex);
-                
-                if (!startMatch) return fallback;
-                
-                const startIndex = startMatch.index + startMatch[0].length;
-                let endIndex = text.length;
-
-                if (endKeywords && endKeywords.length > 0) {
-                    const endRegex = new RegExp(`(?:${endKeywords.join('|')})\\s*:?\\s*`, 'i');
-                    // Search for the end keyword ONLY AFTER the start index
-                    const remainingText = text.substring(startIndex);
-                    const endMatch = remainingText.match(endRegex);
-                    if (endMatch) {
-                        endIndex = startIndex + endMatch.index;
-                    }
+            const response = await axios.post('https://localhost:9001/api/v1/JobPostings/generate-details', {
+                applicationContext: aiPrompt
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
                 }
+            });
 
-                const extracted = text.substring(startIndex, endIndex).trim();
-                return extracted || fallback;
-            };
-
-            const parsedData = {
-                jobTitle: extractSection(['İlan Başlığı', 'Pozisyon', 'Job Title'], ['Departman', 'About the Team', 'About The Role']) || formData.jobTitle,
-                department: extractSection(['Departman', 'Bölüm', 'Department'], ['Şirket Hakkında', 'Biz Kimiz', 'About the Team']) || formData.department,
-                aboutCompany: extractSection(['Şirket Hakkında', 'Biz Kimiz', 'Hakkımızda', 'About Company', 'About the Team'], ['Rol Hakkında', 'İş Tanımı', 'Sorumluluklar', 'Aranan Nitelikler', 'Görevler', 'About The Role', 'Responsibilities']) || formData.aboutCompany,
-                aboutRole: extractSection(['Rol Hakkında', 'İş Tanımı', 'Position Overview', 'About The Role'], ['Sorumluluklar', 'Görevler', 'Aranan Nitelikler', 'İstenen Yetenekler', 'Ayrıcalıklar', 'Responsibilities']) || formData.aboutRole,
-                responsibilities: extractSection(['Sorumluluklar', 'Görevler', 'İş Tanımı', 'Responsibilities'], ['Aranan Nitelikler', 'İstenen Yetenekler', 'Beklentilerimiz', 'Ayrıcalıklar', 'Yan Haklar', 'Expected Qualifications', 'What We Offer', 'Take the Next Step']) || formData.responsibilities,
-                requiredQualifications: extractSection(['Aranan Nitelikler', 'İstenen Yetenekler', 'Beklentilerimiz', 'Qualifications', 'Requirements', 'Expected Qualifications'], ['Ayrıcalıklar', 'Yan Haklar', 'Sunduklarımız', 'Benefits', 'What We Offer', 'Take the Next Step']) || formData.requiredQualifications,
-                benefits: extractSection(['Ayrıcalıklar', 'Yan Haklar', 'Sunduklarımız', 'Faydalar', 'Benefits', 'What We Offer'], ['Take the Next Step']) || formData.benefits
-            };
-
-            setFormData(prev => ({ ...prev, ...parsedData }));
-
+            if (response.data) {
+                const aiData = response.data;
+                setFormData(prev => ({
+                    ...prev,
+                    jobTitle: aiData.jobTitle || prev.jobTitle,
+                    department: aiData.department || prev.department,
+                    location: aiData.location || prev.location,
+                    workType: aiData.workType || prev.workType,
+                    workModel: aiData.workModel || prev.workModel,
+                    aboutCompany: aiData.aboutCompany || prev.aboutCompany,
+                    aboutRole: aiData.aboutRole || prev.aboutRole,
+                    responsibilities: aiData.responsibilities || prev.responsibilities,
+                    requiredQualifications: aiData.requiredQualifications || prev.requiredQualifications,
+                    benefits: Array.isArray(aiData.benefits) ? aiData.benefits.join(', ') : (aiData.benefits || prev.benefits)
+                }));
+            }
         } catch (err) {
-            console.error('PDF Parsing Error:', err);
-            setError('PDF Okunurken bir hata oluştu. Dosyanın şifreli veya bozuk olmadığından emin olun.');
+            console.error('AI Generation Error:', err);
+            alert('AI ile içerik oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
         } finally {
-            setIsParsing(false);
-            e.target.value = null; // reset file input
+            setIsGenerating(false);
         }
     };
 
@@ -130,6 +155,7 @@ function CreateJob() {
                 location: formData.location,
                 workType: formData.workType,
                 workModel: formData.workModel,
+                languageLevel: formData.languageLevel,
                 aboutCompany: formData.aboutCompany,
                 aboutRole: formData.aboutRole,
                 responsibilities: formData.responsibilities,
@@ -141,13 +167,23 @@ function CreateJob() {
                 saveAsDraft: saveAsDraft
             };
 
-            const response = await axios.post('https://localhost:9001/api/v1/JobPostings', payload, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            let response;
+            if (isEditMode) {
+                payload.id = editJobId;
+                response = await axios.put(`https://localhost:9001/api/v1/JobPostings/${editJobId}`, payload, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+            } else {
+                response = await axios.post('https://localhost:9001/api/v1/JobPostings', payload, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+            }
 
-            console.log('Create job response:', response.data);
+            console.log('Job response:', response.data);
 
             if (response.data && response.data.data && response.data.data.id) {
                 setCreatedJobId(response.data.data.id);
@@ -189,6 +225,7 @@ function CreateJob() {
             location: '',
             workType: 'FullTime',
             workModel: 'Hybrid',
+            languageLevel: 'B2',
             aboutCompany: '',
             aboutRole: '',
             responsibilities: '',
@@ -202,7 +239,7 @@ function CreateJob() {
             <div className={styles.container}>
                 <div className={styles.successCard}>
                     <div className={styles.successIcon}>✓</div>
-                    <h2 className={styles.successTitle}>Job Posting Successfully Created!</h2>
+                    <h2 className={styles.successTitle}>{isEditMode ? 'Job Posting Successfully Updated!' : 'Job Posting Successfully Created!'}</h2>
                     <p className={styles.successText}>
                         You can now share this posting with candidates and start collecting applications.
                     </p>
@@ -229,28 +266,36 @@ function CreateJob() {
         <div className={styles.container}>
             <div className={styles.header}>
                 <div>
-                    <h2 className={styles.title}>Create New Job Posting</h2>
+                    <h2 className={styles.title}>{isEditMode ? 'Edit Job Posting' : 'Create New Job Posting'}</h2>
                     <p className={styles.subtitle}>Enter the core details of the job to find the right talent for your company.</p>
                 </div>
+                <button type="button" onClick={() => navigate('/company/jobs')} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer' }}>Geri Dön</button>
             </div>
 
             <form className={styles.formContainer} onSubmit={(e) => handleSubmit(e, false)}>
                 {error && <div style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
 
-                {/* PDF Upload Banner */}
+                {/* AI Prompt Section */}
                 <div style={{ backgroundColor: '#eef2ff', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px dashed #6366f1' }}>
-                    <h3 style={{ margin: '0 0 10px 0', color: '#4f46e5' }}>🤖 Yapay Zeka ile Otomatik Doldur (İsteğe Bağlı)</h3>
+                    <h3 style={{ margin: '0 0 10px 0', color: '#4f46e5' }}>🤖 Yapay Zeka ile İş İlanı Detayı Oluştur (İsteğe Bağlı)</h3>
                     <p style={{ margin: '0 0 15px 0', fontSize: '14px', color: '#4b5563' }}>
-                        Standart İlan Taslağınızı (PDF) yükleyin, sistem "İlan Başlığı:", "Sorumluluklar:" vb. başlıkları algılayıp formu sizin yerinize doldursun.
+                        Aradığınız adayın ve işin özelliklerini kısaca yazın (Örn: Fintech şirketi için 3 yıl deneyimli .NET backend developer arıyoruz). Yapay Zeka, tüm formu detaylı şekilde doldursun.
                     </p>
-                    <input 
-                        type="file" 
-                        accept="application/pdf" 
-                        onChange={handleFileUpload}
-                        disabled={isParsing}
-                        style={{ display: 'block', padding: '10px', backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', width: '100%', maxWidth: '400px' }}
+                    <textarea 
+                        value={aiPrompt}
+                        onChange={(e) => setAiPrompt(e.target.value)}
+                        placeholder="İlan hakkında yönergelerinizi yazın..."
+                        style={{ width: '100%', minHeight: '80px', padding: '10px', borderRadius: '6px', border: '1px solid #c7d2fe', marginBottom: '10px', fontFamily: 'Inter, sans-serif' }}
                     />
-                    {isParsing && <span style={{display: 'block', marginTop: '10px', color: '#4f46e5', fontWeight: 'bold'}}>PDF Analiz ediliyor...</span>}
+                    <button 
+                        type="button" 
+                        onClick={handleGenerateFromAI} 
+                        disabled={isGenerating}
+                        style={{ padding: '10px 20px', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                        {isGenerating ? 'Yapay Zeka Çalışıyor...' : '✨ Otomatik Doldur'}
+                    </button>
+                    {isGenerating && <span style={{display: 'inline-block', marginLeft: '10px', color: '#4f46e5', fontWeight: '500'}}>Form alanları dolduruluyor...</span>}
                 </div>
 
                 {/* Box 1: Basic Info */}
@@ -294,6 +339,18 @@ function CreateJob() {
                             </select>
                         </div>
                     </div>
+
+                    <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                            <label>🌐 Dil Seviyesi (İngilizce)</label>
+                            <select name="languageLevel" value={formData.languageLevel} onChange={handleChange} className={styles.select}>
+                                <option value="A2">A2 – Başlangıç</option>
+                                <option value="B1">B1 – Orta</option>
+                                <option value="B2">B2 – Orta Üstü</option>
+                                <option value="C1">C1 – İleri</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Box 2: Content Details */}
@@ -334,7 +391,7 @@ function CreateJob() {
                         {loading ? 'Saving...' : 'Save as Draft'}
                     </button>
                     <button type="submit" className={styles.publishBtn} disabled={loading}>
-                        {loading ? 'Publishing...' : 'Publish Job'}
+                        {loading ? 'Publishing...' : (isEditMode ? 'Update Job' : 'Publish Job')}
                     </button>
                 </div>
             </form>

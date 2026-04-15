@@ -118,6 +118,7 @@ namespace CleanArchitecture.Infrastructure
             services.AddTransient<IAiJobPostingGenerationService, MockAiJobPostingGenerationService>();
             services.AddTransient<IExamTokenService, ExamTokenService>();
 
+            services.AddTransient<IPipelineService, PipelineService>();
 
             #region Repositories
             services.AddTransient(typeof(IGenericRepositoryAsync<>), typeof(GenericRepositoryAsync<>));

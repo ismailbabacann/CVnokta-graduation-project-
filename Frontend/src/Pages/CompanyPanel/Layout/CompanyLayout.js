@@ -13,7 +13,7 @@ function CompanyLayout() {
         localStorage.removeItem('jwToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('userName');
-        navigate('/login');
+        window.location.href = '/';
     };
 
     const getPageTitle = () => {
@@ -21,6 +21,7 @@ function CompanyLayout() {
             case '/company': return 'Panel';
             case '/company/jobs': return 'İş İlanları';
             case '/company/candidates': return 'Aday Havuzu';
+            case '/company/best-candidates': return 'En İyi Adaylar';
             case '/company/create-job': return 'Yeni İş İlanı';
             default: return 'Panel';
         }
@@ -43,7 +44,23 @@ function CompanyLayout() {
                     <NavLink to="/company/candidates" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}>👥</span> Aday Havuzu
                     </NavLink>
+                    <NavLink to="/company/best-candidates" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
+                        <span className={styles.navIcon}>🏆</span> En İyi Adaylar
+                    </NavLink>
+                    <NavLink to="/company/help" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
+                        <span className={styles.navIcon}>❓</span> Yardım & Destek
+                    </NavLink>
                 </nav>
+                <div style={{ marginTop: 'auto', padding: '20px' }}>
+                    <button 
+                        onClick={handleLogout} 
+                        style={{ width: '100%', padding: '12px', background: '#fee2e2', color: '#ef4444', border: '1px solid #fca5a5', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(239,68,68,0.1)' }}
+                        onMouseOver={(e) => e.currentTarget.style.background = '#fecaca'}
+                        onMouseOut={(e) => e.currentTarget.style.background = '#fee2e2'}
+                    >
+                        <span>🚪</span> Çıkış Yap
+                    </button>
+                </div>
             </aside>
 
             {/* Main Content Area */}
@@ -58,9 +75,6 @@ function CompanyLayout() {
                             <span className={styles.userName}>
                                 {userName}<br />
                                 <span>Admin</span>
-                                <span onClick={handleLogout} style={{ color: '#e74c3c', cursor: 'pointer', fontSize: '12px', marginLeft: '5px' }}>
-                                    (Çıkış Yap)
-                                </span>
                             </span>
                             <div className={styles.avatar}>{userName.charAt(0).toUpperCase()}</div>
                         </div>

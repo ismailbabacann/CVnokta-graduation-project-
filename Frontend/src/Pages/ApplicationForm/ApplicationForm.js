@@ -24,7 +24,6 @@ function ApplicationForm({ onBack }) {
     phone: '',
     linkedIn: '',
     currentLocation: '',
-    currentCompany: '',
     cvUrl: '',
     cvOriginalName: '',
     coverLetter: '',
@@ -129,10 +128,12 @@ function ApplicationForm({ onBack }) {
       const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
       const phoneRegex = /(?:\+90|0)?[-\s]?\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2}/;
       const linkedinRegex = /linkedin\.com\/in\/([a-zA-Z0-9-]+)/i;
+      const locationRegex = /(İstanbul|Ankara|İzmir|Bursa|Antalya|Adana|Konya|Kocaeli|Kayseri|Mersin|Eskişehir|Samsun|Denizli|Sakarya|Gaziantep|Trabzon)/i;
 
       const emailMatch = text.match(emailRegex);
       const phoneMatch = text.match(phoneRegex);
       const linkedinMatch = text.match(linkedinRegex);
+      const locationMatch = text.match(locationRegex);
 
       const words = text.trim().split(/\s+/);
       let guessedName = '';
@@ -148,8 +149,11 @@ function ApplicationForm({ onBack }) {
         fullName: prev.fullName || guessedName,
         email: prev.email || (emailMatch ? emailMatch[1] : ''),
         phone: prev.phone || (phoneMatch ? phoneMatch[0] : ''),
-        linkedIn: prev.linkedIn || (linkedinMatch ? `https://linkedin.com/in/${linkedinMatch[1]}` : '')
+        linkedIn: prev.linkedIn || (linkedinMatch ? `https://linkedin.com/in/${linkedinMatch[1]}` : ''),
+        currentLocation: prev.currentLocation || (locationMatch ? locationMatch[0] : '')
       }));
+      
+      alert("CV'niz başarıyla tarandı ve bazı alanlar (Ad Soyad, Email, Telefon, vs.) otomatik dolduruldu!");
     } catch (err) {
       console.error('PDF form doldurma hatası:', err);
     } finally {
@@ -171,7 +175,6 @@ function ApplicationForm({ onBack }) {
         phone: formData.phone,
         location: formData.currentLocation,
         linkedInProfile: formData.linkedIn,
-        currentCompany: formData.currentCompany,
         coverLetter: formData.coverLetter,
         cvUrl: formData.cvUrl
       };
@@ -216,7 +219,6 @@ function ApplicationForm({ onBack }) {
         <FormField label="Telefon" name="phone" type="tel" value={formData.phone} onChange={handleChange} error={errors.phone} required />
         <FormField label="Bulunduğunuz Yer" name="currentLocation" value={formData.currentLocation} onChange={handleChange} error={errors.currentLocation} required />
         <FormField label="LinkedIn" name="linkedIn" type="url" value={formData.linkedIn} onChange={handleChange} error={errors.linkedIn} required />
-        <FormField label="Mevcut Şirket" name="currentCompany" value={formData.currentCompany} onChange={handleChange} />
 
         <div className="form-group">
           <label>CV/Özgeçmiş <span className="required">*</span></label>
@@ -232,8 +234,8 @@ function ApplicationForm({ onBack }) {
         </div>
 
         <div className="form-group">
-          <label>Mesaj</label>
-          <textarea name="coverLetter" value={formData.coverLetter} onChange={handleChange} placeholder="Kendinizden bahsedin..." />
+          <label>Ön Yazı / Cover Letter</label>
+          <textarea name="coverLetter" value={formData.coverLetter} onChange={handleChange} placeholder="Kendinizden ve bu pozisyon için hedeflerinizden kısaca bahsedin..." />
         </div>
 
         {submitError && <div className="error-message" style={{ marginBottom: '10px' }}>{submitError}</div>}

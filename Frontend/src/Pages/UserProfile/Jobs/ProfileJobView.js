@@ -29,14 +29,42 @@ function ProfileJobView() {
         fetchJobDetails();
     }, [id]);
 
-    const handleFastApply = () => {
+    const handleFastApply = async () => {
         setIsApplying(true);
-        // Simulate API call to apply with profile data
-        setTimeout(() => {
-            setIsApplying(false);
+        try {
+            const token = localStorage.getItem('jwToken');
+            let candidateId = null;
+            let email = '';
+            let fullName = localStorage.getItem('userName') || 'Aday';
+
+            if (token) {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                candidateId = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || payload.uid || payload.sub;
+                email = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || payload.email || 'ornek@email.com';
+            }
+
+            const payloadData = {
+                jobPostingId: id,
+                candidateId: candidateId,
+                fullName: fullName,
+                email: email || 'ornek@email.com',
+                phone: "05000000000",
+                location: "Türkiye",
+                linkedInProfile: "",
+                coverLetter: "Profilimdeki bilgilerle hızlı başvuru yapıyorum.",
+                cvUrl: ""
+            };
+
+            await axios.post('https://localhost:9001/api/v1/Applications/public/apply', payloadData);
+            
             alert('Tebrikler! Profilinizdeki mevcut CV ve bilgileriniz kullanılarak başvurunuz başarıyla iletildi. Sürecinizi "Başvurduğum İlanlar" alanından takip edebilirsiniz.');
-            navigate('/profile/applications'); // Go back to applications
-        }, 1200);
+            navigate('/profile/applications');
+        } catch (err) {
+            console.error('Başvuru hatası:', err);
+            alert('Başvuru sırasında bir hata oluştu veya zaten başvurdunuz.');
+        } finally {
+            setIsApplying(false);
+        }
     };
 
     if (loading) {
@@ -107,13 +135,23 @@ function ProfileJobView() {
                     <span className={styles.infoIcon}>ℹ️</span>
                     <p>Sistemde kayıtlı önyazınız, eğitim bilgileriniz ve güncel özgeçmiş dosyanız bu ilan için şirkete doğrudan iletilecektir. Hızlı başvuru işlemini aşağıdan tamamlayabilirsiniz.</p>
                 </div>
-                <button 
-                    className={styles.fastApplyBtn} 
-                    onClick={handleFastApply}
-                    disabled={isApplying}
-                >
-                    {isApplying ? 'Başvuru İletiliyor...' : 'Profil Bilgilerimle Bu İlana Başvur'}
-                </button>
+                {job.status === 'Active' ? (
+                    <button 
+                        className={styles.fastApplyBtn} 
+                        onClick={handleFastApply}
+                        disabled={isApplying}
+                    >
+                        {isApplying ? 'Başvuru İletiliyor...' : 'Profil Bilgilerimle Bu İlana Başvur'}
+                    </button>
+                ) : (
+                    <button 
+                        className={styles.fastApplyBtn} 
+                        style={{backgroundColor: '#cbd5e1', cursor: 'not-allowed', color: '#475569'}}
+                        disabled
+                    >
+                        İlan Kapalıdır (Closed)
+                    </button>
+                )}
             </div>
         </div>
     );

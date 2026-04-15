@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Header from './Components/Header/Header.js';
 import Footer from './Components/Footer/Footer.js';
@@ -22,19 +22,32 @@ import MyApplications from './Pages/UserProfile/MyApplications/MyApplications.js
 import ProfileJobs from './Pages/UserProfile/Jobs/ProfileJobs.js';
 import ProfileJobView from './Pages/UserProfile/Jobs/ProfileJobView.js';
 import Help from './Pages/UserProfile/Help/Help.js';
+import CompanyHelp from './Pages/CompanyPanel/Help/CompanyHelp.js';
+import BestCandidates from './Pages/CompanyPanel/BestCandidates/BestCandidates.js';
+import Exam from './Pages/Exam/Exam.js';
 import './App.css';
 
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
+  
+  useEffect(() => {
+    const token = localStorage.getItem('jwToken');
+    const userName = localStorage.getItem('userName');
+    if (token) {
+      setUser({ userName: userName || 'Kullanıcı' });
+    }
+  }, []);
+
   const handleBack = () => {
     navigate('/jobs');
   };
 
   const isCompanyRoute = location.pathname.startsWith('/company');
   const isProfileRoute = location.pathname.startsWith('/profile');
-  const hideMainHeaderFooter = isCompanyRoute || isProfileRoute;
+  const isExamRoute = location.pathname.startsWith('/exam');
+  const hideMainHeaderFooter = isCompanyRoute || isProfileRoute || isExamRoute;
 
   return (
     <div className="app">
@@ -47,6 +60,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/insights" element={<Insights />} />
+          <Route path="/exam" element={<Exam />} />
           <Route path="/jobs" element={<JobList />} />
           <Route path="/jobs/:id" element={<JobView />} />
           <Route path="/apply/:id" element={<ApplicationForm onBack={handleBack} />} />
@@ -55,6 +69,8 @@ function App() {
             <Route path="jobs" element={<CompanyJobs />} />
             <Route path="create-job" element={<CreateJob />} />
             <Route path="candidates" element={<CompanyCandidates />} />
+            <Route path="best-candidates" element={<BestCandidates />} />
+            <Route path="help" element={<CompanyHelp />} />
           </Route>
           <Route path="/profile" element={<UserLayout />}>
             <Route index element={<MyProfile />} />
