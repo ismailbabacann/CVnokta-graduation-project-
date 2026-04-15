@@ -141,13 +141,14 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
             // ── 4. Başvuru kaydet ────────────────────────────────────────────
             var application = new JobApplication
             {
-                JobPostingId      = request.JobPostingId,
-                CandidateId       = candidate.Id,
-                CvId              = request.CvId,
-                CvUrl             = request.CvUrl,
-                CoverLetter       = request.CoverLetter,
-                ApplicationStatus = "SUBMITTED",
-                AppliedAt         = DateTime.UtcNow
+                JobPostingId         = request.JobPostingId,
+                CandidateId          = candidate.Id,
+                CvId                 = request.CvId,
+                CvUrl                = request.CvUrl,
+                CoverLetter          = request.CoverLetter,
+                ApplicationStatus    = "ENGLISH_TEST_PENDING",
+                CurrentPipelineStage = "ENGLISH_TEST_PENDING",
+                AppliedAt            = DateTime.UtcNow
             };
             await _applicationRepo.AddAsync(application);
 
