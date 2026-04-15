@@ -1,33 +1,135 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import styles from './MyProfile.module.css';
 
 function MyProfile() {
     const [formData, setFormData] = useState({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-        phone: '+90 555 123 4567',
-        location: 'İstanbul, Türkiye',
-        linkedin: 'https://linkedin.com/in/johndoe',
-        coverLetter: 'Merhaba, şirketinizde açılan bu pozisyonla yakından ilgileniyorum. Ekteki CV\'mden de inceleyebileceğiniz üzere daha önce benzer projelerde yer aldım.'
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        location: '',
+        linkedin: '',
+        coverLetter: '',
     });
+    
+    const [cvInfo, setCvInfo] = useState(null);
+    const [candidateId, setCandidateId] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const token = localStorage.getItem('jwToken');
+                if (!token) { setIsLoading(false); return; }
+
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const uid = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || payload.uid || payload.sub;
+                const tokenEmail = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || payload.email || '';
+                const tokenName = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || payload.name || localStorage.getItem('userName') || '';
+
+                if (uid) {
+                    setCandidateId(uid);
+                    let p = null;
+                    try {
+                        const response = await axios.get(`https://localhost:9001/api/v1/Candidates/${uid}`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        p = response.data.data || response.data;
+                    } catch (fetchErr) {
+                        console.warn('Profile does not exist yet or error:', fetchErr);
+                    }
+                    
+                    const actualName = (p && p.fullName) ? p.fullName : tokenName;
+                    const nameParts = actualName.split(' ');
+                    const fName = nameParts.slice(0, -1).join(' ') || actualName;
+                    const lName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+
+                    setFormData({
+                        firstName: fName || '',
+                        lastName: lName || '',
+                        email: (p && p.email) ? p.email : tokenEmail,
+                        phone: p?.phone || '',
+                        location: p?.location || '',
+                        linkedin: p?.linkedInProfile || '',
+                        coverLetter: p?.summary || ''
+                    });
+                    
+                    if (p && p.cvUrl) {
+                        setCvInfo(p.cvUrl.split('/').pop() || 'Mevcut CV');
+                    }
+                }
+            } catch (err) {
+                console.error('Profil yükleme hatası:', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProfile();
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!candidateId) { alert("Lütfen giriş yapın."); return; }
+        
         setIsSaving(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsSaving(false);
+        try {
+            const token = localStorage.getItem('jwToken');
+            const updatePayload = {
+                fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+                email: formData.email,
+                phone: formData.phone,
+                location: formData.location,
+                linkedInProfile: formData.linkedin,
+                summary: formData.coverLetter
+            };
+
+            await axios.put(`https://localhost:9001/api/v1/Candidates/${candidateId}`, updatePayload, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             alert('Profil bilgileriniz başarıyla güncellendi!');
-        }, 1000);
+        } catch (err) {
+            console.error('Güncelleme hatası:', err);
+            alert('Güncelleme sırasında bir hata oluştu.');
+        } finally {
+            setIsSaving(false);
+        }
     };
+
+    const handleCvUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file || !candidateId) return;
+
+        try {
+            const token = localStorage.getItem('jwToken');
+            const data = new FormData();
+            data.append('candidateId', candidateId);
+            data.append('cvFile', file);
+
+            const response = await axios.post('https://localhost:9001/api/v1/Candidates/upload-cv', data, {
+                headers: { 
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data' 
+                }
+            });
+            
+            alert('CV başarıyla yüklendi!');
+            setCvInfo(file.name);
+        } catch (err) {
+            console.error('CV Yükleme hatası:', err);
+            alert('CV Yüklenirken bir sorun oluştu.');
+        }
+    };
+
+    if (isLoading) return <div style={{padding:'2rem'}}>Profil Yükleniyor...</div>;
 
     return (
         <div className={styles.profileContainer}>
@@ -86,9 +188,13 @@ function MyProfile() {
                         <div className={styles.fileUploadBox}>
                             <div className={styles.fileIcon}>📄</div>
                             <div className={styles.fileDetails}>
-                                <span className={styles.fileName}>Mevcut Yüklü CV: <strong>John_Doe_CV.pdf</strong></span>
-                                <input type="file" id="cvUpload" className={styles.fileInput} accept=".pdf,.doc,.docx" />
-                                <label htmlFor="cvUpload" className={styles.uploadBtn}>Yeni CV Yükle</label>
+                                {cvInfo ? (
+                                    <span className={styles.fileName}>Mevcut Yüklü CV: <strong>{cvInfo}</strong></span>
+                                ) : (
+                                    <span className={styles.fileName}>Sisteminizde yüklenmiş bir CV bulunamadı. Lütfen ilanlara başvurmadan önce CV yükleyiniz.</span>
+                                )}
+                                <input type="file" id="cvUpload" className={styles.fileInput} accept=".pdf,.doc,.docx" onChange={handleCvUpload} />
+                                <label htmlFor="cvUpload" className={styles.uploadBtn}>{cvInfo ? 'Yeni CV Yükle' : 'CV Yükle'}</label>
                             </div>
                         </div>
                     </div>

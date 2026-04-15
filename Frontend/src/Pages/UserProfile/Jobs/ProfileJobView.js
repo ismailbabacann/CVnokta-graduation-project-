@@ -10,6 +10,8 @@ function ProfileJobView() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isApplying, setIsApplying] = useState(false);
+    const [candidateProfile, setCandidateProfile] = useState(null);
+    const [hasCv, setHasCv] = useState(false);
 
     useEffect(() => {
         const fetchJobDetails = async () => {
@@ -21,12 +23,37 @@ function ProfileJobView() {
             } catch (err) {
                 console.error('Error fetching job details:', err);
                 setError('İş ilanı bulunamadı veya bir hata oluştu.');
-            } finally {
-                setLoading(false);
             }
         };
 
-        fetchJobDetails();
+        const fetchCandidateProfile = async () => {
+            try {
+                const token = localStorage.getItem('jwToken');
+                if (!token) return;
+
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const uid = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || payload.uid || payload.sub;
+                
+                if (uid) {
+                    const response = await axios.get(`https://localhost:9001/api/v1/Candidates/${uid}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    const p = response.data.data || response.data;
+                    setCandidateProfile(p);
+                    setHasCv(!!p.cvUrl);
+                }
+            } catch (err) {
+                console.error('Aday profili alınamadı:', err);
+            }
+        };
+
+        const loadData = async () => {
+            setLoading(true);
+            await Promise.all([fetchJobDetails(), fetchCandidateProfile()]);
+            setLoading(false);
+        };
+
+        loadData();
     }, [id]);
 
     const handleFastApply = async () => {
@@ -46,13 +73,14 @@ function ProfileJobView() {
             const payloadData = {
                 jobPostingId: id,
                 candidateId: candidateId,
-                fullName: fullName,
-                email: email || 'ornek@email.com',
-                phone: "05000000000",
-                location: "Türkiye",
-                linkedInProfile: "",
-                coverLetter: "Profilimdeki bilgilerle hızlı başvuru yapıyorum.",
-                cvUrl: ""
+                fullName: candidateProfile?.fullName || fullName,
+                email: candidateProfile?.email || email || '',
+                phone: candidateProfile?.phone || "",
+                location: candidateProfile?.location || "",
+                linkedInProfile: candidateProfile?.linkedInProfile || "",
+                coverLetter: candidateProfile?.summary || "Profilimdeki bilgilerle hızlı başvuru yapıyorum.",
+                cvUrl: candidateProfile?.cvUrl || "",
+                cvId: candidateProfile?.cvId || null
             };
 
             await axios.post('https://localhost:9001/api/v1/Applications/public/apply', payloadData);
@@ -136,13 +164,28 @@ function ProfileJobView() {
                     <p>Sistemde kayıtlı önyazınız, eğitim bilgileriniz ve güncel özgeçmiş dosyanız bu ilan için şirkete doğrudan iletilecektir. Hızlı başvuru işlemini aşağıdan tamamlayabilirsiniz.</p>
                 </div>
                 {job.status === 'Active' ? (
-                    <button 
-                        className={styles.fastApplyBtn} 
-                        onClick={handleFastApply}
-                        disabled={isApplying}
-                    >
-                        {isApplying ? 'Başvuru İletiliyor...' : 'Profil Bilgilerimle Bu İlana Başvur'}
-                    </button>
+                    hasCv ? (
+                        <button 
+                            className={styles.fastApplyBtn} 
+                            onClick={handleFastApply}
+                            disabled={isApplying}
+                        >
+                            {isApplying ? 'Başvuru İletiliyor...' : 'Profil Bilgilerimle Bu İlana Başvur'}
+                        </button>
+                    ) : (
+                        <div style={{ textAlign: 'center' }}>
+                            <p style={{ color: '#e53e3e', fontSize: '14px', marginBottom: '10px' }}>
+                                ⚠️ İlanlara başvurabilmek için Profil kısmından CV'nizi yüklemelisiniz.
+                            </p>
+                            <button 
+                                className={styles.fastApplyBtn} 
+                                style={{backgroundColor: '#cbd5e1', cursor: 'not-allowed', color: '#475569'}}
+                                disabled
+                            >
+                                Profil Bilgilerimle Bu İlana Başvur
+                            </button>
+                        </div>
+                    )
                 ) : (
                     <button 
                         className={styles.fastApplyBtn} 
