@@ -1,7 +1,7 @@
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
-using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Core.Settings;
+using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Infrastructure.Contexts;
 using CleanArchitecture.Infrastructure.Models;
 using CleanArchitecture.Infrastructure.Repository;
@@ -112,9 +112,11 @@ namespace CleanArchitecture.Infrastructure
 
             services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
             services.Configure<ResendSettings>(configuration.GetSection("ResendSettings"));
+            services.Configure<ExamSettings>(configuration.GetSection("ExamSettings"));
             services.AddTransient<IDateTimeService, DateTimeService>();
             services.AddTransient<IEmailService, ResendEmailService>();
             services.AddTransient<IAiJobPostingGenerationService, MockAiJobPostingGenerationService>();
+            services.AddTransient<IExamTokenService, ExamTokenService>();
 
 
             #region Repositories

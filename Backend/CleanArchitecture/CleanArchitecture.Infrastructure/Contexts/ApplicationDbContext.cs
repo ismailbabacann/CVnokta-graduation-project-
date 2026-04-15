@@ -48,6 +48,12 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<MarketPositionStat> MarketPositionStats { get; set; }
         public DbSet<MarketLocationStat> MarketLocationStats { get; set; }
 
+        // HR Exam Assignment System
+        public DbSet<Exam> Exams { get; set; }
+        public DbSet<Question> Questions { get; set; }
+        public DbSet<CandidateExamAssignment> CandidateExamAssignments { get; set; }
+        public DbSet<CandidateAnswer> CandidateAnswers { get; set; }
+
         // Read Models
         public DbSet<CandidateRankingView> CandidateRankingViews { get; set; }
         public DbSet<ActiveJobPostingsView> ActiveJobPostingsViews { get; set; }
@@ -547,6 +553,101 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 .HasIndex(el => el.EventType);
             builder.Entity<EventLog>()
                 .HasIndex(el => el.CreatedAt);
+
+            // ── Exam Configuration ──────────────────────────────────
+            builder.Entity<Exam>()
+                .HasKey(e => e.Id);
+            builder.Entity<Exam>()
+                .Property(e => e.Title).IsRequired().HasMaxLength(255);
+            builder.Entity<Exam>()
+                .Property(e => e.ExamType).IsRequired().HasMaxLength(100);
+            builder.Entity<Exam>()
+                .Property(e => e.Status).IsRequired().HasMaxLength(20).HasDefaultValue("draft");
+            builder.Entity<Exam>()
+                .HasOne(e => e.Job)
+                .WithMany()
+                .HasForeignKey(e => e.JobId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<Exam>()
+                .HasIndex(e => e.JobId);
+            builder.Entity<Exam>()
+                .HasIndex(e => new { e.JobId, e.Status });
+
+            // ── Question Configuration ───────────────────────────────
+            builder.Entity<Question>()
+                .HasKey(q => q.Id);
+            builder.Entity<Question>()
+                .Property(q => q.QuestionText).IsRequired().HasColumnType("nvarchar(max)");
+            builder.Entity<Question>()
+                .Property(q => q.QuestionType).IsRequired().HasMaxLength(30);
+            builder.Entity<Question>()
+                .Property(q => q.OptionsJson).HasColumnType("nvarchar(max)");
+            builder.Entity<Question>()
+                .Property(q => q.Points).HasDefaultValue(10);
+            builder.Entity<Question>()
+                .HasOne(q => q.Exam)
+                .WithMany(e => e.Questions)
+                .HasForeignKey(q => q.ExamId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<Question>()
+                .HasIndex(q => q.ExamId);
+
+            // ── CandidateExamAssignment Configuration ────────────────
+            builder.Entity<CandidateExamAssignment>()
+                .HasKey(a => a.Id);
+            builder.Entity<CandidateExamAssignment>()
+                .Property(a => a.Token).IsRequired().HasMaxLength(512);
+            builder.Entity<CandidateExamAssignment>()
+                .Property(a => a.Status).IsRequired().HasMaxLength(20).HasDefaultValue("pending");
+            builder.Entity<CandidateExamAssignment>()
+                .Property(a => a.Score).HasColumnType("decimal(5,2)");
+            builder.Entity<CandidateExamAssignment>()
+                .HasOne(a => a.Candidate)
+                .WithMany()
+                .HasForeignKey(a => a.CandidateId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<CandidateExamAssignment>()
+                .HasOne(a => a.Exam)
+                .WithMany()
+                .HasForeignKey(a => a.ExamId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<CandidateExamAssignment>()
+                .HasOne(a => a.Job)
+                .WithMany()
+                .HasForeignKey(a => a.JobId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // Unique constraint: one candidate cannot be assigned to the same exam twice
+            builder.Entity<CandidateExamAssignment>()
+                .HasAlternateKey(a => new { a.CandidateId, a.ExamId });
+            // Indexes per design doc
+            builder.Entity<CandidateExamAssignment>()
+                .HasIndex(a => a.Token).IsUnique();
+            builder.Entity<CandidateExamAssignment>()
+                .HasIndex(a => new { a.JobId, a.ExamId, a.Status });
+            builder.Entity<CandidateExamAssignment>()
+                .HasIndex(a => new { a.CandidateId, a.JobId });
+            builder.Entity<CandidateExamAssignment>()
+                .HasIndex(a => a.AssignmentBatchId);
+
+            // ── CandidateAnswer Configuration ────────────────────────
+            builder.Entity<CandidateAnswer>()
+                .HasKey(ca => ca.Id);
+            builder.Entity<CandidateAnswer>()
+                .Property(ca => ca.AnswerText).HasColumnType("nvarchar(max)");
+            builder.Entity<CandidateAnswer>()
+                .Property(ca => ca.GradingFeedback).HasColumnType("nvarchar(max)");
+            builder.Entity<CandidateAnswer>()
+                .HasOne(ca => ca.Assignment)
+                .WithMany(a => a.Answers)
+                .HasForeignKey(ca => ca.AssignmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<CandidateAnswer>()
+                .HasOne(ca => ca.Question)
+                .WithMany()
+                .HasForeignKey(ca => ca.QuestionId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<CandidateAnswer>()
+                .HasIndex(ca => ca.AssignmentId);
 
             // Read Models (Views) - No Key
             builder.Entity<CandidateRankingView>()
