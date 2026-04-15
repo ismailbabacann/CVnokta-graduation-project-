@@ -1,9 +1,10 @@
-﻿using AutoMapper;
+using AutoMapper;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Features.JobPostings.Commands.CreateJobPosting;
 using CleanArchitecture.Core.Features.Candidates.Commands.CreateCandidateProfile;
 using CleanArchitecture.Core.Features.Applications.Commands.SubmitJobApplication;
 using CleanArchitecture.Core.Features.Interviews.Commands.StartAiInterview;
+using CleanArchitecture.Core.Features.Exams.Commands.ApproveExam;
 
 namespace CleanArchitecture.Core.Mappings
 {
@@ -27,6 +28,12 @@ namespace CleanArchitecture.Core.Mappings
 
             // Interviews
             CreateMap<StartAiInterviewCommand, AiInterviewSession>();
+
+            // Exams
+            CreateMap<ApproveExamCommand, Exam>()
+                .ForMember(dest => dest.Status, opt => opt.Ignore())
+                .ForMember(dest => dest.ApprovedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.Questions, opt => opt.Ignore());
         }
     }
 }

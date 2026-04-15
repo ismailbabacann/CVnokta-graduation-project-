@@ -4,6 +4,7 @@ using CleanArchitecture.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CleanArchitecture.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260415164419_ExamSystem")]
+    partial class ExamSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -583,12 +586,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<decimal?>("CvAnalysisScore")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("CvUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal?>("FinalWeightedScore")
                         .HasColumnType("decimal(18,2)");
 
@@ -1046,9 +1043,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("CurrentPipelineStage")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<Guid?>("CvId")
                         .HasColumnType("uniqueidentifier");
 
@@ -1062,12 +1056,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("LastModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("PipelineStageUpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RejectionReason")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -1143,9 +1131,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("LanguageLevel")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
 
@@ -1160,9 +1145,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(70);
-
-                    b.Property<int>("PipelinePassThreshold")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("PostedDate")
                         .HasColumnType("datetime2");

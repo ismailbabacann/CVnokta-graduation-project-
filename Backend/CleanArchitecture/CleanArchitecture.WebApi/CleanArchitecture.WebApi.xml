@@ -116,6 +116,21 @@
             GET /api/v1/Applications/stats/pool-summary
             </summary>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.CandidateDashboardController.GetDashboard(System.Guid)">
+             <summary>
+             Adayın kendisine atanan tüm sınavları durumları ile birlikte döner.
+             </summary>
+             <remarks>
+             Her atama için sınav adı, iş ilanı, durum, puan ve son tarih bilgileri döner.
+            
+             Örnek istek:
+            
+                 GET /api/v1/CandidateDashboard/{candidateId}
+            
+             </remarks>
+             <param name="candidateId">Aday profil ID'si (GUID)</param>
+             <returns>Aday sınav gösterge paneli</returns>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.CandidatesController.Create(CleanArchitecture.Core.Features.Candidates.Commands.CreateCandidateProfile.CreateCandidateProfileCommand)">
              <summary>
              Yeni aday profili oluşturur (kayıt sırasında otomatik çağrılır).
@@ -239,6 +254,89 @@
             <param name="appId">Başvuru Id'si (GUID)</param>
             <returns>Detaylı puan kartı</returns>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ExamController.Approve(CleanArchitecture.Core.Features.Exams.Commands.ApproveExam.ApproveExamCommand)">
+             <summary>
+             HR tarafından AI ile oluşturulan soruları onaylar ve sınav olarak DB'ye kaydeder.
+             </summary>
+             <remarks>
+             Örnek istek:
+            
+                 POST /api/v1/Exam/approve
+                 {
+                     "title": "Backend Developer Teknik Sınavı",
+                     "jobId": "...",
+                     "examType": "technical",
+                     "sequenceOrder": 1,
+                     "isMandatory": true,
+                     "timeLimitMinutes": 45,
+                     "questions": [ { "questionText": "...", "questionType": "multiple_choice", ... } ]
+                 }
+            
+             Dönen: examId, status, questionCount, totalPoints
+             </remarks>
+             <returns>Oluşturulan sınavın detayları</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ExamController.Assign(CleanArchitecture.Core.Features.Exams.Commands.AssignExam.AssignExamCommand)">
+             <summary>
+             Seçilen adaylara, seçilen sınavları toplu olarak atar. Her (aday × sınav) için ayrı token üretir.
+             </summary>
+             <remarks>
+             Örnek istek:
+            
+                 POST /api/v1/Exam/assign
+                 {
+                     "jobId": "...",
+                     "candidateIds": ["...", "..."],
+                     "examIds": ["...", "..."],
+                     "expiresInHours": 168,
+                     "sendNotification": true
+                 }
+            
+             Dönen: batchId, assignments[], skipped[]
+             </remarks>
+             <returns>Oluşturulan atamaların listesi</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ExamController.Take(System.String)">
+            <summary>
+            Aday, kendisine atanan sınavı token ile açar. Sorular doğru cevap olmadan döner.
+            </summary>
+            <param name="token">Sınavın benzersiz erişim tokeni</param>
+            <returns>Sınav bilgileri ve soruları</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ExamController.Submit(System.String,CleanArchitecture.Core.Features.Exams.Commands.SubmitExam.SubmitExamCommand)">
+            <summary>
+            Aday, belirtilen token'ın sınavı için cevaplarını gönderir. MC/TF sorular otomatik değerlendirilir.
+            </summary>
+            <param name="token">Sınavın benzersiz erişim tokeni</param>
+            <param name="command">Cevaplar listesi</param>
+            <returns>Otomatik değerlendirme sonucu ve kalan sınav sayısı</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ExamController.Grade(CleanArchitecture.Core.Features.Exams.Commands.GradeExam.GradeExamCommand)">
+             <summary>
+             HR, açık uçlu soruları manuel olarak puanlar.
+             </summary>
+             <remarks>
+             Örnek istek:
+            
+                 PATCH /api/v1/Exam/grade
+                 {
+                     "grades": [
+                         { "answerId": "...", "pointsEarned": 16, "isCorrect": true, "feedback": "İyi açıklama." }
+                     ]
+                 }
+             </remarks>
+             <returns>Puanlanan cevap sayısı ve etkilenen atama ID'leri</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ExamController.Results(System.Guid,System.Nullable{System.Guid},System.String,System.String)">
+            <summary>
+            HR, bir iş ilanındaki tüm aday × sınav sonuçlarını matris formatında görür.
+            </summary>
+            <param name="jobId">İş ilanı ID'si</param>
+            <param name="examId">Opsiyonel: Belirli bir sınavı filtrele</param>
+            <param name="status">Opsiyonel: submitted | pending | expired</param>
+            <param name="sortBy">Opsiyonel: total_score | submitted_at</param>
+            <returns>Aday × sınav sonuç matrisi</returns>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.InterviewsController.Start(CleanArchitecture.Core.Features.Interviews.Commands.StartAiInterview.StartAiInterviewCommand)">
              <summary>
              Belirtilen başvuru için yapay zeka mülakat oturumu başlatır.
@@ -323,6 +421,21 @@
                  }
              </remarks>
              <returns>Davet edilen başvuru sayısı ve başarı durumu</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobExamController.GetExamsForJob(System.Guid)">
+             <summary>
+             Bir iş ilanına bağlı tüm onaylı sınavları listeler.
+             </summary>
+             <remarks>
+             Yanıt, her sınav için başlık, tür, soru sayısı, toplam puan ve durum bilgilerini içerir.
+            
+             Örnek istek:
+            
+                 GET /api/v1/JobExam/{jobId}/exams
+            
+             </remarks>
+             <param name="jobId">İş ilanı ID'si (GUID)</param>
+             <returns>Sınav listesi ve meta verileri</returns>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobPostingsController.GetPublicJobList(CleanArchitecture.Core.Features.JobPostings.Queries.GetActiveJobPostings.GetActiveJobPostingsQuery)">
              <summary>
