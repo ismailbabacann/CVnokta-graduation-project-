@@ -65,13 +65,16 @@ namespace CleanArchitecture.Core.Features.Candidates.Commands.UpdateCandidatePro
             var allProfiles = await _profileRepo.GetAllAsync();
             var profile = allProfiles.FirstOrDefault(p => p.UserId == request.UserId);
 
+            bool isNew = false;
             if (profile == null)
             {
-                return new UpdateCandidateProfileResponse
+                profile = new CandidateProfile
                 {
-                    Succeeded = false,
-                    Message = "Aday profili bulunamadı."
+                    Id = Guid.NewGuid(),
+                    UserId = request.UserId,
+                    Created = DateTime.UtcNow
                 };
+                isNew = true;
             }
 
             // 2. Profil alanlarını güncelle
@@ -86,7 +89,10 @@ namespace CleanArchitecture.Core.Features.Candidates.Commands.UpdateCandidatePro
             profile.CurrentCompany = request.CurrentCompany ?? profile.CurrentCompany;
             profile.LastModified = DateTime.UtcNow;
 
-            await _profileRepo.UpdateAsync(profile);
+            if (isNew)
+                await _profileRepo.AddAsync(profile);
+            else
+                await _profileRepo.UpdateAsync(profile);
 
             // 3. Domain User tablosundaki bilgileri de güncelle
             var user = await _userRepo.GetByIdAsync(request.UserId);
