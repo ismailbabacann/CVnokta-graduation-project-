@@ -56,13 +56,13 @@ namespace CleanArchitecture.Infrastructure.Services
                 case "NLP_REVIEW":
                     if (passed)
                     {
-                        application.CurrentPipelineStage  = "SKILLS_TEST_PENDING";
-                        application.ApplicationStatus     = "SKILLS_TEST_PENDING";
+                        application.CurrentPipelineStage  = "COMPLETED";
+                        application.ApplicationStatus     = "COMPLETED";
                         application.PipelineStageUpdatedAt = DateTime.UtcNow;
                         await _applicationRepo.UpdateAsync(application);
-                        await SendEmailSafe(candidateEmail, 
-                            $"Beceri Testi Daveti — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetSkillsTestInviteTemplate(candidateName, jobTitle, threshold));
+                        await SendEmailSafe(candidateEmail,
+                            $"Tebrikler! Süreç Tamamlandı — {jobTitle} | CVNokta",
+                            EmailTemplateService.GetPipelineCompletedTemplate(candidateName, jobTitle));
                     }
                     else
                     {
@@ -80,13 +80,13 @@ namespace CleanArchitecture.Infrastructure.Services
                 case "SKILLS_TEST":
                     if (passed)
                     {
-                        application.CurrentPipelineStage  = "ENGLISH_TEST_PENDING";
-                        application.ApplicationStatus     = "ENGLISH_TEST_PENDING";
+                        application.CurrentPipelineStage  = "AI_INTERVIEW_PENDING";
+                        application.ApplicationStatus     = "AI_INTERVIEW_PENDING";
                         application.PipelineStageUpdatedAt = DateTime.UtcNow;
                         await _applicationRepo.UpdateAsync(application);
                         await SendEmailSafe(candidateEmail,
-                            $"İngilizce Testi Daveti — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetEnglishTestInviteTemplate(candidateName, jobTitle, threshold));
+                            $"AI Mülakat Daveti — {jobTitle} | CVNokta",
+                            EmailTemplateService.GetAiInterviewInviteTemplate(candidateName, jobTitle, threshold));
                     }
                     else
                     {
@@ -104,13 +104,13 @@ namespace CleanArchitecture.Infrastructure.Services
                 case "ENGLISH_TEST":
                     if (passed)
                     {
-                        application.CurrentPipelineStage  = "AI_INTERVIEW_PENDING";
-                        application.ApplicationStatus     = "AI_INTERVIEW_PENDING";
+                        application.CurrentPipelineStage  = "SKILLS_TEST_PENDING";
+                        application.ApplicationStatus     = "SKILLS_TEST_PENDING";
                         application.PipelineStageUpdatedAt = DateTime.UtcNow;
                         await _applicationRepo.UpdateAsync(application);
                         await SendEmailSafe(candidateEmail,
-                            $"AI Mülakat Daveti — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetAiInterviewInviteTemplate(candidateName, jobTitle, threshold));
+                            $"Teknik Testi Daveti — {jobTitle} | CVNokta",
+                            EmailTemplateService.GetSkillsTestInviteTemplate(candidateName, jobTitle, threshold));
                     }
                     else
                     {
@@ -128,13 +128,10 @@ namespace CleanArchitecture.Infrastructure.Services
                 case "AI_INTERVIEW":
                     if (passed)
                     {
-                        application.CurrentPipelineStage  = "COMPLETED";
-                        application.ApplicationStatus     = "COMPLETED";
+                        application.CurrentPipelineStage  = "NLP_REVIEW";
+                        application.ApplicationStatus     = "NLP_REVIEW_PENDING";
                         application.PipelineStageUpdatedAt = DateTime.UtcNow;
                         await _applicationRepo.UpdateAsync(application);
-                        await SendEmailSafe(candidateEmail,
-                            $"Tebrikler! Süreç Tamamlandı — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetPipelineCompletedTemplate(candidateName, jobTitle));
                     }
                     else
                     {

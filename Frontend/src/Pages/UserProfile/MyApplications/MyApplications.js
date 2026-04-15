@@ -4,35 +4,35 @@ import styles from './MyApplications.module.css';
 
 // ── Pipeline stage config ────────────────────────────────────────────────────
 const PIPELINE_STAGES = [
-    { key: 'NLP_REVIEW',           label: 'CV Analizi',       icon: '🔍' },
-    { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',     icon: '📝' },
     { key: 'ENGLISH_TEST_PENDING', label: 'İngilizce Testi',  icon: '🇬🇧' },
+    { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',     icon: '📝' },
     { key: 'AI_INTERVIEW_PENDING', label: 'AI Mülakat',       icon: '🤖' },
+    { key: 'NLP_REVIEW',           label: 'CV Analizi',       icon: '🔍' },
     { key: 'COMPLETED',            label: 'Tamamlandı',       icon: '🎉' },
 ];
 
 const STAGE_ORDER = {
-    NLP_REVIEW:            0,
+    ENGLISH_TEST_PENDING:  0,
     SKILLS_TEST_PENDING:   1,
-    ENGLISH_TEST_PENDING:  2,
-    AI_INTERVIEW_PENDING:  3,
+    AI_INTERVIEW_PENDING:  2,
+    NLP_REVIEW:            3,
     COMPLETED:             4,
-    REJECTED_NLP:          0,
+    REJECTED_ENGLISH:      0,
     REJECTED_SKILLS:       1,
-    REJECTED_ENGLISH:      2,
-    REJECTED_AI:           3,
+    REJECTED_AI:           2,
+    REJECTED_NLP:          3,
 };
 
 const STAGE_MESSAGES = {
-    NLP_REVIEW:            { text: 'Başvurunuz CV analizi aşamasında inceleniyor.', color: '#667eea' },
+    ENGLISH_TEST_PENDING:  { text: '📧 İngilizce değerlendirme sınavı bilgileriniz e-postanıza gönderilmiştir.', color: '#00b4db' },
     SKILLS_TEST_PENDING:   { text: '📧 Beceri testi e-postanıza gönderildi. Sınavı tamamlayın.', color: '#ed8936' },
-    ENGLISH_TEST_PENDING:  { text: '📧 İngilizce testi e-postanıza gönderildi.', color: '#00b4db' },
     AI_INTERVIEW_PENDING:  { text: '📧 AI Mülakat linki e-postanıza gönderildi.', color: '#f5576c' },
+    NLP_REVIEW:            { text: 'Başvurunuz CV analizi ve uzman incelemesinde.', color: '#667eea' },
     COMPLETED:             { text: '🎉 Tebrikler! Tüm aşamaları başarıyla tamamladınız. Gerekli değerlendirmeler yapılmaktadır.', color: '#48bb78' },
-    REJECTED_NLP:          { text: 'CV analiz aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
-    REJECTED_SKILLS:       { text: 'Genel beceri testi aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
     REJECTED_ENGLISH:      { text: 'İngilizce testi aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
+    REJECTED_SKILLS:       { text: 'Genel beceri testi aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
     REJECTED_AI:           { text: 'AI mülakat aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
+    REJECTED_NLP:          { text: 'CV analiz aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
 };
 
 function isRejected(stage) {
@@ -130,7 +130,7 @@ function MyApplications() {
                         date:          new Date(a.appliedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
                         location:      a.location,
                         workType:      a.workType,
-                        stage:         a.currentPipelineStage || 'NLP_REVIEW',
+                        stage:         a.currentPipelineStage || 'ENGLISH_TEST_PENDING',
                         rejectionReason: a.rejectionReason,
                     }));
 
@@ -157,9 +157,10 @@ function MyApplications() {
         let badgeLabel = 'İnceleniyor';
         if (rejected)       { badgeClass = styles.statusDanger;  badgeLabel = 'Elendin'; }
         else if (completed) { badgeClass = styles.statusSuccess; badgeLabel = 'Tamamlandı'; }
-        else if (app.stage === 'SKILLS_TEST_PENDING')   { badgeLabel = 'Beceri Testi'; }
         else if (app.stage === 'ENGLISH_TEST_PENDING')  { badgeLabel = 'İngilizce Testi'; }
+        else if (app.stage === 'SKILLS_TEST_PENDING')   { badgeLabel = 'Beceri Testi'; }
         else if (app.stage === 'AI_INTERVIEW_PENDING')  { badgeLabel = 'AI Mülakat'; }
+        else if (app.stage === 'NLP_REVIEW')            { badgeLabel = 'CV Analizi'; }
 
         return (
             <div key={app.id} className={`${styles.card} ${isExpanded ? styles.cardExpanded : ''}`} onClick={() => toggleCard(app.id)}>

@@ -78,6 +78,7 @@ namespace CleanArchitecture.Core.Features.Exams.Commands.SubmitExam
         private readonly IGenericRepositoryAsync<Exam>                     _examRepo;
         private readonly IGenericRepositoryAsync<CandidateProfile>         _candidateRepo;
         private readonly IGenericRepositoryAsync<JobPosting>               _jobRepo;
+        private readonly IGenericRepositoryAsync<JobApplication>           _applicationRepo;
         private readonly JobExamSeedService                                _examSeedService;
         private readonly IExamTokenService                                 _tokenService;
         private readonly IEmailService                                     _emailService;
@@ -90,6 +91,7 @@ namespace CleanArchitecture.Core.Features.Exams.Commands.SubmitExam
             IGenericRepositoryAsync<Exam>                     examRepo,
             IGenericRepositoryAsync<CandidateProfile>         candidateRepo,
             IGenericRepositoryAsync<JobPosting>               jobRepo,
+            IGenericRepositoryAsync<JobApplication>           applicationRepo,
             JobExamSeedService                                examSeedService,
             IExamTokenService                                 tokenService,
             IEmailService                                     emailService,
@@ -101,6 +103,7 @@ namespace CleanArchitecture.Core.Features.Exams.Commands.SubmitExam
             _examRepo         = examRepo;
             _candidateRepo    = candidateRepo;
             _jobRepo          = jobRepo;
+            _applicationRepo  = applicationRepo;
             _examSeedService  = examSeedService;
             _tokenService     = tokenService;
             _emailService     = emailService;
@@ -201,6 +204,9 @@ namespace CleanArchitecture.Core.Features.Exams.Commands.SubmitExam
             var candidateName  = candidate?.FullName ?? "Değerli Aday";
             var baseUrl        = _examSettings.ExamBaseUrl ?? "http://localhost:3000/exam/take";
 
+            var allApps = (List<JobApplication>)await _applicationRepo.GetAllAsync();
+            var jobApp = allApps.FirstOrDefault(a => a.JobPostingId == assignment.JobId && a.CandidateId == assignment.CandidateId);
+
             string responseMessage;
             int?   nextStage = null;
 
@@ -210,6 +216,14 @@ namespace CleanArchitecture.Core.Features.Exams.Commands.SubmitExam
                 if (stage == 1)
                 {
                     // ✅ İngilizce geçildi → Teknik sınav gönder
+                    if (jobApp != null)
+                    {
+                        jobApp.CurrentPipelineStage = "SKILLS_TEST_PENDING";
+                        jobApp.ApplicationStatus = "SKILLS_TEST_PENDING";
+                        jobApp.PipelineStageUpdatedAt = DateTime.UtcNow;
+                        await _applicationRepo.UpdateAsync(jobApp);
+                    }
+
                     nextStage = 2;
                     responseMessage = $"Tebrikler! İngilizce sınavını %{pct} ile geçtiniz. Teknik sınav e-posta adresinize gönderildi.";
                     try
@@ -249,6 +263,14 @@ namespace CleanArchitecture.Core.Features.Exams.Commands.SubmitExam
                 else
                 {
                     // ✅ Teknik sınav da geçildi → AI Mülakat daveti
+                    if (jobApp != null)
+                    {
+                        jobApp.CurrentPipelineStage = "AI_INTERVIEW_PENDING";
+                        jobApp.ApplicationStatus = "AI_INTERVIEW_PENDING";
+                        jobApp.PipelineStageUpdatedAt = DateTime.UtcNow;
+                        await _applicationRepo.UpdateAsync(jobApp);
+                    }
+
                     nextStage = null;
                     responseMessage = $"Tebrikler! Teknik sınavı da %{pct} ile başarıyla geçtiniz. AI Mülakat davet linki e-postanıza gönderildi.";
                     try
@@ -269,8 +291,18 @@ namespace CleanArchitecture.Core.Features.Exams.Commands.SubmitExam
             else
             {
                 // ❌ Eşik altı → Eleme maili + detaylar
-                nextStage = null;
                 var stageName = stage == 1 ? "İngilizce" : "Teknik";
+
+                if (jobApp != null)
+                {
+                    jobApp.CurrentPipelineStage = stage == 1 ? "REJECTED_ENGLISH" : "REJECTED_SKILLS";
+                    jobApp.ApplicationStatus = "REJECTED";
+                    jobApp.RejectionReason = $"{stageName} değerlendirmesinde %{threshold} baraj puanının altında kaldınız (Puanınız: %{pct}).";
+                    jobApp.PipelineStageUpdatedAt = DateTime.UtcNow;
+                    await _applicationRepo.UpdateAsync(jobApp);
+                }
+
+                nextStage = null;
                 responseMessage = $"Üzgünüz, {stageName} sınavında %{pct} puanla başarısız oldunuz (geçme eşiği: %{threshold}). Eleme e-postası gönderildi.";
                 try
                 {
