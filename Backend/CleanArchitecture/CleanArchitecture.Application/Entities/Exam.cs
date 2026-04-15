@@ -5,7 +5,7 @@ namespace CleanArchitecture.Core.Entities
 {
     /// <summary>
     /// Represents an approved exam set for a job posting.
-    /// One job can have multiple exams (technical, personality, case_study, etc.)
+    /// One job can have multiple exams ordered by SequenceOrder (stage 1 = English, stage 2 = Technical).
     /// </summary>
     public class Exam : AuditableBaseEntity
     {
@@ -14,10 +14,10 @@ namespace CleanArchitecture.Core.Entities
         /// <summary>Exam title e.g. "Backend Developer Technical Exam"</summary>
         public string Title { get; set; }
 
-        /// <summary>technical | personality | case_study | general</summary>
+        /// <summary>english | technical | personality | case_study | general</summary>
         public string ExamType { get; set; }
 
-        /// <summary>Optional ordering — which phase this exam belongs to</summary>
+        /// <summary>Phase order: 1 = English/Stage1, 2 = Technical/Stage2</summary>
         public int? SequenceOrder { get; set; }
 
         /// <summary>Is this exam mandatory for this job posting?</summary>
@@ -31,6 +31,13 @@ namespace CleanArchitecture.Core.Entities
 
         /// <summary>UTC timestamp when HR approved this exam</summary>
         public DateTime? ApprovedAt { get; set; }
+
+        /// <summary>
+        /// Minimum percentage score (0-100) required to pass this exam and advance to next stage.
+        /// e.g. 75 means candidate must score >= 75% to pass.
+        /// If NULL, uses JobPosting.PipelinePassThreshold.
+        /// </summary>
+        public int? PassThreshold { get; set; }
 
         // ── Navigation ──────────────────────────────────────────
         public virtual JobPosting Job { get; set; }

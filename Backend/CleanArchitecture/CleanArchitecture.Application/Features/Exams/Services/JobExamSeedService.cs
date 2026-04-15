@@ -2,18 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CleanArchitecture.Core.DTOs.Email;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Interfaces;
-using CleanArchitecture.Core.Settings;
-using Microsoft.Extensions.Options;
 
 namespace CleanArchitecture.Core.Features.Exams.Services
 {
     /// <summary>
-    /// Ensures every JobPosting has exactly one auto-approved mock exam.
+    /// Ensures every JobPosting has exactly 2 auto-approved exams:
+    ///   Stage 1 (SequenceOrder = 1): English / Language Assessment
+    ///   Stage 2 (SequenceOrder = 2): Technical / Role-Specific
+    ///
     /// Called automatically when a candidate applies to a job.
-    /// The exam is job-specific (NOT candidate-specific).
+    /// PassThreshold is taken from JobPosting.PipelinePassThreshold.
     /// </summary>
     public class JobExamSeedService
     {
@@ -26,41 +26,76 @@ namespace CleanArchitecture.Core.Features.Exams.Services
             IGenericRepositoryAsync<Question> questionRepo,
             IGenericRepositoryAsync<JobPosting> jobRepo)
         {
-            _examRepo = examRepo;
+            _examRepo     = examRepo;
             _questionRepo = questionRepo;
-            _jobRepo = jobRepo;
+            _jobRepo      = jobRepo;
         }
 
+        // ── Public API ──────────────────────────────────────────────────────
+        /// <summary>Returns the Stage 1 (English) exam, creating it if needed.</summary>
+        public Task<Exam> EnsureEnglishExam(Guid jobId) => EnsureExam(jobId, 1);
+
+        /// <summary>Returns the Stage 2 (Technical) exam, creating it if needed.</summary>
+        public Task<Exam> EnsureTechnicalExam(Guid jobId) => EnsureExam(jobId, 2);
+
         /// <summary>
-        /// Returns the approved exam for this job, creating it if it doesn't exist yet.
+        /// Returns the approved exam for this job at the given stage,
+        /// creating it (and saving questions) if it doesn't exist yet.
         /// </summary>
-        public async Task<Exam> EnsureExamExistsForJob(Guid jobId)
+        public async Task<Exam> EnsureExamExistsForJob(Guid jobId) => await EnsureExam(jobId, 1);
+
+        // ── Internal ────────────────────────────────────────────────────────
+        private async Task<Exam> EnsureExam(Guid jobId, int stage)
         {
-            // Check if an approved exam already exists for this job
             var allExams = (List<Exam>)await _examRepo.GetAllAsync();
-            var existing = allExams.FirstOrDefault(e => e.JobId == jobId && e.Status == "approved");
+            var existing = allExams.FirstOrDefault(e =>
+                e.JobId == jobId && e.SequenceOrder == stage && e.Status == "approved");
             if (existing != null) return existing;
 
-            var jobPosting = await _jobRepo.GetByIdAsync(jobId);
-            var examType = DetectExamType(jobPosting?.JobTitle ?? "", jobPosting?.Department ?? "");
-            var questions = GetMockQuestions(examType, jobPosting?.JobTitle ?? "Genel");
+            var job       = await _jobRepo.GetByIdAsync(jobId);
+            var threshold = job?.PipelinePassThreshold ?? 70;
+            var jobTitle  = job?.JobTitle ?? "Pozisyon";
+            var techType  = DetectTechType(job?.JobTitle ?? "", job?.Department ?? "");
 
-            // Create and save the exam
-            var exam = new Exam
+            Exam exam;
+            List<Question> questions;
+
+            if (stage == 1)
             {
-                Id = Guid.NewGuid(),
-                JobId = jobId,
-                Title = $"{jobPosting?.JobTitle ?? "Pozisyon"} — Değerlendirme Sınavı",
-                ExamType = examType,
-                SequenceOrder = 1,
-                IsMandatory = true,
-                Status = "approved",
-                TimeLimitMinutes = 45,
-                ApprovedAt = DateTime.UtcNow
-            };
-            await _examRepo.AddAsync(exam);
+                exam = new Exam
+                {
+                    Id              = Guid.NewGuid(),
+                    JobId           = jobId,
+                    Title           = $"{jobTitle} — İngilizce Dil Değerlendirmesi",
+                    ExamType        = "english",
+                    SequenceOrder   = 1,
+                    IsMandatory     = true,
+                    Status          = "approved",
+                    TimeLimitMinutes = 30,
+                    PassThreshold   = threshold,
+                    ApprovedAt      = DateTime.UtcNow
+                };
+                questions = GetEnglishQuestions();
+            }
+            else
+            {
+                exam = new Exam
+                {
+                    Id              = Guid.NewGuid(),
+                    JobId           = jobId,
+                    Title           = $"{jobTitle} — Teknik Değerlendirme Sınavı",
+                    ExamType        = techType,
+                    SequenceOrder   = 2,
+                    IsMandatory     = true,
+                    Status          = "approved",
+                    TimeLimitMinutes = 45,
+                    PassThreshold   = threshold,
+                    ApprovedAt      = DateTime.UtcNow
+                };
+                questions = GetTechnicalQuestions(techType);
+            }
 
-            // Save questions
+            await _examRepo.AddAsync(exam);
             foreach (var q in questions)
             {
                 q.ExamId = exam.Id;
@@ -70,153 +105,169 @@ namespace CleanArchitecture.Core.Features.Exams.Services
             return exam;
         }
 
-        // ── Exam type detection based on job title/department ─────────────────
-        private static string DetectExamType(string title, string department)
+        // ── Tech type detection ─────────────────────────────────────────────
+        private static string DetectTechType(string title, string dept)
         {
-            var combined = (title + " " + department).ToLowerInvariant();
-            if (combined.Contains("yazılım") || combined.Contains("developer") ||
-                combined.Contains("software") || combined.Contains("backend") ||
-                combined.Contains("frontend") || combined.Contains("fullstack") ||
-                combined.Contains("engineer") || combined.Contains("mühendis"))
+            var s = (title + " " + dept).ToLowerInvariant();
+            if (s.Contains("yazılım") || s.Contains("developer") || s.Contains("software") ||
+                s.Contains("backend")  || s.Contains("frontend")  || s.Contains("fullstack") ||
+                s.Contains("engineer") || s.Contains("mühendis"))
                 return "technical";
-
-            if (combined.Contains("pazarlama") || combined.Contains("marketing") ||
-                combined.Contains("satış") || combined.Contains("sales"))
+            if (s.Contains("pazarlama") || s.Contains("marketing") ||
+                s.Contains("satış")     || s.Contains("sales"))
                 return "case_study";
-
-            if (combined.Contains("insan") || combined.Contains("hr") ||
-                combined.Contains("human resource") || combined.Contains("ik"))
+            if (s.Contains("insan") || s.Contains("hr") || s.Contains("ik"))
                 return "personality";
-
             return "general";
         }
 
-        // ── Mock questions per exam type ──────────────────────────────────────
-        private static List<Question> GetMockQuestions(string examType, string jobTitle)
+        // ══════════════════════════════════════════════════════════════════════
+        // STAGE 1 — İngilizce Sınavı (30 soru, 100 puan)
+        // ══════════════════════════════════════════════════════════════════════
+        private static List<Question> GetEnglishQuestions() => new()
         {
-            return examType switch
-            {
-                "technical" => GetTechnicalQuestions(),
-                "case_study" => GetCaseStudyQuestions(),
-                "personality" => GetPersonalityQuestions(),
-                _ => GetGeneralQuestions()
-            };
-        }
+            Mc(1,  10, "Which sentence is grammatically correct?",
+                "A", "He don't like coffee.",
+                      "She doesn't likes coffee.",
+                      "They don't like coffee.",
+                      "We doesn't like coffee."),
+            Mc(2,  10, "Choose the correct form: 'If I _____ rich, I would travel the world.'",
+                "B", "am",
+                      "were",
+                      "being",
+                      "be"),
+            Mc(3,  10, "What is the synonym of 'eloquent'?",
+                "C", "Quiet",
+                      "Aggressive",
+                      "Articulate",
+                      "Confused"),
+            Mc(4,  10, "Select the correct passive voice: 'The manager ___ the report yesterday.'",
+                "A", "reviewed",
+                      "was reviewed",
+                      "has reviewed",
+                      "is reviewing"),
+            Mc(5,  10, "Which word best completes the sentence: 'Her performance was _____ than expected.'",
+                "B", "good",
+                      "better",
+                      "best",
+                      "well"),
+            TF(6,  10, "'Much' is used with countable nouns.", "B"),
+            Mc(7,  10, "Choose the correct preposition: 'She is good ___ solving problems.'",
+                "C", "in",
+                      "on",
+                      "at",
+                      "for"),
+            Mc(8,  10, "What does 'meticulous' mean?",
+                "A", "Very careful and precise",
+                      "Very fast",
+                      "Very loud",
+                      "Very creative"),
+            TF(9,  10, "The present perfect tense is formed with 'have/has + past participle'.", "A"),
+            OE(10, 20, "Describe your professional strengths and how they would contribute to this role. (Write 3-5 sentences in English.)"),
+        };
 
-        private static List<Question> GetTechnicalQuestions() => new()
+        // ══════════════════════════════════════════════════════════════════════
+        // STAGE 2 — Teknik Sınavlar
+        // ══════════════════════════════════════════════════════════════════════
+        private static List<Question> GetTechnicalQuestions(string type) => type switch
         {
-            new Question { Id = Guid.NewGuid(), QuestionType = "multiple_choice", Points = 10, OrderIndex = 1,
-                QuestionText = "REST API tasarımında idempotent olan HTTP metodları hangileridir?",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"POST ve DELETE\"},{\"key\":\"B\",\"text\":\"GET ve PUT\"},{\"key\":\"C\",\"text\":\"POST ve PATCH\"},{\"key\":\"D\",\"text\":\"GET ve POST\"}]",
-                CorrectAnswer = "B" },
+            "case_study"  => GetCaseStudyQuestions(),
+            "personality" => GetPersonalityQuestions(),
+            _             => GetSoftwareTechQuestions()
+        };
 
-            new Question { Id = Guid.NewGuid(), QuestionType = "multiple_choice", Points = 10, OrderIndex = 2,
-                QuestionText = "SQL'de bir tablodaki tekrar eden kayıtları kaldırmak için hangi anahtar kelime kullanılır?",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"UNIQUE\"},{\"key\":\"B\",\"text\":\"DISTINCT\"},{\"key\":\"C\",\"text\":\"FILTER\"},{\"key\":\"D\",\"text\":\"REMOVE\"}]",
-                CorrectAnswer = "B" },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "multiple_choice", Points = 10, OrderIndex = 3,
-                QuestionText = "Nesne yönelimli programlamada 'encapsulation' kavramı ne anlama gelir?",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"Sınıfların birbirinden miras alması\"},{\"key\":\"B\",\"text\":\"Verilerin ve metodların bir arada gizlenmesi\"},{\"key\":\"C\",\"text\":\"Aynı metodun farklı parametrelerle kullanılması\"},{\"key\":\"D\",\"text\":\"Sınıfların soyut tanımlanması\"}]",
-                CorrectAnswer = "B" },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "true_false", Points = 10, OrderIndex = 4,
-                QuestionText = "HTTP 404 hata kodu, sunucunun isteği işleyemediğini (sunucu hatası) ifade eder.",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"Doğru\"},{\"key\":\"B\",\"text\":\"Yanlış\"}]",
-                CorrectAnswer = "B" },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "multiple_choice", Points = 10, OrderIndex = 5,
-                QuestionText = "Git'te 'merge' ve 'rebase' arasındaki temel fark nedir?",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"Merge daha hızlı çalışır\"},{\"key\":\"B\",\"text\":\"Rebase commit geçmişini daha temiz gösterir\"},{\"key\":\"C\",\"text\":\"Merge sadece yerel değişiklikler içindir\"},{\"key\":\"D\",\"text\":\"Fark yoktur\"}]",
-                CorrectAnswer = "B" },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "multiple_choice", Points = 15, OrderIndex = 6,
-                QuestionText = "Bir web uygulamasında SQL Injection saldırısını önlemek için en etkili yöntem hangisidir?",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"Kullanıcı girdilerini büyük harfe çevirmek\"},{\"key\":\"B\",\"text\":\"Parameterized queries (parametreli sorgular) kullanmak\"},{\"key\":\"C\",\"text\":\"Veritabanını şifrelemek\"},{\"key\":\"D\",\"text\":\"HTTPS kullanmak\"}]",
-                CorrectAnswer = "B" },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "open_ended", Points = 25, OrderIndex = 7,
-                QuestionText = "Bir e-ticaret sisteminde ürün stoğunun yanlış azaltılması (race condition) sorununu nasıl çözerdiniz? Kullandığınız yaklaşımı ve kullandığız teknolojileri açıklayın.",
-                OptionsJson = null, CorrectAnswer = null },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "multiple_choice", Points = 10, OrderIndex = 8,
-                QuestionText = "Microservices mimarisinde servisler arası iletişimde hangisi asenkron iletişim yöntemidir?",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"REST API\"},{\"key\":\"B\",\"text\":\"gRPC\"},{\"key\":\"C\",\"text\":\"Message Queue (RabbitMQ, Kafka)\"},{\"key\":\"D\",\"text\":\"GraphQL\"}]",
-                CorrectAnswer = "C" },
+        private static List<Question> GetSoftwareTechQuestions() => new()
+        {
+            Mc(1, 10, "REST API tasarımında idempotent olan HTTP metodları hangileridir?",
+                "B", "POST ve DELETE",
+                      "GET ve PUT",
+                      "POST ve PATCH",
+                      "GET ve POST"),
+            Mc(2, 10, "SQL'de tekrar eden kayıtları kaldırmak için hangi anahtar kelime kullanılır?",
+                "B", "UNIQUE", "DISTINCT", "FILTER", "REMOVE"),
+            TF(3, 10, "HTTP 404, sunucu taraflı bir hata kodudur (sunucu hatası).", "B"),
+            Mc(4, 10, "Nesne Yönelimli Programlamada 'encapsulation' ne anlama gelir?",
+                "B", "Sınıfların miras alması",
+                      "Verinin ve metodların bir arada gizlenmesi",
+                      "Soyut sınıf tanımlama",
+                      "Aynı metodun farklı parametrelerle kullanılması"),
+            Mc(5, 10, "Git'te 'rebase' ne yapar?",
+                "B", "Branch'i siler",
+                      "Commit geçmişini temizleyerek uygular",
+                      "Remote'a push eder",
+                      "Merge conflict'i çözer"),
+            Mc(6, 10, "Bir web uygulamasında SQL Injection'ı önlemenin en etkili yolu?",
+                "B", "HTTPS kullanmak",
+                      "Parametreli sorgular kullanmak",
+                      "Veritabanını şifrelemek",
+                      "Girişi büyük harfe çevirmek"),
+            Mc(7, 10, "Microservices mimarisinde asenkron iletişim nasıl sağlanır?",
+                "C", "REST API", "gRPC", "Message Queue (RabbitMQ/Kafka)", "GraphQL"),
+            TF(8, 10, "SOLID prensiplerinde 'S', Single Responsibility Principle'ı temsil eder.", "A"),
+            OE(9, 30, "Bir e-ticaret sisteminde ürün stoğunun yanlış azaltılması (race condition) sorununu nasıl çözerdiniz? Kullandığınız yaklaşımı ve teknolojileri açıklayın."),
         };
 
         private static List<Question> GetCaseStudyQuestions() => new()
         {
-            new Question { Id = Guid.NewGuid(), QuestionType = "multiple_choice", Points = 10, OrderIndex = 1,
-                QuestionText = "Bir ürünün pazar payını artırmak için hangi strateji önceliklendirilmelidir?",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"Fiyat indirimi\"},{\"key\":\"B\",\"text\":\"Müşteri segmentasyonu ve hedefleme\"},{\"key\":\"C\",\"text\":\"Rakip ürünlerin kopyalanması\"},{\"key\":\"D\",\"text\":\"Dağıtım kanallarını daraltmak\"}]",
-                CorrectAnswer = "B" },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "multiple_choice", Points = 10, OrderIndex = 2,
-                QuestionText = "SWOT analizinde 'O' harfi neyi temsil eder?",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"Objectives (Hedefler)\"},{\"key\":\"B\",\"text\":\"Opportunities (Fırsatlar)\"},{\"key\":\"C\",\"text\":\"Operations (Operasyonlar)\"},{\"key\":\"D\",\"text\":\"Outcomes (Sonuçlar)\"}]",
-                CorrectAnswer = "B" },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "open_ended", Points = 30, OrderIndex = 3,
-                QuestionText = "Yeni bir ürünü pazara sunma sürecinde (Go-to-Market stratejisi) hangi adımları izlerdiniz? Bir örnek üzerinden açıklayın.",
-                OptionsJson = null, CorrectAnswer = null },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "true_false", Points = 10, OrderIndex = 4,
-                QuestionText = "CAC (Customer Acquisition Cost), müşteriyi elde tutma maliyetini ifade eder.",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"Doğru\"},{\"key\":\"B\",\"text\":\"Yanlış\"}]",
-                CorrectAnswer = "B" },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "open_ended", Points = 30, OrderIndex = 5,
-                QuestionText = "Şirketinizin dijital dönüşüm sürecinde karşılaştığı en büyük engel neydi ve bunu nasıl aştınız? (Deneyiminiz yoksa, teorik bir vaka üzerinden anlatın.)",
-                OptionsJson = null, CorrectAnswer = null },
+            Mc(1, 10, "SWOT analizinde 'O' harfi neyi temsil eder?",
+                "B", "Objectives", "Opportunities", "Operations", "Outcomes"),
+            Mc(2, 10, "CAC (Customer Acquisition Cost) ne anlama gelir?",
+                "A", "Yeni müşteri kazanım maliyeti",
+                      "Müşteriyi elde tutma maliyeti",
+                      "Ürün maliyeti",
+                      "Operasyonel maliyet"),
+            TF(3, 10, "NPS (Net Promoter Score) yükseldikçe müşteri memnuniyeti düşer.", "B"),
+            Mc(4, 10, "Pazar payını artırmak için önceliklendirilecek strateji?",
+                "B", "Fiyat indirimi",
+                      "Müşteri segmentasyonu ve hedefleme",
+                      "Rakip ürünlerin kopyalanması",
+                      "Dağıtım kanallarını daraltmak"),
+            OE(5, 35, "Yeni bir ürünü pazara sunma sürecinde (Go-to-Market) hangi adımları izlerdiniz? Bir örnek üzerinden açıklayın."),
+            OE(6, 35, "Şirketinizin dijital dönüşüm sürecinde karşılaştığı en büyük engel neydi ve bunu nasıl aştınız?"),
         };
 
         private static List<Question> GetPersonalityQuestions() => new()
         {
-            new Question { Id = Guid.NewGuid(), QuestionType = "multiple_choice", Points = 10, OrderIndex = 1,
-                QuestionText = "Ekipte bir çatışma yaşandığında ilk tepkiniz ne olur?",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"Konuyu görmezden gelirim\"},{\"key\":\"B\",\"text\":\"Tarafları bir araya getirip ortak çözüm ararım\"},{\"key\":\"C\",\"text\":\"Yöneticiye hemen bildiririm\"},{\"key\":\"D\",\"text\":\"Kendi görüşümde ısrar ederim\"}]",
-                CorrectAnswer = "B" },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "open_ended", Points = 30, OrderIndex = 2,
-                QuestionText = "Kariyer hedefleriniz nelerdir? 5 yıl sonra kendinizi nerede görüyorsunuz?",
-                OptionsJson = null, CorrectAnswer = null },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "multiple_choice", Points = 10, OrderIndex = 3,
-                QuestionText = "Baskı altında çalışırken nasıl bir yaklaşım benimsersiniz?",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"Önceliklendirme yaparak adım adım ilerlerim\"},{\"key\":\"B\",\"text\":\"Her şeyi aynı anda yapmaya çalışırım\"},{\"key\":\"C\",\"text\":\"İşi erteleyerek baskı geçene kadar beklerim\"},{\"key\":\"D\",\"text\":\"Yardım istemekten kaçınırım\"}]",
-                CorrectAnswer = "A" },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "open_ended", Points = 30, OrderIndex = 4,
-                QuestionText = "Şimdiye kadar aldığınız en zor iş kararı neydi? Bu kararı nasıl aldınız ve sonuçları neler oldu?",
-                OptionsJson = null, CorrectAnswer = null },
+            Mc(1, 10, "Ekipte çatışma yaşandığında ilk tepkiniz ne olur?",
+                "B", "Görmezden gelirim",
+                      "Tarafları bir araya getirip ortak çözüm ararım",
+                      "Yöneticiye bildiririm",
+                      "Kendi görüşümde ısrar ederim"),
+            Mc(2, 10, "Baskı altında nasıl çalışırsınız?",
+                "A", "Önceliklendirip adım adım ilerlerim",
+                      "Her şeyi aynı anda yapmaya çalışırım",
+                      "İşi erteleyerek beklerim",
+                      "Yardım istemekten kaçınırım"),
+            TF(3, 10, "Geri bildirim almak kişisel gelişim için fırsattır.", "A"),
+            OE(4, 35, "Kariyer hedefleriniz nelerdir? 5 yıl sonra kendinizi nerede görüyorsunuz?"),
+            OE(5, 35, "Şimdiye kadar aldığınız en zor iş kararı neydi? Bu kararı nasıl aldınız?"),
         };
 
-        private static List<Question> GetGeneralQuestions() => new()
+        // ── Question factory helpers ─────────────────────────────────────────────
+        private static Question Mc(int order, int pts, string text, string correct,
+            string a, string b, string c, string d) => new()
         {
-            new Question { Id = Guid.NewGuid(), QuestionType = "multiple_choice", Points = 10, OrderIndex = 1,
-                QuestionText = "Türkiye'nin başkenti neresidir?",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"İstanbul\"},{\"key\":\"B\",\"text\":\"İzmir\"},{\"key\":\"C\",\"text\":\"Ankara\"},{\"key\":\"D\",\"text\":\"Bursa\"}]",
-                CorrectAnswer = "C" },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "multiple_choice", Points = 10, OrderIndex = 2,
-                QuestionText = "Etkili iletişimin en temel unsuru nedir?",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"Sürekli konuşmak\"},{\"key\":\"B\",\"text\":\"Aktif dinleme\"},{\"key\":\"C\",\"text\":\"Teknik terimler kullanmak\"},{\"key\":\"D\",\"text\":\"Hızlı yanıt vermek\"}]",
-                CorrectAnswer = "B" },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "true_false", Points = 10, OrderIndex = 3,
-                QuestionText = "Ekip çalışması, bireysel çalışmadan her zaman daha verimsizdir.",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"Doğru\"},{\"key\":\"B\",\"text\":\"Yanlış\"}]",
-                CorrectAnswer = "B" },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "open_ended", Points = 30, OrderIndex = 4,
-                QuestionText = "Bu pozisyon için neden başvurdunuz? Bu şirkette sizi en çok heyecanlandıran nedir?",
-                OptionsJson = null, CorrectAnswer = null },
-
-            new Question { Id = Guid.NewGuid(), QuestionType = "multiple_choice", Points = 10, OrderIndex = 5,
-                QuestionText = "Bir projeyi zamanında tamamlamak için en kritik faktör hangisidir?",
-                OptionsJson = "[{\"key\":\"A\",\"text\":\"Uzun saatler çalışmak\"},{\"key\":\"B\",\"text\":\"Net hedefler ve düzenli takip\"},{\"key\":\"C\",\"text\":\"Mümkün olduğunca az toplantı yapmak\"},{\"key\":\"D\",\"text\":\"Her görevi kendiniz yapmak\"}]",
-                CorrectAnswer = "B" },
+            Id = Guid.NewGuid(), OrderIndex = order, Points = pts,
+            QuestionText = text, QuestionType = "multiple_choice",
+            CorrectAnswer = correct,
+            OptionsJson = $"[{{\"key\":\"A\",\"text\":\"{Esc(a)}\"}},{{\"key\":\"B\",\"text\":\"{Esc(b)}\"}},{{\"key\":\"C\",\"text\":\"{Esc(c)}\"}},{{\"key\":\"D\",\"text\":\"{Esc(d)}\"}}]"
         };
+
+        private static Question TF(int order, int pts, string text, string correct) => new()
+        {
+            Id = Guid.NewGuid(), OrderIndex = order, Points = pts,
+            QuestionText = text, QuestionType = "true_false",
+            CorrectAnswer = correct,
+            OptionsJson = "[{\"key\":\"A\",\"text\":\"Doğru\"},{\"key\":\"B\",\"text\":\"Yanlış\"}]"
+        };
+
+        private static Question OE(int order, int pts, string text) => new()
+        {
+            Id = Guid.NewGuid(), OrderIndex = order, Points = pts,
+            QuestionText = text, QuestionType = "open_ended",
+            CorrectAnswer = null, OptionsJson = null
+        };
+
+        private static string Esc(string s) => s.Replace("\"", "\\\"").Replace("'", "\\'");
     }
 }

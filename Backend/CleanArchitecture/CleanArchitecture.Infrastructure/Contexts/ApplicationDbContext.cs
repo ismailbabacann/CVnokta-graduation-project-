@@ -564,6 +564,8 @@ namespace CleanArchitecture.Infrastructure.Contexts
             builder.Entity<Exam>()
                 .Property(e => e.Status).IsRequired().HasMaxLength(20).HasDefaultValue("draft");
             builder.Entity<Exam>()
+                .Property(e => e.PassThreshold).HasDefaultValue(null);
+            builder.Entity<Exam>()
                 .HasOne(e => e.Job)
                 .WithMany()
                 .HasForeignKey(e => e.JobId)
@@ -572,6 +574,8 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 .HasIndex(e => e.JobId);
             builder.Entity<Exam>()
                 .HasIndex(e => new { e.JobId, e.Status });
+            builder.Entity<Exam>()
+                .HasIndex(e => new { e.JobId, e.SequenceOrder });
 
             // ── Question Configuration ───────────────────────────────
             builder.Entity<Question>()
