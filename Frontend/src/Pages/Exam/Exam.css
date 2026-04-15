@@ -583,3 +583,25 @@
   .exam-footer { flex-wrap: wrap; justify-content: center; }
   .footer-center { order: -1; width: 100%; text-align: center; }
 }
+
+/* ── Open-Ended Textarea ─────────────────────────── */
+.open-ended-textarea {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: #1e293b;
+  line-height: 1.7;
+  resize: vertical;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fafbff;
+  outline: none;
+}
+.open-ended-textarea:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.12);
+  background: #fff;
+}
+.open-ended-textarea::placeholder { color: #94a3b8; }

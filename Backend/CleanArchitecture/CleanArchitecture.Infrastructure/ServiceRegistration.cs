@@ -117,6 +117,7 @@ namespace CleanArchitecture.Infrastructure
             services.AddTransient<IEmailService, ResendEmailService>();
             services.AddTransient<IAiJobPostingGenerationService, MockAiJobPostingGenerationService>();
             services.AddTransient<IExamTokenService, ExamTokenService>();
+            services.AddTransient<CleanArchitecture.Core.Features.Exams.Services.JobExamSeedService>();
 
             services.AddTransient<IPipelineService, PipelineService>();
 
