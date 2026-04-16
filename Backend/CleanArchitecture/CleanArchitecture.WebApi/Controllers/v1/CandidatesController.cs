@@ -81,8 +81,7 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         [HttpPost("upload-cv")]
         [ProducesResponseType(typeof(object), 200)]
         [ProducesResponseType(400)]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> UploadCv([FromForm] UploadCvCommand command)
+        public async Task<IActionResult> UploadCv([FromBody] UploadCvCommand command)
         {
             return Ok(await Mediator.Send(command));
         }

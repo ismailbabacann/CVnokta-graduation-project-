@@ -1,0 +1,388 @@
+﻿
+  error.log:13:warn: Micro
+soft.AspNetCore.Identity.R
+oleManager[0]
+> error.log:14:      Role 
+3718a85a-4dfa-4a12-b2d2-17
+2daafa5b3f validation fail
+ed: DuplicateRoleName.
+  error.log:15:info: Micro
+soft.EntityFrameworkCore.D
+atabase.Command[20101]
+  error.log:16:      Execu
+ted DbCommand (58ms) [Para
+meters=[@__normalizedName_
+0='?' (Size = 256)], Comma
+ndType='Text', CommandTime
+out='30']
+  error.log:17:      SELEC
+T TOP(1) [a].[Id], [a].[Co
+ncurrencyStamp], [a].[Name
+], [a].[NormalizedName]
+  error.log:18:      FROM 
+[AspNetRoles] AS [a]
+  error.log:19:      WHERE
+ [a].[NormalizedName] = @_
+_normalizedName_0
+  error.log:20:warn: Micro
+soft.AspNetCore.Identity.R
+oleManager[0]
+> error.log:21:      Role 
+20d8343c-2284-435d-8ae5-66
+36898e672f validation fail
+ed: DuplicateRoleName.
+  error.log:22:info: Micro
+soft.EntityFrameworkCore.D
+atabase.Command[20101]
+  error.log:23:      Execu
+ted DbCommand (56ms) [Para
+meters=[@__normalizedName_
+0='?' (Size = 256)], Comma
+ndType='Text', CommandTime
+out='30']
+  error.log:24:      SELEC
+T TOP(1) [a].[Id], [a].[Co
+ncurrencyStamp], [a].[Name
+], [a].[NormalizedName]
+  error.log:25:      FROM 
+[AspNetRoles] AS [a]
+  error.log:26:      WHERE
+ [a].[NormalizedName] = @_
+_normalizedName_0
+  error.log:27:warn: Micro
+soft.AspNetCore.Identity.R
+oleManager[0]
+> error.log:28:      Role 
+8564b9dc-6731-418a-a80e-06
+695d621307 validation fail
+ed: DuplicateRoleName.
+  error.log:29:info: Micro
+soft.EntityFrameworkCore.D
+atabase.Command[20101]
+  error.log:30:      Execu
+ted DbCommand (56ms) [Para
+meters=[@__normalizedName_
+0='?' (Size = 256)], Comma
+ndType='Text', CommandTime
+out='30']
+  error.log:31:      SELEC
+T TOP(1) [a].[Id], [a].[Co
+ncurrencyStamp], [a].[Name
+], [a].[NormalizedName]
+  error.log:32:      FROM 
+[AspNetRoles] AS [a]
+  error.log:33:      WHERE
+ [a].[NormalizedName] = @_
+_normalizedName_0
+  error.log:34:warn: Micro
+soft.AspNetCore.Identity.R
+oleManager[0]
+> error.log:35:      Role 
+0afa7507-9202-46fd-9ac4-0e
+daa7e1b9d9 validation fail
+ed: DuplicateRoleName.
+  error.log:36:info: Micro
+soft.EntityFrameworkCore.D
+atabase.Command[20101]
+  error.log:37:      Execu
+ted DbCommand (56ms) [Para
+meters=[@__normalizedName_
+0='?' (Size = 256)], Comma
+ndType='Text', CommandTime
+out='30']
+  error.log:38:      SELEC
+T TOP(1) [a].[Id], [a].[Co
+ncurrencyStamp], [a].[Name
+], [a].[NormalizedName]
+  error.log:39:      FROM 
+[AspNetRoles] AS [a]
+  error.log:40:      WHERE
+ [a].[NormalizedName] = @_
+_normalizedName_0
+  error.log:41:warn: Micro
+soft.AspNetCore.Identity.R
+oleManager[0]
+> error.log:42:      Role 
+610e1e17-876c-4021-b4dd-f2
+8d347a68d4 validation fail
+ed: DuplicateRoleName.
+  error.log:43:info: Micro
+soft.EntityFrameworkCore.D
+atabase.Command[20101]
+  error.log:44:      Execu
+ted DbCommand (56ms) [Para
+meters=[@__defaultUser_Id_
+0='?' (Size = 450)], Comma
+ndType='Text', CommandTime
+out='30']
+  error.log:45:      SELEC
+T CASE
+  error.log:46:          W
+HEN NOT EXISTS (
+  error.log:47:           
+   SELECT 1
+  error.log:86:      Route
+ matched with {action = "U
+ploadCv", controller = "Ca
+ndidates"}. Executing cont
+roller action with signatu
+re System.Threading.Tasks.
+Task`1[Microsoft.AspNetCor
+e.Mvc.IActionResult] Uploa
+dCv(CleanArchitecture.Core
+.Features.Candidates.Comma
+nds.UploadCv.UploadCvComma
+nd) on controller CleanArc
+hitecture.WebApi.Controlle
+rs.v1.CandidatesController
+ (CleanArchitecture.WebApi
+).
+> error.log:87:fail: Micro
+soft.EntityFrameworkCore.D
+atabase.Command[20102]
+> error.log:88:      Faile
+d executing DbCommand (84m
+s) [Parameters=[@p0='?' (D
+bType = Guid), @p1='?' (Db
+Type = Guid), @p2='?' (DbT
+ype = DateTime2), @p3='?' 
+(Size = 4000), @p4='?' (Si
+ze = 255), @p5='?' (Size =
+ 500), @p6='?' (DbType = I
+nt32), @p7='?' (DbType = B
+oolean), @p8='?' (DbType =
+ DateTime2), @p9='?' (Size
+ = 4000), @p10='?' (Size =
+ 50), @p11='?' (DbType = D
+ateTime2)], CommandType='T
+ext', CommandTimeout='30']
+  error.log:89:      SET I
+MPLICIT_TRANSACTIONS OFF;
+  error.log:90:      SET N
+OCOUNT ON;
+  error.log:91:      INSER
+T INTO [CvUploads] ([Id], 
+[CandidateId], [Created], 
+[CreatedBy], [FileName], [
+FilePath], [FileSize], [Is
+Current], [LastModified], 
+[LastModifiedBy], [MimeTyp
+e], [UploadedAt])
+  error.log:92:      VALUE
+S (@p0, @p1, @p2, @p3, @p4
+, @p5, @p6, @p7, @p8, @p9,
+ @p10, @p11);
+> error.log:93:fail: Micro
+soft.EntityFrameworkCore.U
+pdate[10000]
+  error.log:94:      An ex
+ception occurred in the da
+tabase while saving change
+s for context type 'CleanA
+rchitecture.Infrastructure
+.Contexts.ApplicationDbCon
+text'.
+  error.log:95:      Micro
+soft.EntityFrameworkCore.D
+bUpdateException: An error
+ occurred while saving the
+ entity changes. See the i
+nner exception for details
+.
+  error.log:96:       --->
+ Microsoft.Data.SqlClient.
+SqlException (0x80131904):
+ The INSERT statement conf
+licted with the FOREIGN KE
+Y constraint "FK_CvUploads
+_CandidateProfiles_Candida
+teId". The conflict occurr
+ed in database "ozgercv", 
+table "dbo.CandidateProfil
+es", column 'Id'.
+  error.log:97:      The s
+tatement has been terminat
+ed.
+  error.log:98:         at
+ Microsoft.Data.SqlClient.
+SqlCommand.<>c.<ExecuteDbD
+ataReaderAsync>b__211_0(Ta
+sk`1 result)
+  error.log:156:      Rout
+e matched with {action = "
+UploadCv", controller = "C
+andidates"}. Executing con
+troller action with signat
+ure System.Threading.Tasks
+.Task`1[Microsoft.AspNetCo
+re.Mvc.IActionResult] Uplo
+adCv(CleanArchitecture.Cor
+e.Features.Candidates.Comm
+ands.UploadCv.UploadCvComm
+and) on controller CleanAr
+chitecture.WebApi.Controll
+ers.v1.CandidatesControlle
+r (CleanArchitecture.WebAp
+i).
+> error.log:157:fail: Micr
+osoft.EntityFrameworkCore.
+Database.Command[20102]
+> error.log:158:      Fail
+ed executing DbCommand (67
+ms) [Parameters=[@p0='?' (
+DbType = Guid), @p1='?' (D
+bType = Guid), @p2='?' (Db
+Type = DateTime2), @p3='?'
+ (Size = 4000), @p4='?' (S
+ize = 255), @p5='?' (Size 
+= 500), @p6='?' (DbType = 
+Int32), @p7='?' (DbType = 
+Boolean), @p8='?' (DbType 
+= DateTime2), @p9='?' (Siz
+e = 4000), @p10='?' (Size 
+= 50), @p11='?' (DbType = 
+DateTime2)], CommandType='
+Text', CommandTimeout='30'
+]
+  error.log:159:      SET 
+IMPLICIT_TRANSACTIONS OFF;
+  error.log:160:      SET 
+NOCOUNT ON;
+  error.log:161:      INSE
+RT INTO [CvUploads] ([Id],
+ [CandidateId], [Created],
+ [CreatedBy], [FileName], 
+[FilePath], [FileSize], [I
+sCurrent], [LastModified],
+ [LastModifiedBy], [MimeTy
+pe], [UploadedAt])
+  error.log:162:      VALU
+ES (@p0, @p1, @p2, @p3, @p
+4, @p5, @p6, @p7, @p8, @p9
+, @p10, @p11);
+> error.log:163:fail: Micr
+osoft.EntityFrameworkCore.
+Update[10000]
+  error.log:164:      An e
+xception occurred in the d
+atabase while saving chang
+es for context type 'Clean
+Architecture.Infrastructur
+e.Contexts.ApplicationDbCo
+ntext'.
+  error.log:165:      Micr
+osoft.EntityFrameworkCore.
+DbUpdateException: An erro
+r occurred while saving th
+e entity changes. See the 
+inner exception for detail
+s.
+  error.log:166:       ---
+> Microsoft.Data.SqlClient
+.SqlException (0x80131904)
+: The INSERT statement con
+flicted with the FOREIGN K
+EY constraint "FK_CvUpload
+s_CandidateProfiles_Candid
+ateId". The conflict occur
+red in database "ozgercv",
+ table "dbo.CandidateProfi
+les", column 'Id'.
+  error.log:167:      The 
+statement has been termina
+ted.
+  error.log:168:         a
+t Microsoft.Data.SqlClient
+.SqlCommand.<>c.<ExecuteDb
+DataReaderAsync>b__211_0(T
+ask`1 result)
+  error.log:226:      Rout
+e matched with {action = "
+UploadCv", controller = "C
+andidates"}. Executing con
+troller action with signat
+ure System.Threading.Tasks
+.Task`1[Microsoft.AspNetCo
+re.Mvc.IActionResult] Uplo
+adCv(CleanArchitecture.Cor
+e.Features.Candidates.Comm
+ands.UploadCv.UploadCvComm
+and) on controller CleanAr
+chitecture.WebApi.Controll
+ers.v1.CandidatesControlle
+r (CleanArchitecture.WebAp
+i).
+> error.log:227:fail: Micr
+osoft.EntityFrameworkCore.
+Database.Command[20102]
+> error.log:228:      Fail
+ed executing DbCommand (63
+ms) [Parameters=[@p0='?' (
+DbType = Guid), @p1='?' (D
+bType = Guid), @p2='?' (Db
+Type = DateTime2), @p3='?'
+ (Size = 4000), @p4='?' (S
+ize = 255), @p5='?' (Size 
+= 500), @p6='?' (DbType = 
+Int32), @p7='?' (DbType = 
+Boolean), @p8='?' (DbType 
+= DateTime2), @p9='?' (Siz
+e = 4000), @p10='?' (Size 
+= 50), @p11='?' (DbType = 
+DateTime2)], CommandType='
+Text', CommandTimeout='30'
+]
+  error.log:229:      SET 
+IMPLICIT_TRANSACTIONS OFF;
+  error.log:230:      SET 
+NOCOUNT ON;
+  error.log:231:      INSE
+RT INTO [CvUploads] ([Id],
+ [CandidateId], [Created],
+ [CreatedBy], [FileName], 
+[FilePath], [FileSize], [I
+sCurrent], [LastModified],
+ [LastModifiedBy], [MimeTy
+pe], [UploadedAt])
+  error.log:232:      VALU
+ES (@p0, @p1, @p2, @p3, @p
+4, @p5, @p6, @p7, @p8, @p9
+, @p10, @p11);
+> error.log:233:fail: Micr
+osoft.EntityFrameworkCore.
+Update[10000]
+  error.log:234:      An e
+xception occurred in the d
+atabase while saving chang
+es for context type 'Clean
+Architecture.Infrastructur
+e.Contexts.ApplicationDbCo
+ntext'.
+  error.log:235:      Micr
+osoft.EntityFrameworkCore.
+DbUpdateException: An erro
+r occurred while saving th
+e entity changes. See the 
+inner exception for detail
+s.
+  error.log:236:       ---
+> Microsoft.Data.SqlClient
+.SqlException (0x80131904)
+: The INSERT statement con
+flicted with the FOREIGN K
+EY constraint "FK_CvUpload
+s_CandidateProfiles_Candid
+ateId". The conflict occur
+red in database "ozgercv",
+ table "dbo.CandidateProfi
+les", column 'Id'.
+  error.log:237:      The 
+statement has been termina
+ted.
+  error.log:238:         a
+t Microsoft.Data.SqlClient
+.SqlCommand.<>c.<ExecuteDb
+DataReaderAsync>b__211_0(T
+ask`1 result)
+
+
