@@ -15,6 +15,18 @@ namespace CleanArchitecture.WebApi.Controllers.v1
     public class ExamController : BaseApiController
     {
         /// <summary>
+        /// AI modeli tarafından yeni oluşturulan soruların DB'ye kaydedilmesi.
+        /// </summary>
+        [HttpPost("ai-generate")]
+        [ProducesResponseType(typeof(Guid), 201)]
+        [ProducesResponseType(400)]
+        [AllowAnonymous] // Maybe needs a special API key in real production
+        public async Task<IActionResult> GenerateFromAI([FromBody] CleanArchitecture.Core.Features.Exams.Commands.CreateAIExam.CreateAIExamCommand command)
+        {
+            var examId = await Mediator.Send(command);
+            return StatusCode(201, new { examId });
+        }
+        /// <summary>
         /// HR tarafından AI ile oluşturulan soruları onaylar ve sınav olarak DB'ye kaydeder.
         /// </summary>
         /// <remarks>
@@ -146,6 +158,19 @@ namespace CleanArchitecture.WebApi.Controllers.v1
                 SortBy = sortBy
             };
             return Ok(await Mediator.Send(query));
+        }
+
+        /// <summary>
+        /// HR, adayın sınavdaki tüm sorularını, verdiği cevapları ve doğru/yanlış durumunu, soru materyalleri (görsel/dinleme) ile birlikte görür.
+        /// </summary>
+        [HttpGet("assignments/{assignmentId}/details")]
+        [ProducesResponseType(typeof(CleanArchitecture.Core.Features.CandidateExams.Queries.GetCandidateExamResultDetails.CandidateExamResultDetailsViewModel), 200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> GetAssignmentDetails(Guid assignmentId)
+        {
+            var result = await Mediator.Send(new CleanArchitecture.Core.Features.CandidateExams.Queries.GetCandidateExamResultDetails.GetCandidateExamResultDetailsQuery { AssignmentId = assignmentId });
+            if (result == null) return NotFound();
+            return Ok(result);
         }
     }
 }
