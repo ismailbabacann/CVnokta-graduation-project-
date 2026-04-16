@@ -14,6 +14,7 @@ function MyProfile() {
     });
     
     const [cvInfo, setCvInfo] = useState(null);
+    const [cvUrl, setCvUrl] = useState(null);
     const [candidateId, setCandidateId] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -69,6 +70,7 @@ function MyProfile() {
                     
                     if (p && p.cvUrl) {
                         setCvInfo(p.cvUrl.split('/').pop() || 'Mevcut CV');
+                        setCvUrl(p.cvUrl);
                     }
                 }
             } catch (err) {
@@ -127,7 +129,7 @@ function MyProfile() {
         const widget = window.cloudinary.createUploadWidget(
             {
                 cloudName: 'dizjdaqgr',        // Cloudinary cloud adın
-                uploadPreset: 'ml_default',    // Cloudinary unsigned preset adın
+                uploadPreset: 'cv_uploads', // Cloudinary unsigned preset adın
                 sources: ['local', 'url'],
                 resourceType: 'raw',            // PDF dosyası için raw
                 clientAllowedFormats: ['pdf', 'doc', 'docx'],
@@ -159,6 +161,7 @@ function MyProfile() {
 
                         alert('CV başarıyla yüklendi!');
                         setCvInfo(fileName);
+                        setCvUrl(cloudinaryUrl);
                     } catch (err) {
                         console.error('CV kaydetme hatası:', err);
                         alert('CV Cloudinary\'e yüklendi fakat sisteme kaydedilemedi.');
@@ -230,13 +233,23 @@ function MyProfile() {
                             <div className={styles.fileIcon}>📄</div>
                             <div className={styles.fileDetails}>
                                 {cvInfo ? (
-                                    <span className={styles.fileName}>Mevcut Yüklü CV: <strong>{cvInfo}</strong></span>
+                                    <>
+                                        <span className={styles.fileName}>Mevcut Yüklü CV: <strong>{cvInfo}</strong></span>
+                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                            <a href={cvUrl} target="_blank" rel="noopener noreferrer" className={styles.viewBtn}>CV Görüntüle</a>
+                                            <button type="button" className={styles.uploadBtn} onClick={handleCvUpload}>
+                                                CV Güncelle
+                                            </button>
+                                        </div>
+                                    </>
                                 ) : (
-                                    <span className={styles.fileName}>Sisteminizde yüklenmiş bir CV bulunamadı. Lütfen ilanlara başvurmadan önce CV yükleyiniz.</span>
+                                    <>
+                                        <span className={styles.fileName}>Sisteminizde yüklenmiş bir CV bulunamadı. Lütfen ilanlara başvurmadan önce CV yükleyiniz.</span>
+                                        <button type="button" className={styles.uploadBtn} onClick={handleCvUpload}>
+                                            CV Yükle
+                                        </button>
+                                    </>
                                 )}
-                                <button type="button" className={styles.uploadBtn} onClick={handleCvUpload}>
-                                    {cvInfo ? 'Yeni CV Yükle' : 'CV Yükle'}
-                                </button>
                             </div>
                         </div>
                     </div>
