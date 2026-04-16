@@ -455,17 +455,24 @@ function CompanyCandidates() {
                                 </div>
                             )}
 
-                            {/* Action Buttons */}
                             <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
                                 {selectedCandidate.cvUrl ? (
-                                    <a href={selectedCandidate.cvUrl} target="_blank" rel="noopener noreferrer" style={{ ...cvBtnStyle, backgroundColor: '#cbd5e1', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <a href={selectedCandidate.cvUrl} 
+                                       target="_blank" 
+                                       rel="noopener noreferrer" 
+                                       onClick={(e) => {
+                                           if (!selectedCandidate.cvUrl.startsWith('http') && !selectedCandidate.cvUrl.startsWith('//')) {
+                                               e.preventDefault();
+                                               alert("Veritabanındaki CV linki geçerli bir web adresi değil (http ile başlamıyor). Bu yüzden açılamaz.\nLink: " + selectedCandidate.cvUrl);
+                                           }
+                                       }}
+                                       style={{ ...cvBtnStyle, backgroundColor: '#cbd5e1', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         📄 CV Görüntüle
                                     </a>
                                 ) : (
                                     <span style={{ color: '#94a3b8', padding: '12px', display: 'flex', alignItems: 'center' }}>CV yüklenmedi.</span>
                                 )}
                                 
-
                                 <button style={{ ...cvBtnStyle, backgroundColor: '#ec4899', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setIsMeetingModalOpen(true)}>
                                     📅 Mülakat Ayarla
                                 </button>

@@ -16,8 +16,18 @@ function MyProfile() {
     const [cvInfo, setCvInfo] = useState(null);
     const [candidateId, setCandidateId] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-
     const [isSaving, setIsSaving] = useState(false);
+
+    // Cloudinary widget script'ini yükle
+    useEffect(() => {
+        if (!document.getElementById('cloudinary-widget-script')) {
+            const script = document.createElement('script');
+            script.id = 'cloudinary-widget-script';
+            script.src = 'https://widget.cloudinary.com/v2.0/global/all.js';
+            script.async = true;
+            document.body.appendChild(script);
+        }
+    }, []);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -71,6 +81,7 @@ function MyProfile() {
         fetchProfile();
     }, []);
 
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -104,30 +115,60 @@ function MyProfile() {
         }
     };
 
-    const handleCvUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file || !candidateId) return;
+    const handleCvUpload = () => {
+        if (!candidateId) { alert('Lütfen giriş yapın.'); return; }
 
-        try {
-            const token = localStorage.getItem('jwToken');
-            const data = new FormData();
-            data.append('candidateId', candidateId);
-            data.append('cvFile', file);
-
-            const response = await axios.post('https://localhost:9001/api/v1/Candidates/upload-cv', data, {
-                headers: { 
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data' 
-                }
-            });
-            
-            alert('CV başarıyla yüklendi!');
-            setCvInfo(file.name);
-        } catch (err) {
-            console.error('CV Yükleme hatası:', err);
-            alert('CV Yüklenirken bir sorun oluştu.');
+        // Cloudinary Upload Widget
+        if (!window.cloudinary) {
+            alert('Cloudinary yüklenemedi. Sayfayı yenileyip tekrar deneyin.');
+            return;
         }
+
+        const widget = window.cloudinary.createUploadWidget(
+            {
+                cloudName: 'dizjdaqgr',        // Cloudinary cloud adın
+                uploadPreset: 'ml_default',    // Cloudinary unsigned preset adın
+                sources: ['local', 'url'],
+                resourceType: 'raw',            // PDF dosyası için raw
+                clientAllowedFormats: ['pdf', 'doc', 'docx'],
+                maxFileSize: 5000000,           // 5MB
+                multiple: false,
+                language: 'tr',
+                text: { tr: { or: 'veya', menu: { files: 'Dosya Seç', url: 'URL Gir' } } }
+            },
+            async (error, result) => {
+                if (error) {
+                    console.error('Cloudinary widget hatası:', error);
+                    alert('CV yüklenirken bir hata oluştu.');
+                    return;
+                }
+                if (result && result.event === 'success') {
+                    const cloudinaryUrl = result.info.secure_url;
+                    const fileName = result.info.original_filename + '.' + result.info.format;
+
+                    try {
+                        const token = localStorage.getItem('jwToken');
+                        await axios.post('https://localhost:9001/api/v1/Candidates/upload-cv', {
+                            candidateId: candidateId,
+                            fileName: fileName,
+                            cloudinaryUrl: cloudinaryUrl,
+                            contentType: 'application/pdf'
+                        }, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+
+                        alert('CV başarıyla yüklendi!');
+                        setCvInfo(fileName);
+                    } catch (err) {
+                        console.error('CV kaydetme hatası:', err);
+                        alert('CV Cloudinary\'e yüklendi fakat sisteme kaydedilemedi.');
+                    }
+                }
+            }
+        );
+        widget.open();
     };
+
 
     if (isLoading) return <div style={{padding:'2rem'}}>Profil Yükleniyor...</div>;
 
@@ -193,8 +234,9 @@ function MyProfile() {
                                 ) : (
                                     <span className={styles.fileName}>Sisteminizde yüklenmiş bir CV bulunamadı. Lütfen ilanlara başvurmadan önce CV yükleyiniz.</span>
                                 )}
-                                <input type="file" id="cvUpload" className={styles.fileInput} accept=".pdf,.doc,.docx" onChange={handleCvUpload} />
-                                <label htmlFor="cvUpload" className={styles.uploadBtn}>{cvInfo ? 'Yeni CV Yükle' : 'CV Yükle'}</label>
+                                <button type="button" className={styles.uploadBtn} onClick={handleCvUpload}>
+                                    {cvInfo ? 'Yeni CV Yükle' : 'CV Yükle'}
+                                </button>
                             </div>
                         </div>
                     </div>
