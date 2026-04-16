@@ -14,6 +14,8 @@ namespace CleanArchitecture.Core.Entities
         public string EducationLevel { get; set; }
         public string LinkedInProfile { get; set; }
         public string CurrentCompany { get; set; }
+        public string CvUrl { get; set; }
+        public Guid? CvId { get; set; }
         public virtual User User { get; set; }
     }
 }
