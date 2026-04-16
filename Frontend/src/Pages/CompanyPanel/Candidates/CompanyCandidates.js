@@ -405,13 +405,13 @@ function CompanyCandidates() {
                                     {(() => {
                                         const stage = selectedCandidate.currentPipelineStage;
                                         const stages = [
-                                            { key: 'NLP_REVIEW',           label: 'CV Analizi',      icon: '🔍', color: '#667eea' },
-                                            { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',    icon: '📝', color: '#ed8936' },
                                             { key: 'ENGLISH_TEST_PENDING', label: 'İngilizce Testi', icon: '🇬🇧', color: '#00b4db' },
+                                            { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',    icon: '📝', color: '#ed8936' },
                                             { key: 'AI_INTERVIEW_PENDING', label: 'AI Mülakat',      icon: '🤖', color: '#f5576c' },
+                                            { key: 'NLP_REVIEW',           label: 'CV Analizi',      icon: '🔍', color: '#667eea' },
                                             { key: 'COMPLETED',            label: 'Tamamlandı',      icon: '🎉', color: '#48bb78' },
                                         ];
-                                        const order = { NLP_REVIEW:0, SKILLS_TEST_PENDING:1, ENGLISH_TEST_PENDING:2, AI_INTERVIEW_PENDING:3, COMPLETED:4, REJECTED_NLP:0, REJECTED_SKILLS:1, REJECTED_ENGLISH:2, REJECTED_AI:3 };
+                                        const order = { ENGLISH_TEST_PENDING:0, SKILLS_TEST_PENDING:1, AI_INTERVIEW_PENDING:2, NLP_REVIEW:3, COMPLETED:4, REJECTED_ENGLISH:0, REJECTED_SKILLS:1, REJECTED_AI:2, REJECTED_NLP:3 };
                                         const currentIdx = order[stage] ?? 0;
                                         const rejected   = stage?.startsWith('REJECTED_');
                                         const completed  = stage === 'COMPLETED';
