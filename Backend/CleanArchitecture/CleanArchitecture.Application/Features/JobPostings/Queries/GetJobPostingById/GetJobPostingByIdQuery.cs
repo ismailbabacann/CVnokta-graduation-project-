@@ -36,6 +36,7 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetJobPostingById
         public string AboutRole { get; set; }
         public string Responsibilities { get; set; }
         public string RequiredQualifications { get; set; }
+        public string LanguageLevel { get; set; }
 
         // Finansal
         public decimal? SalaryMin { get; set; }
@@ -90,6 +91,7 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetJobPostingById
                 AboutRole            = jobPosting.AboutRole,
                 Responsibilities     = jobPosting.Responsibilities,
                 RequiredQualifications = jobPosting.RequiredQualifications,
+                LanguageLevel        = jobPosting.LanguageLevel,
                 SalaryMin            = jobPosting.SalaryMin,
                 SalaryMax            = jobPosting.SalaryMax,
                 TotalPositions       = jobPosting.TotalPositions,

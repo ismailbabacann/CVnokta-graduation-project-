@@ -15,6 +15,12 @@ namespace CleanArchitecture.Core.Entities
         /// <summary>multiple_choice | true_false | open_ended</summary>
         public string QuestionType { get; set; }
 
+        /// <summary>text | visual | listening</summary>
+        public string QuestionCategory { get; set; }
+
+        /// <summary>External link to image or audio if category is visual or listening</summary>
+        public string MediaUrl { get; set; }
+
         /// <summary>
         /// JSON array of answer options for multiple_choice / true_false.
         /// Format: [{"key":"A","text":"..."}, {"key":"B","text":"..."}]

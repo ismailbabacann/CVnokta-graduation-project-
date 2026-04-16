@@ -254,6 +254,11 @@
             <param name="appId">Başvuru Id'si (GUID)</param>
             <returns>Detaylı puan kartı</returns>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ExamController.GenerateFromAI(CleanArchitecture.Core.Features.Exams.Commands.CreateAIExam.CreateAIExamCommand)">
+            <summary>
+            AI modeli tarafından yeni oluşturulan soruların DB'ye kaydedilmesi.
+            </summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.ExamController.Approve(CleanArchitecture.Core.Features.Exams.Commands.ApproveExam.ApproveExamCommand)">
              <summary>
              HR tarafından AI ile oluşturulan soruları onaylar ve sınav olarak DB'ye kaydeder.
@@ -336,6 +341,11 @@
             <param name="status">Opsiyonel: submitted | pending | expired</param>
             <param name="sortBy">Opsiyonel: total_score | submitted_at</param>
             <returns>Aday × sınav sonuç matrisi</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ExamController.GetAssignmentDetails(System.Guid)">
+            <summary>
+            HR, adayın sınavdaki tüm sorularını, verdiği cevapları ve doğru/yanlış durumunu, soru materyalleri (görsel/dinleme) ile birlikte görür.
+            </summary>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.InterviewsController.Start(CleanArchitecture.Core.Features.Interviews.Commands.StartAiInterview.StartAiInterviewCommand)">
              <summary>
