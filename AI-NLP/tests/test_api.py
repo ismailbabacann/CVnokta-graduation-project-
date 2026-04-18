@@ -307,15 +307,15 @@ class TestRankingEndpoints:
 
 
 class TestInterviewEndpoints:
-    """Test interview placeholder endpoints."""
+    """Test interview endpoints (now implemented)."""
 
-    def test_start_interview_not_implemented(self, test_client):
+    def test_start_interview_requires_job_posting(self, test_client):
+        """Starting an interview without a job_posting returns 422."""
         resp = test_client.post(
             "/api/v1/interview/start",
             json={
                 "application_id": "app-001",
-                "job_posting_id": "job-001",
                 "candidate_name": "Test",
             },
         )
-        assert resp.status_code == 501
+        assert resp.status_code == 422

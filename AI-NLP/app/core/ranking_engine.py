@@ -12,26 +12,19 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Optional
 
+from app.config import get_settings
 from app.models.ranking import CandidateRanking, FinalEvaluation
 
 logger = logging.getLogger(__name__)
 
-# ── Default weights for score aggregation ───────────────────────────
 
-DEFAULT_WEIGHTS: Dict[str, float] = {
-    "cv": 0.30,
-    "general_test": 0.25,
-    "english_test": 0.15,
-    "interview": 0.30,
-}
-
-# When interview is not yet implemented, redistribute its weight
-WEIGHTS_WITHOUT_INTERVIEW: Dict[str, float] = {
-    "cv": 0.40,
-    "general_test": 0.35,
-    "english_test": 0.25,
-    "interview": 0.00,
-}
+def _get_default_weights(include_interview: bool = True) -> Dict[str, float]:
+    """Load default weights from settings, redistributing if interview is excluded."""
+    settings = get_settings()
+    weights = dict(settings.ranking_weights)
+    if not include_interview:
+        weights["interview"] = 0.0
+    return weights
 
 
 def compute_weighted_score(
@@ -48,10 +41,7 @@ def compute_weighted_score(
     so missing stages don't penalise the candidate.
     """
     if weights is None:
-        weights = (
-            DEFAULT_WEIGHTS if interview_score is not None
-            else WEIGHTS_WITHOUT_INTERVIEW
-        )
+        weights = _get_default_weights(include_interview=interview_score is not None)
 
     score_map = {
         "cv": cv_score,
@@ -83,6 +73,7 @@ def build_final_evaluation(
     general_test_score: Optional[float] = None,
     english_test_score: Optional[float] = None,
     interview_score: Optional[float] = None,
+    weights: Optional[Dict[str, float]] = None,
 ) -> FinalEvaluation:
     """Build a FinalEvaluation object with computed weighted score."""
     weighted = compute_weighted_score(
@@ -90,6 +81,7 @@ def build_final_evaluation(
         general_test_score,
         english_test_score,
         interview_score,
+        weights=weights,
     )
 
     return FinalEvaluation(

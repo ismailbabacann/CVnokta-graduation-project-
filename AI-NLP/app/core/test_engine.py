@@ -29,7 +29,9 @@ from app.models.test import (
     CategoryBreakdown,
     TestQuestion,
     TestQuestionOut,
+    TestQuestionWithAnswer,
     TestQuestionsResponse,
+    TestQuestionsWithAnswersResponse,
     TestResult,
     TestSubmission,
 )
@@ -79,6 +81,10 @@ def _parse_questions_from_response(raw: Dict[str, Any]) -> List[TestQuestion]:
     return questions
 
 
+# Default pass threshold for tests (score >= threshold → passed)
+_TEST_PASS_THRESHOLD = 60.0
+
+
 class TestEngine:
     """
     AI-powered test engine — generates questions per job posting via GPT.
@@ -89,6 +95,8 @@ class TestEngine:
     def __init__(self) -> None:
         self._settings = get_settings()
         self._question_cache: Dict[str, List[TestQuestion]] = {}
+        # Reverse lookup: job_posting_id → cache_key (for submit without full JobPostingInput)
+        self._id_to_cache_key: Dict[str, str] = {}
 
     # ── Question generation ─────────────────────────────────────────
 
@@ -123,6 +131,9 @@ class TestEngine:
 
         if questions:
             self._question_cache[cache_key] = questions
+            # Store reverse lookup so submit can find questions by job_posting_id
+            if job_posting.id:
+                self._id_to_cache_key[f"technical:{job_posting.id}"] = cache_key
             logger.info("Generated %d technical questions for '%s'", len(questions), job_posting.job_title)
         else:
             logger.error("LLM returned no valid technical questions")
@@ -178,8 +189,18 @@ class TestEngine:
         job_posting: Optional[JobPostingInput] = None,
     ) -> Optional[List[TestQuestion]]:
         """Return cached questions if available, None otherwise."""
-        if test_type == "technical_assessment" and job_posting:
-            cache_key = _posting_cache_key(job_posting, "technical")
+        if test_type == "technical_assessment":
+            if job_posting:
+                cache_key = _posting_cache_key(job_posting, "technical")
+                result = self._question_cache.get(cache_key)
+                if result:
+                    return result
+            # Fallback: look up by job_posting_id via reverse index
+            id_key = f"technical:{job_posting_id}"
+            cache_key = self._id_to_cache_key.get(id_key)
+            if cache_key:
+                return self._question_cache.get(cache_key)
+            return None
         elif test_type == "english_test":
             cache_key = f"english:{job_posting_id}"
         else:
@@ -210,6 +231,37 @@ class TestEngine:
         )
 
         return TestQuestionsResponse(
+            test_type=test_type,
+            questions=questions_out,
+            total_questions=len(questions_out),
+            time_limit_minutes=time_limit,
+        )
+
+    def build_questions_response_with_answers(
+        self,
+        test_type: str,
+        questions: List[TestQuestion],
+    ) -> TestQuestionsWithAnswersResponse:
+        """Build a response including correct answers — for server-to-server calls."""
+        questions_out = [
+            TestQuestionWithAnswer(
+                id=q.id,
+                category=q.category,
+                difficulty=q.difficulty,
+                question=q.question,
+                options=q.options,
+                correct_answer=q.correct_answer,
+            )
+            for q in questions
+        ]
+
+        time_limit = (
+            self._settings.technical_test_time_limit_minutes
+            if test_type == "technical_assessment"
+            else self._settings.english_test_time_limit_minutes
+        )
+
+        return TestQuestionsWithAnswersResponse(
             test_type=test_type,
             questions=questions_out,
             total_questions=len(questions_out),
@@ -263,7 +315,7 @@ class TestEngine:
             wrong_answers=wrong,
             score=score,
             duration_seconds=submission.duration_seconds,
-            passed=None,
+            passed=score >= _TEST_PASS_THRESHOLD,
             test_date=datetime.utcnow(),
             category_breakdown=breakdown,
         )

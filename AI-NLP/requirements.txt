@@ -10,12 +10,13 @@ langchain>=0.2.0
 langchain-openai>=0.1.0
 langchain-community>=0.2.0
 
+# OpenAI (TTS/STT for interview, Realtime API)
+openai>=1.0.0
+websockets>=12.0
+
 # PDF Processing
 PyMuPDF>=1.23.0
 pdfplumber>=0.10.0
-
-# NLP
-spacy>=3.7.0
 
 # Embeddings & Vector Store
 sentence-transformers>=2.2.0

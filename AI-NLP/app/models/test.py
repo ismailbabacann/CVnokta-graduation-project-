@@ -38,11 +38,31 @@ class TestQuestionOut(BaseModel):
     options: List[str]
 
 
+class TestQuestionWithAnswer(BaseModel):
+    """Question with correct_answer included – for server-to-server calls."""
+
+    id: str
+    category: str
+    difficulty: str
+    question: str
+    options: List[str]
+    correct_answer: int
+
+
 class TestQuestionsResponse(BaseModel):
     """Response when the frontend requests a test session."""
 
     test_type: str
     questions: List[TestQuestionOut]
+    total_questions: int
+    time_limit_minutes: int
+
+
+class TestQuestionsWithAnswersResponse(BaseModel):
+    """Response with correct answers – for backend integration."""
+
+    test_type: str
+    questions: List[TestQuestionWithAnswer]
     total_questions: int
     time_limit_minutes: int
 

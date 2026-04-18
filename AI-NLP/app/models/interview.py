@@ -10,6 +10,7 @@ Maps to backend entities:
 from __future__ import annotations
 
 from datetime import datetime
+from enum import Enum
 from typing import List, Optional
 from uuid import UUID
 
@@ -66,6 +67,34 @@ class InterviewSummary(BaseModel):
     weaknesses: Optional[str] = None
     recommendations: Optional[str] = None
     is_passed: Optional[bool] = None
+
+
+# ── Realtime Interview models ──────────────────────────────────────
+
+
+class RealtimeSessionStatus(str, Enum):
+    """State machine for realtime interview sessions."""
+    CONNECTING = "connecting"
+    ACTIVE = "active"
+    ENDING = "ending"
+    COMPLETED = "completed"
+    INTERRUPTED = "interrupted"
+    FAILED = "failed"
+
+
+class RealtimeSession(BaseModel):
+    """Tracks a realtime (WebSocket) interview session."""
+    session_id: str
+    application_id: str
+    job_posting: dict
+    cv_summary: str
+    candidate_name: str
+    status: RealtimeSessionStatus = RealtimeSessionStatus.CONNECTING
+    questions_asked: List[dict] = Field(default_factory=list)
+    transcript: List[dict] = Field(default_factory=list)
+    started_at: datetime = Field(default_factory=datetime.utcnow)
+    ended_at: Optional[datetime] = None
+    end_reason: Optional[str] = None
 
 
 # ── WebSocket message schemas (future) ──────────────────────────────

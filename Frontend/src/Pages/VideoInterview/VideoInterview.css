@@ -1,0 +1,303 @@
+.vi-container {
+  display: flex;
+  height: 100vh;
+  background: #0f0f1a;
+  color: #e0e0ff;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
+
+/* ── Sol panel (avatar) ─────────────────────────────────── */
+.vi-left {
+  width: 340px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #13132b;
+  border-right: 1px solid #2a2a50;
+  padding: 32px 24px;
+  gap: 16px;
+}
+
+/* ── Avatar ─────────────────────────────────────────────── */
+.vi-avatar {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a1a40, #2d2d6b);
+  border: 3px solid #4444aa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.3s;
+}
+
+.vi-avatar.speaking {
+  border-color: #6666ff;
+  box-shadow: 0 0 24px rgba(100, 100, 255, 0.5);
+}
+
+.vi-speaking-ring {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 2px solid rgba(100, 100, 255, 0.4);
+  animation: pulse-ring 1.2s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(0.95); opacity: 0.7; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+
+.vi-avatar-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.vi-avatar-eyes {
+  display: flex;
+  gap: 22px;
+}
+
+.vi-avatar-eyes span {
+  width: 16px;
+  height: 16px;
+  background: #9999ff;
+  border-radius: 50%;
+  animation: blink 4s infinite;
+}
+
+@keyframes blink {
+  0%, 95%, 100% { transform: scaleY(1); }
+  97%            { transform: scaleY(0.1); }
+}
+
+.vi-avatar-mouth {
+  width: 40px;
+  height: 8px;
+  background: #9999ff;
+  border-radius: 4px;
+  transition: height 0.1s;
+}
+
+.vi-avatar-mouth.talking {
+  animation: talk 0.25s steps(4) infinite alternate;
+}
+
+@keyframes talk {
+  0%   { height: 4px; width: 32px; }
+  33%  { height: 12px; width: 40px; }
+  66%  { height: 8px; width: 36px; }
+  100% { height: 6px; width: 28px; }
+}
+
+.vi-avatar-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #c0c0ff;
+  margin: 0;
+}
+
+.vi-avatar-status {
+  font-size: 13px;
+  color: #8888cc;
+  margin: 0;
+  min-height: 20px;
+}
+
+/* ── Kontroller ─────────────────────────────────────────── */
+.vi-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.vi-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vi-btn-start  { background: #4444cc; color: #fff; }
+.vi-btn-start:hover { background: #5555ee; }
+
+.vi-btn-end    { background: #cc3333; color: #fff; }
+.vi-btn-end:hover { background: #ee4444; }
+
+.vi-btn-mute   { background: #2a2a55; color: #aaaaff; border: 1px solid #4444aa; }
+.vi-btn-mute.muted { background: #552222; color: #ffaaaa; border-color: #aa4444; }
+
+.vi-error {
+  color: #ff6666;
+  font-size: 12px;
+  text-align: center;
+  margin: 0;
+  padding: 8px;
+  background: rgba(255,50,50,0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255,50,50,0.2);
+}
+
+/* ── Sağ panel (transcript) ─────────────────────────────── */
+.vi-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.vi-transcript-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #c0c0ff;
+  margin: 0;
+  border-bottom: 1px solid #2a2a50;
+  padding-bottom: 12px;
+}
+
+.vi-transcript {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  min-height: 200px;
+}
+
+.vi-placeholder {
+  color: #555577;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.vi-message {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  max-width: 80%;
+}
+
+.vi-message-ai {
+  background: #1a1a35;
+  border: 1px solid #2a2a55;
+  align-self: flex-start;
+}
+
+.vi-message-candidate {
+  background: #1a2a3a;
+  border: 1px solid #2a3a55;
+  align-self: flex-end;
+}
+
+.vi-message-role {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6666aa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.vi-message-time {
+  font-size: 11px;
+  color: #444466;
+  float: right;
+}
+
+.vi-message-text {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+  color: #d0d0ee;
+}
+
+/* ── Özet ───────────────────────────────────────────────── */
+.vi-summary {
+  background: #13132b;
+  border: 1px solid #2a2a50;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vi-summary h3 {
+  margin: 0;
+  color: #c0c0ff;
+  font-size: 16px;
+}
+
+.vi-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vi-score-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vi-score-label {
+  width: 110px;
+  font-size: 13px;
+  color: #9999cc;
+  flex-shrink: 0;
+}
+
+.vi-score-bar {
+  flex: 1;
+  height: 8px;
+  background: #22224a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.vi-score-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4444cc, #8888ff);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.vi-score-val {
+  width: 32px;
+  font-size: 13px;
+  color: #8888ff;
+  text-align: right;
+}
+
+.vi-summary-text {
+  font-size: 13px;
+  color: #aaaacc;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.vi-result {
+  font-size: 15px;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin: 0;
+}
+
+.vi-result.passed { background: #1a3a1a; color: #66ff66; border: 1px solid #336633; }
+.vi-result.failed { background: #3a1a1a; color: #ff6666; border: 1px solid #663333; }

@@ -24,6 +24,7 @@ from app.core.cv_scorer import LLMUnavailableError, score_cv
 from app.models.cv import CVAnalysisRequest, CVAnalysisResult, ParsedCV
 from app.models.errors import ErrorCode
 from app.models.job_posting import JobPostingInput
+from app.services.backend_client import push_cv_analysis_score, push_statistics_from_cv
 from app.utils.pdf_extractor import (
     PDFCorruptedError,
     PDFEncryptedError,
@@ -35,6 +36,37 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/cv", tags=["CV Analysis"])
 
 _ALLOWED_PDF_MIME_TYPES = {"application/pdf", "application/octet-stream"}
+
+
+async def _push_result_to_backend(result: CVAnalysisResult) -> None:
+    """Fire-and-forget: push CV analysis result + stats to backend."""
+    try:
+        await push_cv_analysis_score(
+            application_id=str(result.application_id),
+            analysis_score=result.analysis_score or 0.0,
+            matching_skills=result.matching_skills or "",
+            missing_skills=result.missing_skills or "",
+            experience_match_score=result.experience_match_score or 0.0,
+            education_match_score=result.education_match_score or 0.0,
+            overall_assessment=result.overall_assessment or "",
+        )
+    except Exception as exc:
+        logger.error("Failed to push CV score to backend: %s", exc)
+
+    try:
+        parsed = result.parsed_cv
+        if parsed:
+            # Extract the most recent job title as position
+            position = None
+            if parsed.experience:
+                position = parsed.experience[0].title
+            await push_statistics_from_cv(
+                skills=parsed.skills,
+                position_title=position,
+                location=parsed.location,
+            )
+    except Exception as exc:
+        logger.error("Failed to push statistics to backend: %s", exc)
 
 
 def _parse_uuid_or_generate(value: Optional[str], field_name: str) -> UUID:
@@ -168,6 +200,7 @@ async def analyze_cv(request: CVAnalysisRequest):
             openai_service=get_openai_service(),
             embedding_service=get_embedding_service(),
         )
+        await _push_result_to_backend(result)
         return result
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail={"error_code": ErrorCode.FILE_NOT_FOUND, "message": str(exc)})
@@ -264,11 +297,13 @@ async def analyze_cv_upload(
             job_posting=job_posting,
         )
 
-        return await score_cv(
+        result = await score_cv(
             request,
             openai_service=get_openai_service(),
             embedding_service=get_embedding_service(),
         )
+        await _push_result_to_backend(result)
+        return result
     except HTTPException:
         raise
     except PDFNoTextError as exc:
