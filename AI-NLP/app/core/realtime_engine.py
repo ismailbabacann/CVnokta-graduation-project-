@@ -775,6 +775,33 @@ class RealtimeInterviewEngine:
 
         Uses the same evaluation pipeline as the HTTP interview system.
         """
+        # Guard: if no answers were given, return deterministic low score
+        answered = len([
+            qa for qa in qa_pairs
+            if qa.candidate_answer_text and qa.candidate_answer_text.strip()
+        ])
+        if answered == 0:
+            logger.warning(
+                "No answers provided (session=%s), returning zero-answer evaluation",
+                entry.session.session_id,
+            )
+            raw = {
+                "average_confidence_score": 0.0,
+                "job_match_score": 0.0,
+                "experience_alignment_score": 0.0,
+                "communication_score": 0.0,
+                "technical_knowledge_score": 0.0,
+                "overall_interview_score": 0.0,
+                "summary_text": (
+                    f"The candidate did not answer any of the {len(qa_pairs)} questions asked. "
+                    "No evaluation could be performed."
+                ),
+                "strengths": "None identified — no answers provided",
+                "weaknesses": "No responses to any interview questions",
+                "recommendations": "Candidate should reattempt the interview and provide verbal responses to questions.",
+            }
+            return self._build_summary(entry, qa_pairs, raw)
+
         from app.core.prompts.interview import (
             INTERVIEW_EVALUATION_TEMPLATE,
             INTERVIEW_SYSTEM_PROMPT,

@@ -291,6 +291,33 @@ class InterviewEngine:
 
     async def _batch_evaluate(self, entry: _SessionEntry) -> InterviewSummary:
         """Batch-score all Q&A pairs via GPT rubric."""
+        # Guard: if no answers were given, return deterministic low score
+        answered = len([
+            qa for qa in entry.qa_pairs
+            if qa.candidate_answer_text and qa.candidate_answer_text.strip()
+        ])
+        if answered == 0:
+            logger.warning(
+                "No answers provided (session=%s), returning zero-answer evaluation",
+                entry.session.id,
+            )
+            raw = {
+                "average_confidence_score": 0.0,
+                "job_match_score": 0.0,
+                "experience_alignment_score": 0.0,
+                "communication_score": 0.0,
+                "technical_knowledge_score": 0.0,
+                "overall_interview_score": 0.0,
+                "summary_text": (
+                    f"The candidate did not answer any of the {len(entry.questions)} questions asked. "
+                    "No evaluation could be performed."
+                ),
+                "strengths": "None identified — no answers provided",
+                "weaknesses": "No responses to any interview questions",
+                "recommendations": "Candidate should reattempt the interview and provide verbal responses to questions.",
+            }
+            return self._build_summary(entry, raw)
+
         from app.services.openai_service import OpenAIService
 
         # Build transcript

@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     backend_api_url: str = "http://localhost:5000/api"
     backend_api_key: str = ""
 
+    # ── API Security ────────────────────────────────────────
+    ai_nlp_api_key: str = ""  # Inbound API key for Backend → AI-NLP calls
+
     # ── CV Analysis ─────────────────────────────────────────
     cv_pass_threshold: int = 85
     cv_upload_dir: str = "./data/uploads"
@@ -84,7 +87,7 @@ class Settings(BaseSettings):
 
     # ── Realtime Interview ──────────────────────────────────
     realtime_model: str = "gpt-4o-mini-realtime-preview"
-    realtime_voice: str = "nova"
+    realtime_voice: str = "alloy"
     realtime_vad_threshold: float = 0.5
     realtime_turn_detection: str = "server_vad"
     realtime_max_questions: int = 12

@@ -14,11 +14,11 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
-from app.middleware import RequestTrackingMiddleware
+from app.middleware import ApiKeyMiddleware, RequestTrackingMiddleware
 
 # ── Logging ────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -97,6 +97,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── API Key authentication ─────────────────────────────────────────────
+app.add_middleware(ApiKeyMiddleware, api_key=settings.ai_nlp_api_key)
+
 # ── Request tracking ──────────────────────────────────────────────────
 app.add_middleware(RequestTrackingMiddleware)
 
@@ -106,12 +109,14 @@ from app.api.v1.interview import router as interview_router  # noqa: E402
 from app.api.v1.rankings import router as rankings_router  # noqa: E402
 from app.api.v1.realtime_interview import router as realtime_router  # noqa: E402
 from app.api.v1.tests import router as tests_router  # noqa: E402
+from app.api.v1.backend_integration import router as backend_router  # noqa: E402
 
 app.include_router(cv_router, prefix="/api/v1")
 app.include_router(tests_router, prefix="/api/v1")
 app.include_router(rankings_router, prefix="/api/v1")
 app.include_router(interview_router, prefix="/api/v1")
 app.include_router(realtime_router, prefix="/api/v1")
+app.include_router(backend_router, prefix="/api/v1")
 
 # ── Static files (interview room UI) ───────────────────────────────────
 _static_dir = Path(__file__).resolve().parent / "static"
@@ -122,11 +127,8 @@ if _static_dir.exists():
 # ── Interview Room pages ──────────────────────────────────────────────
 @app.get("/interview-room", include_in_schema=False)
 async def interview_room():
-    """Serve the AI Video Interview room HTML page (HTTP turn-based)."""
-    html_path = _static_dir / "interview-room" / "index.html"
-    if not html_path.exists():
-        raise HTTPException(status_code=404, detail="Interview room UI not found. Ensure static assets are included in the deployment.")
-    return FileResponse(str(html_path), media_type="text/html")
+    """Redirect to the realtime voice interview page."""
+    return RedirectResponse(url="/realtime-interview")
 
 
 @app.get("/realtime-interview", include_in_schema=False)
@@ -142,8 +144,16 @@ async def realtime_interview_room():
 # ── Health check ───────────────────────────────────────────────────────
 @app.get("/health", tags=["Health"])
 async def health():
-    """Simple liveness probe."""
-    return {"status": "healthy", "service": "cvnokta-ai-nlp", "version": "0.1.0"}
+    """Liveness probe with service info for Backend integration testing."""
+    s = get_settings()
+    return {
+        "status": "healthy",
+        "service": "cvnokta-ai-nlp",
+        "version": "0.1.0",
+        "environment": s.app_env,
+        "api_key_required": bool(s.ai_nlp_api_key),
+        "endpoints": ["cv", "tests", "interview", "interview/realtime", "rankings"],
+    }
 
 
 @app.get("/", tags=["Health"])

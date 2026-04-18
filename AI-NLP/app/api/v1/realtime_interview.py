@@ -42,10 +42,10 @@ def _validate_init_payload(msg: dict) -> str | None:
     if not job_posting.get("job_title"):
         return "job_posting.job_title is required"
 
-    # Reject unknown keys to prevent memory abuse
+    # Strip unknown keys to prevent memory abuse (keep only allowed fields)
     unknown_keys = set(job_posting.keys()) - _MAX_JOB_POSTING_FIELDS
-    if unknown_keys:
-        return f"job_posting contains unknown fields: {', '.join(sorted(unknown_keys))}"
+    for k in unknown_keys:
+        del job_posting[k]
 
     for key, value in job_posting.items():
         if not isinstance(value, str) or len(value) > _MAX_JOB_POSTING_FIELD_LEN:
@@ -88,6 +88,7 @@ async def realtime_interview_ws(websocket: WebSocket):
     """
     await websocket.accept()
     session_id = None
+    logger.info("WebSocket accepted, waiting for init message...")
 
     try:
         # Step 1: Receive init message
@@ -118,6 +119,7 @@ async def realtime_interview_ws(websocket: WebSocket):
         # Validate field types, lengths, and required subfields
         validation_error = _validate_init_payload(init_msg)
         if validation_error:
+            logger.warning("Init payload validation failed: %s", validation_error)
             await websocket.send_json({
                 "type": "error",
                 "message": validation_error,
@@ -127,6 +129,7 @@ async def realtime_interview_ws(websocket: WebSocket):
             return
 
         session_id = init_msg.get("session_id") or str(uuid4())
+        logger.info("Init message received, session=%s, candidate=%s", session_id, init_msg.get("candidate_name"))
         # TODO: Validate application_id against real application records
         #       once .NET backend integration provides real IDs.
         application_id = init_msg["application_id"]
@@ -152,16 +155,24 @@ async def realtime_interview_ws(websocket: WebSocket):
             await websocket.close(code=1008)
             return
 
+        logger.info("Session created successfully, connecting to OpenAI... (session=%s)", session_id)
+
         # Step 3: Connect to OpenAI
         try:
             openai_ws = await _engine.connect_to_openai(session_id)
-        except RuntimeError as exc:
-            await websocket.send_json({
-                "type": "error",
-                "message": str(exc),
-                "recoverable": False,
-            })
-            await websocket.close(code=1011)
+        except Exception as exc:
+            logger.error("OpenAI Realtime connection failed (session=%s): %s: %s", session_id, type(exc).__name__, exc)
+            import traceback
+            traceback.print_exc()
+            try:
+                await websocket.send_json({
+                    "type": "error",
+                    "message": str(exc),
+                    "recoverable": False,
+                })
+                await websocket.close(code=1011)
+            except Exception:
+                pass
             _engine.remove_session(session_id)
             return
 

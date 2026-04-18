@@ -39,10 +39,11 @@ class GenerateTestRequest(BaseModel):
     )
 
 
-@router.post("/{test_type}/generate", response_model=TestQuestionsResponse)
+@router.post("/{test_type}/generate")
 async def generate_test(
     test_type: str,
     request: GenerateTestRequest,
+    include_answers: bool = False,
     engine: TestEngine = Depends(get_test_engine),
 ):
     """
@@ -84,6 +85,8 @@ async def generate_test(
             detail="AI could not generate valid test questions. Please try again.",
         )
 
+    if include_answers:
+        return engine.build_questions_response_with_answers(test_type, questions)
     return engine.build_questions_response(test_type, questions)
 
 

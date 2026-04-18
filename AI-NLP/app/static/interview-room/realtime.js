@@ -550,10 +550,17 @@
   function addTranscriptEntry(role, text) {
     const div = document.createElement("div");
     div.className = `transcript-entry ${role}`;
-    div.innerHTML = `
-      <div class="transcript-role">${role === "assistant" ? "AI" : "You"}</div>
-      <div class="transcript-text">${escapeHtml(text)}</div>
-    `;
+
+    const roleDiv = document.createElement("div");
+    roleDiv.className = "transcript-role";
+    roleDiv.textContent = role === "assistant" ? "AI" : "You";
+
+    const textDiv = document.createElement("div");
+    textDiv.className = "transcript-text";
+    textDiv.textContent = text;
+
+    div.appendChild(roleDiv);
+    div.appendChild(textDiv);
     transcriptBody.appendChild(div);
     transcriptBody.scrollTop = transcriptBody.scrollHeight;
     return div;

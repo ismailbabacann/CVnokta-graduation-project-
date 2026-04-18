@@ -44,6 +44,7 @@ class JobPostingInput(BaseModel):
     work_model: Optional[str] = None         # Remote / Hybrid / OnSite
 
     about_company: Optional[str] = None
+    about_role: Optional[str] = None         # "Rol Hakkında" — Backend's AboutRole field
     responsibilities: Optional[str] = None   # rich text / HTML
     required_qualifications: Optional[str] = None  # rich text / HTML
     required_skills: Optional[str] = None    # legacy comma-separated
@@ -68,8 +69,10 @@ class JobPostingInput(BaseModel):
 
     benefits: Optional[str] = None           # comma-separated
     status: Optional[str] = "Active"
+    is_draft: Optional[bool] = None
     posted_date: Optional[datetime] = None
     closing_date: Optional[datetime] = None
+    has_english_exam: Optional[bool] = None
 
     @field_validator("required_skills", mode="before")
     @classmethod

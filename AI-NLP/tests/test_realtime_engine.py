@@ -209,14 +209,18 @@ class TestTranscriptAccumulation:
         monkeypatch.setenv("REALTIME_MAX_TRANSCRIPT_ENTRIES", "3")
         engine = _make_engine()
         # Override the settings value directly
+        original_max = engine._settings.realtime_max_transcript_entries
         engine._settings.realtime_max_transcript_entries = 3
         sid = _create_test_session(engine)
         entry = engine._sessions[sid]
 
-        for i in range(5):
-            engine._add_transcript(entry, "user", f"Message {i}")
+        try:
+            for i in range(5):
+                engine._add_transcript(entry, "user", f"Message {i}")
 
-        assert len(entry.session.transcript) == 3
+            assert len(entry.session.transcript) == 3
+        finally:
+            engine._settings.realtime_max_transcript_entries = original_max
 
     def test_transcript_entries_have_timestamps(self):
         engine = _make_engine()
@@ -734,7 +738,7 @@ class TestConfigValidation:
         assert s.realtime_max_session_duration_seconds == 900
         assert s.realtime_max_silence_seconds == 30
         assert s.realtime_model == "gpt-4o-mini-realtime-preview"
-        assert s.realtime_voice == "nova"
+        assert s.realtime_voice == "alloy"
 
     @pytest.mark.asyncio
     async def test_connect_without_api_key_fails(self, monkeypatch):
@@ -893,18 +897,22 @@ class TestTranscriptLimitEnd:
         entry = engine._sessions[sid]
 
         # Fill transcript to the limit
+        original_max = engine._settings.realtime_max_transcript_entries
         engine._settings.realtime_max_transcript_entries = 2
-        engine._add_transcript(entry, "assistant", "Q1")
-        engine._add_transcript(entry, "user", "A1")
+        try:
+            engine._add_transcript(entry, "assistant", "Q1")
+            engine._add_transcript(entry, "user", "A1")
 
-        # Next transcript should trigger interview_complete
-        result = await engine.handle_openai_event(sid, {
-            "type": "conversation.item.input_audio_transcription.completed",
-            "transcript": "This should hit the limit",
-        })
-        assert result is not None
-        assert result["type"] == "interview_complete"
-        assert result["reason"] == "transcript_limit"
+            # Next transcript should trigger interview_complete
+            result = await engine.handle_openai_event(sid, {
+                "type": "conversation.item.input_audio_transcription.completed",
+                "transcript": "This should hit the limit",
+            })
+            assert result is not None
+            assert result["type"] == "interview_complete"
+            assert result["reason"] == "transcript_limit"
+        finally:
+            engine._settings.realtime_max_transcript_entries = original_max
 
     @pytest.mark.asyncio
     async def test_transcript_limit_triggers_end_on_assistant_message(self):
@@ -913,16 +921,20 @@ class TestTranscriptLimitEnd:
         engine._transition(sid, RealtimeSessionStatus.ACTIVE)
         entry = engine._sessions[sid]
 
+        original_max = engine._settings.realtime_max_transcript_entries
         engine._settings.realtime_max_transcript_entries = 1
-        engine._add_transcript(entry, "assistant", "Q1")
+        try:
+            engine._add_transcript(entry, "assistant", "Q1")
 
-        result = await engine.handle_openai_event(sid, {
-            "type": "response.audio_transcript.done",
-            "transcript": "This should hit the limit",
-        })
-        assert result is not None
-        assert result["type"] == "interview_complete"
-        assert result["reason"] == "transcript_limit"
+            result = await engine.handle_openai_event(sid, {
+                "type": "response.audio_transcript.done",
+                "transcript": "This should hit the limit",
+            })
+            assert result is not None
+            assert result["type"] == "interview_complete"
+            assert result["reason"] == "transcript_limit"
+        finally:
+            engine._settings.realtime_max_transcript_entries = original_max
 
 
 # ── Session Eviction Tests ───────────────────────────────────────
