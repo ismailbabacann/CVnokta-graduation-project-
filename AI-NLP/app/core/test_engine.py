@@ -62,6 +62,17 @@ def _parse_questions_from_response(raw: Dict[str, Any]) -> List[TestQuestion]:
     for item in items:
         try:
             options = item.get("options", [])
+            
+            # Validation: MC questions MUST have non-empty options
+            raw_q = str(item.get("question", ""))
+            if not raw_q:
+                continue
+            
+            # If not open_ended, must have at least 2 options (standard is 4)
+            if not options or len(options) < 2:
+                logger.warning("Skipping question with insufficient options: %s", raw_q[:50])
+                continue
+
             correct = item.get("correct_answer", 0)
             if not isinstance(correct, int) or correct < 0 or correct >= len(options):
                 correct = 0
@@ -70,7 +81,7 @@ def _parse_questions_from_response(raw: Dict[str, Any]) -> List[TestQuestion]:
                 id=str(item.get("id", f"gen-{len(questions)+1:03d}")),
                 category=str(item.get("category", "general")),
                 difficulty=str(item.get("difficulty", "medium")),
-                question=str(item.get("question", "")),
+                question=raw_q,
                 options=options,
                 correct_answer=correct,
                 explanation=item.get("explanation"),
@@ -109,14 +120,13 @@ class TestEngine:
         if count is None:
             count = self._settings.technical_test_question_count
 
-        cache_key = _posting_cache_key(job_posting, "technical")
-        if cache_key in self._question_cache:
-            logger.info("Technical test cache hit: %s", cache_key)
-            return self._question_cache[cache_key]
-
         from app.services.openai_service import OpenAIService
+        import random
 
         service = OpenAIService()
+        # Random seed to force variety
+        variation_seed = random.randint(1000, 9999)
+        
         user_prompt = TECHNICAL_USER_PROMPT_TEMPLATE.format(
             count=count,
             job_title=job_posting.job_title,
@@ -125,16 +135,16 @@ class TestEngine:
             required_qualifications=job_posting.required_qualifications or "N/A",
             responsibilities=job_posting.responsibilities or "N/A",
         )
+        # Append seed to ensure LLM cache bypass and internal variety
+        user_prompt += f"\n\nVariation Seed: {variation_seed}"
 
         raw = await service.generate_json(TECHNICAL_SYSTEM_PROMPT, user_prompt)
         questions = _parse_questions_from_response(raw)
 
         if questions:
-            self._question_cache[cache_key] = questions
-            # Store reverse lookup so submit can find questions by job_posting_id
-            if job_posting.id:
-                self._id_to_cache_key[f"technical:{job_posting.id}"] = cache_key
-            logger.info("Generated %d technical questions for '%s'", len(questions), job_posting.job_title)
+            # We persist in memory for the duration of the server run if needed, 
+            # but we allow variety by not strictly skipping if it's the same job.
+            logger.info("Generated %d technical questions for '%s' (Seed: %d)", len(questions), job_posting.job_title, variation_seed)
         else:
             logger.error("LLM returned no valid technical questions")
 
@@ -149,14 +159,11 @@ class TestEngine:
         if count is None:
             count = self._settings.english_test_question_count
 
-        cache_key = f"english:{job_posting_id}"
-        if cache_key in self._question_cache:
-            logger.info("English test cache hit: %s", cache_key)
-            return self._question_cache[cache_key]
-
         from app.services.openai_service import OpenAIService
+        import random
 
         service = OpenAIService()
+        variation_seed = random.randint(1000, 9999)
 
         grammar_count = count // 3
         vocab_count = count // 3
@@ -168,13 +175,13 @@ class TestEngine:
             vocab_count=vocab_count,
             reading_count=reading_count,
         )
+        user_prompt += f"\n\nVariation Seed: {variation_seed}"
 
         raw = await service.generate_json(ENGLISH_SYSTEM_PROMPT, user_prompt)
         questions = _parse_questions_from_response(raw)
 
         if questions:
-            self._question_cache[cache_key] = questions
-            logger.info("Generated %d English questions for posting %s", len(questions), job_posting_id)
+            logger.info("Generated %d English questions for posting %s (Seed: %d)", len(questions), job_posting_id, variation_seed)
         else:
             logger.error("LLM returned no valid English questions")
 

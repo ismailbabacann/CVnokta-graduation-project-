@@ -23,6 +23,7 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs
         public int TotalInterviews { get; set; }
         public string NlpScoreSummary { get; set; } // "%85 Üstü: 26 Aday"
         public decimal NlpScorePercentage { get; set; } // Progress bar için (0-100)
+        public int NlpHighMatchCount { get; set; } // %70 üzeri eşleşme sayısı
         public string Status { get; set; } // Aktif, Beklemede, Taslak
     }
 
@@ -37,15 +38,18 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs
     {
         private readonly IGenericRepositoryAsync<JobPosting> _jobRepository;
         private readonly IGenericRepositoryAsync<JobApplication> _appRepository;
+        private readonly IGenericRepositoryAsync<CvAnalysisResult> _cvAnalysisRepository;
         private readonly IAuthenticatedUserService _authenticatedUserService;
 
         public GetDashboardJobsQueryHandler(
             IGenericRepositoryAsync<JobPosting> jobRepository,
             IGenericRepositoryAsync<JobApplication> appRepository,
+            IGenericRepositoryAsync<CvAnalysisResult> cvAnalysisRepository,
             IAuthenticatedUserService authenticatedUserService)
         {
             _jobRepository = jobRepository;
             _appRepository = appRepository;
+            _cvAnalysisRepository = cvAnalysisRepository;
             _authenticatedUserService = authenticatedUserService;
         }
 
@@ -53,6 +57,7 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs
         {
             var jobs = await _jobRepository.GetAllAsync();
             var apps = await _appRepository.GetAllAsync();
+            var cvAnalyses = await _cvAnalysisRepository.GetAllAsync();
 
             // Safety check for user ID
             if (string.IsNullOrEmpty(_authenticatedUserService.UserId) || !Guid.TryParse(_authenticatedUserService.UserId, out var currentUserId))
@@ -103,6 +108,11 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs
                 string nlpSummary = jobApps.Count > 0 ? $"Toplam: {jobApps.Count} Başvuru" : "Henüz başvuru yok";
                 decimal nlpPercent = jobApps.Count > 0 ? Math.Min(100, (decimal)reviewedCount / jobApps.Count * 100) : 0;
 
+                // Mülakat / NLP skoru hesaplaması
+                var appIds = jobApps.Select(a => a.Id).ToList();
+                var jobAnalyses = cvAnalyses.Where(ca => appIds.Contains(ca.ApplicationId)).ToList();
+                int highMatchCount = jobAnalyses.Count(ca => ca.AnalysisScore >= 70m);
+
                 string displayId = (!string.IsNullOrEmpty(job.JobTitle) && job.JobTitle.Length >= 3)
                     ? job.JobTitle.Substring(0, 3).ToUpper() + "-" + job.Id.ToString().Substring(0, 4)
                     : "JOB-" + job.Id.ToString().Substring(0, 4);
@@ -119,7 +129,8 @@ namespace CleanArchitecture.Core.Features.JobPostings.Queries.GetDashboardJobs
                     TotalApplications = jobApps.Count,
                     TotalInterviews = totalInterviews,
                     NlpScoreSummary = nlpSummary,
-                    NlpScorePercentage = nlpPercent
+                    NlpScorePercentage = nlpPercent,
+                    NlpHighMatchCount = highMatchCount
                 });
             }
 

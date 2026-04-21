@@ -126,5 +126,16 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         {
             return Ok(await Mediator.Send(command));
         }
+
+        /// <summary>
+        /// Mülakat bitiminde yapay zeka veya frontend tarafından gönderilen gerçek zamanlı değerlendirme raporunu kaydeder.
+        /// </summary>
+        [HttpPost("save-realtime")]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> SaveRealtime([FromBody] CleanArchitecture.Core.Features.Interviews.Commands.SaveRealtimeInterviewSummary.SaveRealtimeInterviewSummaryCommand command)
+        {
+            return Ok(await Mediator.Send(command));
+        }
     }
 }

@@ -16,10 +16,15 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.api.deps import get_test_engine
-from app.config import get_settings
 from app.core.test_engine import TestEngine
 from app.models.job_posting import JobPostingInput
+from app.core.prompts.test_evaluation import (
+    TEST_EVALUATION_SYSTEM_PROMPT,
+    TEST_EVALUATION_USER_PROMPT_TEMPLATE,
+)
+from app.services.openai_service import OpenAIService
+from app.config import get_settings
+from app.api.deps import get_test_engine
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/backend", tags=["Backend Integration"])
@@ -63,6 +68,7 @@ async def generate_job_posting(request: GenerateJobPostingRequest):
     Returns camelCase JSON matching GeneratedJobPostingDto.
     """
     settings = get_settings()
+    logger.info("OpenAI Key present: %s", bool(settings.openai_api_key))
     if not settings.openai_api_key:
         raise HTTPException(
             status_code=503,
@@ -139,6 +145,7 @@ async def generate_exam(request: GenerateExamRequest):
     - Otherwise → technical/aptitude test
     """
     settings = get_settings()
+    logger.info("OpenAI Key present: %s", bool(settings.openai_api_key))
     if not settings.openai_api_key:
         raise HTTPException(
             status_code=503,
@@ -146,7 +153,15 @@ async def generate_exam(request: GenerateExamRequest):
         )
 
     context_lower = request.test_context.lower()
-    is_english = any(kw in context_lower for kw in ["ingilizce", "english", "İngilizce"])
+    # Broaden detection for English (explicit prefix from backend + keywords)
+    is_english = any(kw in context_lower for kw in [
+        "english_proficiency_test", 
+        "ingilizce", 
+        "english", 
+        "i̇ngilizce", # handles Turkish dotless 'i' vs 'İ' issues
+    ])
+
+    logger.info("Generating exam. Type: %s, Context: %s", "ENGLISH" if is_english else "TECHNICAL", request.test_context)
 
     engine: TestEngine = get_test_engine()
 
@@ -188,3 +203,70 @@ async def generate_exam(request: GenerateExamRequest):
         "description": description,
         "questions": exam_questions,
     }
+
+
+# ── Exam Analysis ───────────────────────────────────────────────────
+
+
+class QuestionAnalysisItem(BaseModel):
+    """Input from backend for one question's result."""
+    model_config = ConfigDict(populate_by_name=True)
+
+    question_text: str = Field(..., alias="questionText")
+    your_answer: str = Field(..., alias="yourAnswer")
+    correct_answer: str = Field(..., alias="correctAnswer")
+    is_correct: bool = Field(True, alias="isCorrect")
+
+
+class AnalyzeTestRequest(BaseModel):
+    """Input for analyzing exam submission."""
+    model_config = ConfigDict(populate_by_name=True)
+
+    application_id: str = Field(..., alias="applicationId")
+    job_title: str = Field(..., alias="jobTitle")
+    total_questions: int = Field(10, alias="totalQuestions")
+    correct_answers: int = Field(0, alias="correctAnswers")
+    score: float = Field(0.0, alias="score")
+    passed: bool = Field(False, alias="passed")
+    results: List[QuestionAnalysisItem] = Field(default_factory=list, alias="results")
+
+
+@router.post("/analyze-test-results")
+async def analyze_test_results(request: AnalyzeTestRequest):
+    """
+    Generate professional AI feedback for a candidate based on their exam performance.
+    """
+    settings = get_settings()
+    logger.info("OpenAI Key present: %s", bool(settings.openai_api_key))
+    if not settings.openai_api_key:
+        return {"feedback": "AI değerlendirmesi şu an yapılamıyor, lütfen manuel olarak devam ediniz."}
+
+    # Format question breakdown for LLM
+    breakdown = ""
+    for idx, res in enumerate(request.results, 1):
+        status = "✅ DOĞRU" if res.isCorrect else "❌ YANLIŞ"
+        breakdown += f"Soru {idx}: {res.questionText}\n"
+        breakdown += f"   - Adayın Cevabı: {res.yourAnswer}\n"
+        breakdown += f"   - Doğru Cevap: {res.correctAnswer}\n"
+        breakdown += f"   - Durum: {status}\n\n"
+
+    user_prompt = TEST_EVALUATION_USER_PROMPT_TEMPLATE.format(
+        job_title=request.jobTitle,
+        total_questions=request.totalQuestions,
+        correct_answers=request.correctAnswers,
+        score=request.score,
+        result_status="BAŞARILI" if request.passed else "BAŞARISIZ (Elenmiş)",
+        question_breakdown=breakdown,
+    )
+
+    service = OpenAIService()
+    try:
+        result = await service.generate_json(TEST_EVALUATION_SYSTEM_PROMPT, user_prompt)
+        return result
+    except Exception as exc:
+        logger.error("Test evaluation failed: %s", exc)
+        return {
+            "feedback": "Sınav sonucunuz sistem tarafından değerlendirildi. Detaylar için IK ekibiyle iletişime geçebilirsiniz.",
+            "strengths": [],
+            "weaknesses": [],
+        }

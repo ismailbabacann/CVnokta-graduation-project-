@@ -84,7 +84,7 @@ function CompanyJobs() {
             const jobId = selectedJob.jobId || selectedJob.id;
             // Filter candidates with NLP score below threshold and bulk reject them
             const toReject = jobCandidates
-                .filter(c => (c.nlpScore || c.analysisScore || 0) < aiRejectThreshold)
+                .filter(c => (c.nlpMatchScore || 0) < aiRejectThreshold)
                 .map(c => c.applicationId);
             if (toReject.length === 0) {
                 alert('Bu eşiğin altında elenecek aday bulunamadı.');

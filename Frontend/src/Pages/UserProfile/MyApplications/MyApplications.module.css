@@ -398,4 +398,25 @@
     color: #718096 !important;
     font-weight: 400 !important;
     font-size: 13px !important;
-}
+}
+
+/* AI Interview CTA Button */
+.interviewBtn {
+    display: inline-block;
+    padding: 13px 32px;
+    background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    text-decoration: none;
+    border-radius: 50px;
+    box-shadow: 0 4px 18px rgba(245, 87, 108, 0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.3px;
+}
+
+.interviewBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(245, 87, 108, 0.45);
+}
+

@@ -65,5 +65,16 @@ namespace CleanArchitecture.Infrastructure.Services
 
             return Task.FromResult(exam);
         }
+
+        public Task<string> GetExamFeedbackAsync(System.Guid applicationId, string jobTitle, int totalQuestions, int correctAnswers, decimal score, bool passed, System.Collections.Generic.List<CleanArchitecture.Core.Features.Exams.Commands.SubmitExam.QuestionResultDto> results)
+        {
+            return Task.FromResult("Mock AI Feedback: Genel olarak iyi ancak bazı teknik konularda gelişim gerekli.");
+        }
+
+        public Task AnalyzeCvAsync(System.Guid applicationId, string cvFilePath, CleanArchitecture.Core.Entities.JobPosting jobPosting, System.Guid stageId, System.Guid cvId)
+        {
+            // Do nothing in mock
+            return Task.CompletedTask;
+        }
     }
 }

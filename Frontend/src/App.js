@@ -26,6 +26,7 @@ import CompanyHelp from './Pages/CompanyPanel/Help/CompanyHelp.js';
 import BestCandidates from './Pages/CompanyPanel/BestCandidates/BestCandidates.js';
 import Exam from './Pages/Exam/Exam.js';
 import ExamTake from './Pages/Exam/ExamTake.js';
+import VideoInterview from './Pages/VideoInterview/VideoInterview.js';
 import './App.css';
 
 function App() {
@@ -48,7 +49,8 @@ function App() {
   const isCompanyRoute = location.pathname.startsWith('/company');
   const isProfileRoute = location.pathname.startsWith('/profile');
   const isExamRoute = location.pathname.startsWith('/exam') || location.pathname.startsWith('/exam/take');
-  const hideMainHeaderFooter = isCompanyRoute || isProfileRoute || isExamRoute;
+  const isInterviewRoute = location.pathname.startsWith('/interview');
+  const hideMainHeaderFooter = isCompanyRoute || isProfileRoute || isExamRoute || isInterviewRoute;
 
   return (
     <div className="app">
@@ -63,6 +65,7 @@ function App() {
           <Route path="/insights" element={<Insights />} />
           <Route path="/exam" element={<Exam />} />
           <Route path="/exam/take/:token" element={<ExamTake />} />
+          <Route path="/interview/:applicationId" element={<VideoInterview />} />
           <Route path="/jobs" element={<JobList />} />
           <Route path="/jobs/:id" element={<JobView />} />
           <Route path="/apply/:id" element={<ApplicationForm onBack={handleBack} />} />

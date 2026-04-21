@@ -16,7 +16,7 @@ fundamental technical knowledge required for a specific job posting.
 Rules:
 - Questions must be directly relevant to the job's required skills and qualifications.
 - Questions test practical, applied knowledge — not trivia.
-- Each question has exactly 4 options, only 1 is correct.
+- Each question has exactly 4 options, only 1 is correct. Options must be distinct and non-empty.
 - Difficulty should be "easy" to "medium" — testing baseline competency, not expert depth.
 - Provide a brief explanation for the correct answer.
 - Assign each question a category based on the skill/topic it tests.
@@ -51,7 +51,8 @@ Important:
 - IDs must be sequential: tq-001, tq-002, ..., tq-{count:03d}
 - Distribute questions across the required skills evenly.
 - Questions must be in English.
-- Do NOT repeat similar questions.
+- Avoid clichés and repetitive textbook examples. Use professional, realistic scenarios.
+- IMPORTANT: The "options" array MUST contain 4 strings. NEVER return an empty array for options.
 """
 
 # ── English Proficiency ─────────────────────────────────────────────
@@ -67,7 +68,7 @@ The test evaluates three competency areas:
 
 Rules:
 - All questions are at B1-B2 level (intermediate to upper-intermediate).
-- Each question has exactly 4 options, only 1 is correct.
+- Each question has exactly 4 options, only 1 is correct. Options must be distinct and non-empty.
 - Provide a brief explanation for the correct answer.
 - Output valid JSON only, no markdown fences, no extra text.
 """
@@ -99,5 +100,6 @@ Important:
 - IDs must be sequential: eq-001, eq-002, ..., eq-{count:03d}
 - For reading comprehension, include a short passage within the question text.
 - Questions must test practical English skills relevant to a professional/workplace context.
-- Do NOT repeat similar questions.
+- Avoid repeating common English test clichés. Vary the sentence structures.
+- IMPORTANT: The "options" array MUST contain 4 strings. NEVER return an empty array for options.
 """

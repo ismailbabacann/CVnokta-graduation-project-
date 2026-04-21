@@ -585,7 +585,7 @@ namespace CleanArchitecture.Core.Helpers
         // ══════════════════════════════════════════════════════════════════
         //  8. PIPELINE — AI INTERVIEW INVITE
         // ══════════════════════════════════════════════════════════════════
-        public static string GetAiInterviewInviteTemplate(string candidateName, string jobTitle, int threshold)
+        public static string GetAiInterviewInviteTemplate(string candidateName, string jobTitle, int threshold, string interviewUrl)
         {
             var body = $@"
                     <!-- Header -->
@@ -618,7 +618,11 @@ namespace CleanArchitecture.Core.Helpers
                                 </table>
                             </div>
 
-                            <p>Sisteme giriş yaparak AI mülakatınıza başlayabilirsiniz. Kendinize güvenin! 💪</p>
+                            <div style='text-align:center; margin:32px 0;'>
+                                <a href='{interviewUrl}' class='btn' style='color:#ffffff; background-color: #f5576c;'>📸 Mülakata Başla</a>
+                            </div>
+
+                            <p>Mülakat linkiniz yalnızca size özeldir. Kendinize güvenin! 💪</p>
 
                             <hr class='divider' />
                             <p>Saygılarımızla,<br/><strong>CVNokta İK Ekibi</strong></p>
@@ -681,7 +685,7 @@ namespace CleanArchitecture.Core.Helpers
         //  10. PIPELINE — REJECTION (stage-aware)
         // ══════════════════════════════════════════════════════════════════
         public static string GetPipelineRejectionTemplate(
-            string candidateName, string jobTitle, string stageName, int score, int threshold)
+            string candidateName, string jobTitle, string stageName, int score, int threshold, string aiFeedback = null)
         {
             var body = $@"
                     <!-- Header -->
@@ -723,6 +727,13 @@ namespace CleanArchitecture.Core.Helpers
                             </div>
 
                             <p><strong>{stageName}</strong> aşamasında elde ettiğiniz skor, bu pozisyon için belirlenen gerekli eşiğin altında kalmıştır.</p>
+                            
+                            {(!string.IsNullOrWhiteSpace(aiFeedback) ? $@"
+                            <div style='background-color:#fff5f5; border-left: 4px solid {DangerColor}; padding:16px; margin:20px 0;'>
+                                <p style='margin:0 0 8px 0; font-weight:600; color:{DangerColor};'>🤖 Yapay Zeka Değerlendirmesi:</p>
+                                <p style='margin:0; font-size:14px; color:{TextDark};'>{aiFeedback}</p>
+                            </div>" : "")}
+
                             <p>Bu karar, yetkinliklerinizin ve deneyimlerinizin değerini azaltmamaktadır. Kendinizi geliştirmeye devam etmenizi ve ileride uygun pozisyonlara başvurmanızı tavsiye ederiz.</p>
 
                             <hr class='divider' />
