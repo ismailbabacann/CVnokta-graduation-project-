@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Application.Interfaces;
+using CleanArchitecture.Application.Features.JobPostings.Queries.GenerateEnglishExam;
 
 namespace CleanArchitecture.Core.Features.Exams.Services
 {
@@ -20,15 +22,18 @@ namespace CleanArchitecture.Core.Features.Exams.Services
         private readonly IGenericRepositoryAsync<Exam> _examRepo;
         private readonly IGenericRepositoryAsync<Question> _questionRepo;
         private readonly IGenericRepositoryAsync<JobPosting> _jobRepo;
+        private readonly IAiJobPostingGenerationService _aiService;
 
         public JobExamSeedService(
             IGenericRepositoryAsync<Exam> examRepo,
             IGenericRepositoryAsync<Question> questionRepo,
-            IGenericRepositoryAsync<JobPosting> jobRepo)
+            IGenericRepositoryAsync<JobPosting> jobRepo,
+            IAiJobPostingGenerationService aiService)
         {
             _examRepo     = examRepo;
             _questionRepo = questionRepo;
             _jobRepo      = jobRepo;
+            _aiService    = aiService;
         }
 
         // ── Public API ──────────────────────────────────────────────────────
@@ -39,10 +44,10 @@ namespace CleanArchitecture.Core.Features.Exams.Services
         public Task<Exam> EnsureTechnicalExam(Guid jobId) => EnsureExam(jobId, 2);
 
         /// <summary>
-        /// Returns the approved exam for this job at the given stage,
+        /// Returns the Stage 1 (English) exam for this job,
         /// creating it (and saving questions) if it doesn't exist yet.
         /// </summary>
-        public async Task<Exam> EnsureExamExistsForJob(Guid jobId) => await EnsureExam(jobId, 1);
+        public async Task<Exam> EnsureEnglishExamForJob(Guid jobId) => await EnsureExam(jobId, 1);
 
         // ── Internal ────────────────────────────────────────────────────────
         private async Task<Exam> EnsureExam(Guid jobId, int stage)
@@ -56,9 +61,15 @@ namespace CleanArchitecture.Core.Features.Exams.Services
             var threshold = job?.PipelinePassThreshold ?? 70;
             var jobTitle  = job?.JobTitle ?? "Pozisyon";
             var techType  = DetectTechType(job?.JobTitle ?? "", job?.Department ?? "");
+            
+            // STRICT ENFORCEMENT: Stage 1 is ALWAYS English
+            if (stage == 1)
+            {
+                var existingEnglish = allExams.FirstOrDefault(e => e.JobId == jobId && (e.SequenceOrder == 1 || e.ExamType == "english") && e.Status == "approved");
+                if (existingEnglish != null) return existingEnglish;
+            }
 
             Exam exam;
-            List<Question> questions;
 
             if (stage == 1)
             {
@@ -75,7 +86,6 @@ namespace CleanArchitecture.Core.Features.Exams.Services
                     PassThreshold   = threshold,
                     ApprovedAt      = DateTime.UtcNow
                 };
-                questions = GetEnglishQuestions();
             }
             else
             {
@@ -92,17 +102,157 @@ namespace CleanArchitecture.Core.Features.Exams.Services
                     PassThreshold   = threshold,
                     ApprovedAt      = DateTime.UtcNow
                 };
-                questions = GetTechnicalQuestions(techType);
             }
 
             await _examRepo.AddAsync(exam);
-            foreach (var q in questions)
+
+            // Target 50% AI / 50% DB Pool
+            int targetTotal = stage == 1 ? 10 : 10; // Standard 10 questions per exam
+            int aiTarget = 5;
+            int poolTarget = 5;
+
+            List<Question> finalQuestions = new List<Question>();
+
+            // 1. Try to get questions from DB Pool
+            var poolQuestions = await GetQuestionsFromPool(exam.ExamType, poolTarget);
+            finalQuestions.AddRange(poolQuestions);
+
+            // 2. Adjust AI target if pool was smaller than expected
+            int remainingNeeded = targetTotal - finalQuestions.Count;
+            
+            // 3. Try AI-generated questions
+            try
             {
+                if (stage == 1)
+                {
+                    var examDto = await _aiService.GenerateEnglishExamAsync(
+                        $"ENGLISH_PROFICIENCY_TEST: {jobTitle}");
+                    var aiQuestions = ConvertAiQuestionsToEntities(examDto?.Questions);
+                    if (aiQuestions != null)
+                        finalQuestions.AddRange(aiQuestions.Take(remainingNeeded));
+                }
+                else
+                {
+                    var examDto = await _aiService.GenerateEnglishExamAsync(
+                        $"TECHNICAL_ASSESSMENT: {jobTitle} ({techType})");
+                    var aiQuestions = ConvertAiQuestionsToEntities(examDto?.Questions);
+                    if (aiQuestions != null)
+                        finalQuestions.AddRange(aiQuestions.Take(remainingNeeded));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[JobExamSeedService] AI generation failed: {ex.Message}");
+            }
+
+            // 4. Final Fallback: If we still don't have enough questions
+            if (finalQuestions.Count < targetTotal)
+            {
+                var fallback = stage == 1 ? GetEnglishQuestions() : GetTechnicalQuestions(techType);
+                foreach (var fq in fallback)
+                {
+                    if (finalQuestions.Count >= targetTotal) break;
+                    if (!finalQuestions.Any(q => q.QuestionText == fq.QuestionText))
+                        finalQuestions.Add(fq);
+                }
+            }
+
+            // Shuffle and assign IDs/ExamId/Order
+            var shuffled = finalQuestions.OrderBy(x => Guid.NewGuid()).Take(targetTotal).ToList();
+            for (int i = 0; i < shuffled.Count; i++)
+            {
+                var q = shuffled[i];
+                q.Id = Guid.NewGuid();
                 q.ExamId = exam.Id;
+                q.OrderIndex = i + 1;
                 await _questionRepo.AddAsync(q);
             }
 
             return exam;
+        }
+
+        // ── AI question converter ────────────────────────────────────────────────
+        private static List<Question> ConvertAiQuestionsToEntities(List<GeneratedExamQuestionDto> dtos)
+        {
+            if (dtos == null || dtos.Count == 0) return null;
+            var result = new List<Question>();
+            for (int i = 0; i < dtos.Count; i++)
+            {
+                var dto = dtos[i];
+                if (string.IsNullOrWhiteSpace(dto.QuestionText)) continue;
+
+                // Determine correct answer key (A/B/C/D) by matching correctAnswer text to options
+                var opts = dto.Options ?? new List<string>();
+                string correctKey = "A";
+                char[] keys = { 'A', 'B', 'C', 'D' };
+                for (int k = 0; k < opts.Count && k < keys.Length; k++)
+                {
+                    if (string.Equals(opts[k].Trim(), dto.CorrectAnswer?.Trim(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        correctKey = keys[k].ToString();
+                        break;
+                    }
+                }
+
+                // Build OptionsJson
+                var optionParts = new List<string>();
+                for (int k = 0; k < opts.Count && k < keys.Length; k++)
+                {
+                    if (!string.IsNullOrWhiteSpace(opts[k]))
+                        optionParts.Add($"{{\"key\":\"{keys[k]}\",\"text\":\"{Esc(opts[k])}\"}}");
+                }
+                
+                // HARDENING: If 0 or 1 options for a MC question, skip it
+                if (optionParts.Count < 2) continue;
+
+                var optionsJson = "[" + string.Join(",", optionParts) + "]";
+
+                result.Add(new Question
+                {
+                    Id           = Guid.NewGuid(),
+                    OrderIndex   = i + 1,
+                    Points       = 10,
+                    QuestionText = dto.QuestionText,
+                    QuestionType = "multiple_choice",
+                    CorrectAnswer = correctKey,
+                    OptionsJson  = optionsJson
+                });
+            }
+            return result;
+        }
+
+        private async Task<List<Question>> GetQuestionsFromPool(string examType, int count)
+        {
+            var allQuestions = (List<Question>)await _questionRepo.GetAllAsync();
+            var pool = allQuestions
+                .Where(q => q.Exam != null && q.Exam.ExamType == examType && q.Exam.Status == "approved")
+                .OrderBy(x => Guid.NewGuid()) // Random shuffle
+                .ToList();
+
+            // If Exam navigation is null (lazy loading), we might need to fetch exams first or join
+            if (pool.Count == 0)
+            {
+                // Fallback to searching by any question that might have text matching type if needed, 
+                // but usually the ExamId is enough if we join.
+                var allExams = (List<Exam>)await _examRepo.GetAllAsync();
+                var targets  = allExams.Where(e => e.ExamType == examType && e.Status == "approved").Select(e => e.Id).ToList();
+                pool = allQuestions
+                    .Where(q => targets.Contains(q.ExamId))
+                    .OrderBy(x => Guid.NewGuid())
+                    .Take(count)
+                    .Select(q => new Question {
+                        QuestionText = q.QuestionText,
+                        QuestionType = q.QuestionType,
+                        QuestionCategory = q.QuestionCategory,
+                        OptionsJson = q.OptionsJson,
+                        CorrectAnswer = q.CorrectAnswer,
+                        Points = q.Points,
+                        MediaUrl = q.MediaUrl
+                    })
+                    .ToList();
+            }
+
+            return pool.Take(count).ToList();
         }
 
         // ── Tech type detection ─────────────────────────────────────────────

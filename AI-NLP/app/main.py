@@ -47,14 +47,11 @@ async def _session_eviction_loop():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan — runs on startup & shutdown."""
-    logger.info("🚀 CVnokta AI-NLP service starting up …")
-    logger.info("   Environment : %s", settings.app_env)
-    logger.info("   Debug       : %s", settings.app_debug)
-    logger.info("   Data dir    : %s", settings.data_dir)
-    logger.info("   Embedding   : %s", settings.embedding_model)
-    logger.info("   LLM cache   : %s (max=%d, ttl=%ds)",
-                "enabled" if settings.llm_cache_enabled else "disabled",
-                settings.llm_cache_max_size, settings.llm_cache_ttl_seconds)
+    # Diagnostic logging
+    import os
+    logger.info("   Current CWD : %s", os.getcwd())
+    logger.info("   .env exists : %s", Path(".env").exists())
+    logger.info("   openai_api_key present: %s", bool(settings.openai_api_key))
 
     # FAISS thread safety notice
     logger.info("   ⚠ FAISS: per-request indexes — safe for single-worker deployment")
@@ -152,6 +149,7 @@ async def health():
         "version": "0.1.0",
         "environment": s.app_env,
         "api_key_required": bool(s.ai_nlp_api_key),
+        "openai_key_present": bool(s.openai_api_key),
         "endpoints": ["cv", "tests", "interview", "interview/realtime", "rankings"],
     }
 

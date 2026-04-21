@@ -405,14 +405,24 @@ function CompanyCandidates() {
                                     {(() => {
                                         const stage = selectedCandidate.currentPipelineStage;
                                         const stages = [
+                                            { key: 'NLP_REVIEW',           label: 'CV Analizi',      icon: '🔍', color: '#667eea' },
                                             { key: 'ENGLISH_TEST_PENDING', label: 'İngilizce Testi', icon: '🇬🇧', color: '#00b4db' },
                                             { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',    icon: '📝', color: '#ed8936' },
                                             { key: 'AI_INTERVIEW_PENDING', label: 'AI Mülakat',      icon: '🤖', color: '#f5576c' },
-                                            { key: 'NLP_REVIEW',           label: 'CV Analizi',      icon: '🔍', color: '#667eea' },
                                             { key: 'COMPLETED',            label: 'Tamamlandı',      icon: '🎉', color: '#48bb78' },
                                         ];
-                                        const order = { ENGLISH_TEST_PENDING:0, SKILLS_TEST_PENDING:1, AI_INTERVIEW_PENDING:2, NLP_REVIEW:3, COMPLETED:4, REJECTED_ENGLISH:0, REJECTED_SKILLS:1, REJECTED_AI:2, REJECTED_NLP:3 };
-                                        const currentIdx = order[stage] ?? 0;
+                                        const order = { 
+                                            NLP_REVIEW: 0,
+                                            ENGLISH_TEST_PENDING: 1, 
+                                            SKILLS_TEST_PENDING: 2, 
+                                            AI_INTERVIEW_PENDING: 3, 
+                                            COMPLETED: 4,
+                                            REJECTED_NLP: 0,
+                                            REJECTED_ENGLISH: 1, 
+                                            REJECTED_SKILLS: 2, 
+                                            REJECTED_AI: 3 
+                                        };
+                                        const currentIdx = order[stage] ?? -1; // If stage unknown, don't highlight anything yet
                                         const rejected   = stage?.startsWith('REJECTED_');
                                         const completed  = stage === 'COMPLETED';
                                         return (
@@ -420,7 +430,7 @@ function CompanyCandidates() {
                                                 <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '16px' }}>
                                                     {stages.map((s, idx) => {
                                                         let bg = '#f1f5f9', textCol = '#94a3b8', borderCol = '#e2e8f0';
-                                                        if (completed) { bg = s.color; textCol = '#fff'; borderCol = s.color; }
+                                                        if (completed) { bg = '#48bb78'; textCol = '#fff'; borderCol = '#48bb78'; }
                                                         else if (rejected) {
                                                             if (idx < currentIdx) { bg = '#48bb78'; textCol = '#fff'; borderCol = '#48bb78'; }
                                                             else if (idx === currentIdx) { bg = '#e53e3e'; textCol = '#fff'; borderCol = '#e53e3e'; }
@@ -428,7 +438,7 @@ function CompanyCandidates() {
                                                             if (idx < currentIdx) { bg = '#48bb78'; textCol = '#fff'; borderCol = '#48bb78'; }
                                                             else if (idx === currentIdx) { bg = s.color + '22'; textCol = s.color; borderCol = s.color; }
                                                         }
-                                                        const mark = completed ? '✓' : (rejected && idx === currentIdx) ? '✕' : (idx < currentIdx ? '✓' : s.icon);
+                                                        const mark = (completed || idx < currentIdx) ? '✓' : (rejected && idx === currentIdx) ? '✕' : s.icon;
                                                         return (
                                                             <div key={s.key} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
                                                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '0 0 auto', minWidth: '60px' }}>

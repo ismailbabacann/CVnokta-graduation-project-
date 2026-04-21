@@ -2,9 +2,15 @@ using CleanArchitecture.Core.DTOs.Email;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Helpers;
 using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Application.Interfaces;
+using CleanArchitecture.Core.Features.Exams.Commands.SubmitExam;
+using CleanArchitecture.Core.Settings;
+using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CleanArchitecture.Core.Features.Exams.Services;
 
 namespace CleanArchitecture.Infrastructure.Services
 {
@@ -15,54 +21,83 @@ namespace CleanArchitecture.Infrastructure.Services
     /// </summary>
     public class PipelineService : IPipelineService
     {
-        private readonly IGenericRepositoryAsync<JobApplication> _applicationRepo;
-        private readonly IGenericRepositoryAsync<JobPosting> _jobPostingRepo;
-        private readonly IGenericRepositoryAsync<CandidateProfile> _profileRepo;
-        private readonly IEmailService _emailService;
+        private readonly IGenericRepositoryAsync<JobApplication>           _applicationRepo;
+        private readonly IGenericRepositoryAsync<JobPosting>               _jobRepo;
+        private readonly IGenericRepositoryAsync<CandidateProfile>         _candidateRepo;
+        private readonly IGenericRepositoryAsync<CandidateExamAssignment>  _assignmentRepo;
+        private readonly JobExamSeedService                                _examSeedService;
+        private readonly IExamTokenService                                 _tokenService;
+        private readonly IAiJobPostingGenerationService                  _aiService;
+        private readonly IEmailService                                     _emailService;
+        private readonly ExamSettings                                      _examSettings;
 
         public PipelineService(
-            IGenericRepositoryAsync<JobApplication> applicationRepo,
-            IGenericRepositoryAsync<JobPosting> jobPostingRepo,
-            IGenericRepositoryAsync<CandidateProfile> profileRepo,
-            IEmailService emailService)
+            IGenericRepositoryAsync<JobApplication>           applicationRepo,
+            IGenericRepositoryAsync<JobPosting>               jobRepo,
+            IGenericRepositoryAsync<CandidateProfile>         candidateRepo,
+            IGenericRepositoryAsync<CandidateExamAssignment>  assignmentRepo,
+            JobExamSeedService                                examSeedService,
+            IExamTokenService                                 tokenService,
+            IAiJobPostingGenerationService                  aiService,
+            IEmailService                                     emailService,
+            IOptions<ExamSettings>                            examSettings)
         {
             _applicationRepo = applicationRepo;
-            _jobPostingRepo  = jobPostingRepo;
-            _profileRepo     = profileRepo;
+            _jobRepo         = jobRepo;
+            _candidateRepo   = candidateRepo;
+            _assignmentRepo  = assignmentRepo;
+            _examSeedService = examSeedService;
+            _tokenService    = tokenService;
+            _aiService       = aiService;
             _emailService    = emailService;
+            _examSettings    = examSettings.Value;
         }
 
-        public async Task AdvanceIfEligibleAsync(Guid applicationId, string completedStage, decimal score)
+        public async Task AdvanceIfEligibleAsync(Guid applicationId, string completedStage, decimal score, List<QuestionResultDto> results = null)
         {
             var application = await _applicationRepo.GetByIdAsync(applicationId);
             if (application == null) return;
 
-            var jobPosting = await _jobPostingRepo.GetByIdAsync(application.JobPostingId);
+            var jobPosting = await _jobRepo.GetByIdAsync(application.JobPostingId);
             if (jobPosting == null) return;
 
             int threshold = jobPosting.PipelinePassThreshold > 0 ? jobPosting.PipelinePassThreshold : 70;
 
             // Get candidate info for emails
-            var profiles = await _profileRepo.GetAllAsync();
-            var profile = profiles.FirstOrDefault(p => p.Id == application.CandidateId);
+            var profile = await _candidateRepo.GetByIdAsync(application.CandidateId);
             string candidateName  = profile?.FullName ?? "Candidate";
             string candidateEmail = profile?.Email ?? "";
             string jobTitle       = jobPosting.JobTitle ?? "Position";
 
             bool passed = score >= threshold;
 
+            Console.WriteLine($"[Pipeline] --- Processing Application: {applicationId} ---");
+            Console.WriteLine($"[Pipeline] Stage Completed: {completedStage}");
+            Console.WriteLine($"[Pipeline] Score: {score} | Threshold: {threshold} | Passed: {passed}");
+            Console.WriteLine($"[Pipeline] Candidate: {candidateName} ({candidateEmail})");
+
             switch (completedStage.ToUpper())
             {
                 case "NLP_REVIEW":
                     if (passed)
                     {
-                        application.CurrentPipelineStage  = "COMPLETED";
-                        application.ApplicationStatus     = "COMPLETED";
+                        Console.WriteLine($"[Pipeline] Advancing NLP_REVIEW -> ENGLISH_TEST_PENDING");
+                        // FORCE English exam as the next step after NLP Review
+                        var englishExam = await _examSeedService.EnsureEnglishExamForJob(jobPosting.Id);
+                        
+                        application.CurrentPipelineStage  = "ENGLISH_TEST_PENDING";
+                        application.ApplicationStatus     = "ENGLISH_TEST_PENDING";
                         application.PipelineStageUpdatedAt = DateTime.UtcNow;
                         await _applicationRepo.UpdateAsync(application);
+
+                        var token = _tokenService.GenerateToken(application.CandidateId, englishExam.Id);
+                        await CreateAssignment(application, englishExam, token);
+
+                        var link = $"{_examSettings.ExamBaseUrl}/{token}";
                         await SendEmailSafe(candidateEmail,
-                            $"Tebrikler! Süreç Tamamlandı — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetPipelineCompletedTemplate(candidateName, jobTitle));
+                            $"İngilizce Testi Daveti — {jobTitle} | CVNokta",
+                            EmailTemplateService.GetEnglishTestInviteTemplate(candidateName, jobTitle, threshold)
+                                .Replace("Sisteme giriş yaparak", $"<a href='{link}'>Buraya tıklayarak</a> veya sisteme giriş yaparak"));
                     }
                     else
                     {
@@ -77,61 +112,92 @@ namespace CleanArchitecture.Infrastructure.Services
                     }
                     break;
 
-                case "SKILLS_TEST":
-                    if (passed)
-                    {
-                        application.CurrentPipelineStage  = "AI_INTERVIEW_PENDING";
-                        application.ApplicationStatus     = "AI_INTERVIEW_PENDING";
-                        application.PipelineStageUpdatedAt = DateTime.UtcNow;
-                        await _applicationRepo.UpdateAsync(application);
-                        await SendEmailSafe(candidateEmail,
-                            $"AI Mülakat Daveti — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetAiInterviewInviteTemplate(candidateName, jobTitle, threshold));
-                    }
-                    else
-                    {
-                        application.CurrentPipelineStage  = "REJECTED_SKILLS";
-                        application.ApplicationStatus     = "REJECTED";
-                        application.RejectionReason       = $"Genel beceri testi skorunuz ({score:0}), gerekli minimum eşiğin ({threshold}) altında kalmıştır.";
-                        application.PipelineStageUpdatedAt = DateTime.UtcNow;
-                        await _applicationRepo.UpdateAsync(application);
-                        await SendEmailSafe(candidateEmail,
-                            $"Başvurunuz Hakkında — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "Genel Beceri Testi", (int)score, threshold));
-                    }
-                    break;
-
                 case "ENGLISH_TEST":
                     if (passed)
                     {
+                        Console.WriteLine($"[Pipeline] Advancing ENGLISH_TEST -> SKILLS_TEST_PENDING");
                         application.CurrentPipelineStage  = "SKILLS_TEST_PENDING";
                         application.ApplicationStatus     = "SKILLS_TEST_PENDING";
                         application.PipelineStageUpdatedAt = DateTime.UtcNow;
                         await _applicationRepo.UpdateAsync(application);
+
+                        // Create Technical Assignment
+                        var exam = await _examSeedService.EnsureTechnicalExam(jobPosting.Id);
+                        var token = _tokenService.GenerateToken(application.CandidateId, exam.Id);
+                        await CreateAssignment(application, exam, token);
+
+                        var link = $"{_examSettings.ExamBaseUrl}/{token}";
                         await SendEmailSafe(candidateEmail,
                             $"Teknik Testi Daveti — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetSkillsTestInviteTemplate(candidateName, jobTitle, threshold));
+                            EmailTemplateService.GetSkillsTestInviteTemplate(candidateName, jobTitle, threshold)
+                                .Replace("Sisteme giriş yaparak", $"<a href='{link}'>Buraya tıklayarak</a> veya sisteme giriş yaparak"));
                     }
                     else
                     {
+                        // 🤖 Get REAL AI Feedback
+                        string aiFeedback = "Sınav sonucunuz sistem tarafından değerlendirildi.";
+                        try {
+                            aiFeedback = await _aiService.GetExamFeedbackAsync(application.Id, jobTitle, 10, (int)(score/10) , score, false, results ?? new List<QuestionResultDto>());
+                        } catch { }
+
                         application.CurrentPipelineStage  = "REJECTED_ENGLISH";
                         application.ApplicationStatus     = "REJECTED";
-                        application.RejectionReason       = $"İngilizce testi skorunuz ({score:0}), gerekli minimum eşiğin ({threshold}) altında kalmıştır.";
+                        application.RejectionReason       = aiFeedback;
                         application.PipelineStageUpdatedAt = DateTime.UtcNow;
                         await _applicationRepo.UpdateAsync(application);
                         await SendEmailSafe(candidateEmail,
                             $"Başvurunuz Hakkında — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "İngilizce Testi", (int)score, threshold));
+                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "İngilizce Testi", (int)score, threshold, aiFeedback));
+                    }
+                    break;
+
+                case "SKILLS_TEST":
+                    if (passed)
+                    {
+                        Console.WriteLine($"[Pipeline] Advancing SKILLS_TEST -> AI_INTERVIEW_PENDING");
+                        application.CurrentPipelineStage  = "AI_INTERVIEW_PENDING";
+                        application.ApplicationStatus     = "AI_INTERVIEW_PENDING";
+                        application.PipelineStageUpdatedAt = DateTime.UtcNow;
+                        await _applicationRepo.UpdateAsync(application);
+                        
+                        var interviewUrl = $"{_examSettings.InterviewBaseUrl}/{application.Id}";
+                        try {
+                            System.IO.File.AppendAllText(@"C:\Users\dici-\OneDrive\Masaüstü\pipeline_log.txt", $"[{DateTime.UtcNow}] SKILLS_TEST Passed. candidateEmail: '{candidateEmail}', interviewUrl: '{interviewUrl}'\n");
+                        } catch { }
+
+                        await SendEmailSafe(candidateEmail,
+                            $"Mülakat Davetiniz ({DateTime.UtcNow.Ticks}) — {jobTitle}",
+                            EmailTemplateService.GetAiInterviewInviteTemplate(candidateName, jobTitle, threshold, interviewUrl));
+                    }
+                    else
+                    {
+                        // 🤖 Get REAL AI Feedback
+                        string aiFeedback = "Sınav sonucunuz sistem tarafından değerlendirildi.";
+                        try {
+                            aiFeedback = await _aiService.GetExamFeedbackAsync(application.Id, jobTitle, 10, (int)(score/10), score, false, results ?? new List<QuestionResultDto>());
+                        } catch { }
+
+                        application.CurrentPipelineStage  = "REJECTED_SKILLS";
+                        application.ApplicationStatus     = "REJECTED";
+                        application.RejectionReason       = aiFeedback;
+                        application.PipelineStageUpdatedAt = DateTime.UtcNow;
+                        await _applicationRepo.UpdateAsync(application);
+                        await SendEmailSafe(candidateEmail,
+                            $"Başvurunuz Hakkında — {jobTitle} | CVNokta",
+                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "Genel Beceri Testi", (int)score, threshold, aiFeedback));
                     }
                     break;
 
                 case "AI_INTERVIEW":
                     if (passed)
                     {
-                        application.CurrentPipelineStage  = "NLP_REVIEW";
-                        application.ApplicationStatus     = "NLP_REVIEW_PENDING";
+                        application.CurrentPipelineStage  = "COMPLETED";
+                        application.ApplicationStatus     = "COMPLETED";
                         application.PipelineStageUpdatedAt = DateTime.UtcNow;
                         await _applicationRepo.UpdateAsync(application);
+                        await SendEmailSafe(candidateEmail,
+                            $"Tebrikler! Süreç Tamamlandı — {jobTitle} | CVNokta",
+                            EmailTemplateService.GetPipelineCompletedTemplate(candidateName, jobTitle));
                     }
                     else
                     {
@@ -148,6 +214,23 @@ namespace CleanArchitecture.Infrastructure.Services
             }
         }
 
+        private async Task CreateAssignment(JobApplication app, Exam exam, string token)
+        {
+            var assignment = new CandidateExamAssignment
+            {
+                Id                = Guid.NewGuid(),
+                CandidateId       = app.CandidateId,
+                ExamId            = exam.Id,
+                JobId             = app.JobPostingId,
+                Token             = token,
+                AssignmentBatchId = Guid.NewGuid(),
+                Status            = "pending",
+                SentAt            = DateTime.UtcNow,
+                ExpiresAt         = DateTime.UtcNow.AddHours(168) // 7 days default
+            };
+            await _assignmentRepo.AddAsync(assignment);
+        }
+
         private async Task SendEmailSafe(string to, string subject, string html)
         {
             if (string.IsNullOrWhiteSpace(to)) return;
@@ -155,7 +238,13 @@ namespace CleanArchitecture.Infrastructure.Services
             {
                 await _emailService.SendAsync(new EmailRequest { To = to, Subject = subject, Body = html });
             }
-            catch { /* Email failures must not block pipeline */ }
+            catch (Exception ex)
+            { 
+                Console.Error.WriteLine($"[PipelineService] Email failed to {to}: {ex.Message}");
+                try {
+                    System.IO.File.AppendAllText(@"C:\Users\dici-\OneDrive\Masaüstü\email_error_log.txt", $"[{DateTime.UtcNow}] Email to {to} failed: {ex.Message}\n");
+                } catch { }
+            }
         }
     }
 }

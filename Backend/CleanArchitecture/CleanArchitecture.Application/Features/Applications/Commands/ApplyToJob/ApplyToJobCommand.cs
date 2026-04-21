@@ -2,6 +2,7 @@ using CleanArchitecture.Core.DTOs.Email;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Helpers;
+using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Core.Features.Exams.Services;
 using CleanArchitecture.Core.Settings;
 using MediatR;
@@ -60,9 +61,11 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
         private readonly IGenericRepositoryAsync<JobApplication>           _applicationRepo;
         private readonly IGenericRepositoryAsync<CandidateProfile>         _candidateRepo;
         private readonly IGenericRepositoryAsync<JobPosting>               _jobPostingRepo;
+        private readonly IGenericRepositoryAsync<ApplicationStage>        _stageRepo;
         private readonly IGenericRepositoryAsync<CandidateExamAssignment>  _assignmentRepo;
         private readonly JobExamSeedService                                _examSeedService;
         private readonly IExamTokenService                                 _tokenService;
+        private readonly IAiJobPostingGenerationService                  _aiService;
         private readonly IEmailService                                     _emailService;
         private readonly ExamSettings                                      _examSettings;
 
@@ -70,18 +73,22 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
             IGenericRepositoryAsync<JobApplication>          applicationRepo,
             IGenericRepositoryAsync<CandidateProfile>        candidateRepo,
             IGenericRepositoryAsync<JobPosting>              jobPostingRepo,
+            IGenericRepositoryAsync<ApplicationStage>        stageRepo,
             IGenericRepositoryAsync<CandidateExamAssignment> assignmentRepo,
             JobExamSeedService                               examSeedService,
             IExamTokenService                                tokenService,
+            IAiJobPostingGenerationService                   aiService,
             IEmailService                                    emailService,
             IOptions<ExamSettings>                           examSettings)
         {
             _applicationRepo = applicationRepo;
             _candidateRepo   = candidateRepo;
             _jobPostingRepo  = jobPostingRepo;
+            _stageRepo       = stageRepo;
             _assignmentRepo  = assignmentRepo;
             _examSeedService = examSeedService;
             _tokenService    = tokenService;
+            _aiService       = aiService;
             _emailService    = emailService;
             _examSettings    = examSettings.Value;
         }
@@ -146,48 +153,39 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
                 CvId                 = request.CvId,
                 CvUrl                = request.CvUrl,
                 CoverLetter          = request.CoverLetter,
-                ApplicationStatus    = "ENGLISH_TEST_PENDING",
-                CurrentPipelineStage = "ENGLISH_TEST_PENDING",
+                ApplicationStatus    = "NLP_REVIEW_PENDING",
+                CurrentPipelineStage = "NLP_REVIEW",
                 AppliedAt            = DateTime.UtcNow
             };
             await _applicationRepo.AddAsync(application);
 
-            // ── 5. İş ilanına özgü sınavı bul/oluştur + aday için token ─────
-            string examToken     = null;
-            DateTime? expiresAt = null;
-            try
+            // ── 5. Trigger AI CV Analysis ──────────────────────────────────
+            if (jobPosting.AiScanEnabled && !string.IsNullOrWhiteSpace(application.CvUrl))
             {
-                // Sınav iş ilanına özel — tüm adaylar aynı sınavı farklı token ile alır
-                var exam = await _examSeedService.EnsureExamExistsForJob(request.JobPostingId);
-
-                var allAssignments = (List<CandidateExamAssignment>)await _assignmentRepo.GetAllAsync();
-                var alreadyAssigned = allAssignments.Any(a =>
-                    a.CandidateId == candidate.Id && a.ExamId == exam.Id);
-
-                if (!alreadyAssigned)
+                try
                 {
-                    examToken = _tokenService.GenerateToken(candidate.Id, exam.Id);
-                    expiresAt = DateTime.UtcNow.AddHours(72); // 3 gün
-
-                    var assignment = new CandidateExamAssignment
+                    // Create initial stage for Pipeline tracking
+                    var stage = new ApplicationStage
                     {
-                        Id                = Guid.NewGuid(),
-                        CandidateId       = candidate.Id,
-                        ExamId            = exam.Id,
-                        JobId             = request.JobPostingId,
-                        Token             = examToken,
-                        AssignmentBatchId = Guid.NewGuid(),
-                        Status            = "pending",
-                        SentAt            = DateTime.UtcNow,
-                        ExpiresAt         = expiresAt
+                        ApplicationId = application.Id,
+                        JobPostingId = jobPosting.Id,
+                        StageType = "NLP_REVIEW",
+                        StageStatus = "Pending",
+                        StartedAt = DateTime.UtcNow
                     };
-                    await _assignmentRepo.AddAsync(assignment);
+                    await _stageRepo.AddAsync(stage);
+
+                    // Trigger analysis (fire-and-forget)
+                    await _aiService.AnalyzeCvAsync(application.Id, application.CvUrl, jobPosting, stage.Id, application.CvId ?? Guid.Empty);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ApplyToJob] AI Trigger failed: {ex.Message}");
                 }
             }
-            catch
-            {
-                // Sınav ataması başarısız olsa da başvuru tamamlansın
-            }
+
+            string examToken     = null;
+            DateTime? expiresAt = null;
 
             // ── 6. E-posta gönder ────────────────────────────────────────────
             try
@@ -200,21 +198,10 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
                     string subject;
                     string emailBody;
 
-                    if (examToken != null)
-                    {
-                        var baseUrl  = _examSettings.ExamBaseUrl ?? "http://localhost:3000/exam/take";
-                        var examLink = $"{baseUrl}/{examToken}";
-                        subject  = $"Başvurunuz Alındı & Sınav Daveti — {jobPosting.JobTitle} | CVNokta";
-                        emailBody = BuildExamInviteEmail(candidateName, jobPosting.JobTitle,
-                            jobPosting.Department, jobPosting.Location, examLink, expiresAt!.Value);
-                    }
-                    else
-                    {
-                        subject  = $"Application Received — {jobPosting.JobTitle} | CVNokta";
-                        emailBody = EmailTemplateService.GetApplicationReceivedTemplate(
-                            candidateName, jobPosting.JobTitle, jobPosting.Department,
-                            jobPosting.Location, jobPosting.WorkType, jobPosting.WorkModel);
-                    }
+                    subject  = $"Başvurunuz Alındı — {jobPosting.JobTitle} | CVNokta";
+                    emailBody = EmailTemplateService.GetApplicationReceivedTemplate(
+                        candidateName, jobPosting.JobTitle, jobPosting.Department,
+                        jobPosting.Location, jobPosting.WorkType, jobPosting.WorkModel);
 
                     await _emailService.SendAsync(new EmailRequest
                     {
@@ -232,7 +219,7 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.ApplyToJob
             return new ApplyToJobResponse
             {
                 Success       = true,
-                Message       = "Başvurunuz alındı. Sınav linki e-posta adresinize gönderildi.",
+                Message       = "Başvurunuz alındı. CV incelemeniz yapay zeka tarafından gerçekleştirilmektedir.",
                 ApplicationId = application.Id,
                 ExamToken     = examToken,
                 ExamExpiresAt = expiresAt

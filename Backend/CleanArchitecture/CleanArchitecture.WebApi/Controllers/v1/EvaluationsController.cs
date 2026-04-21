@@ -51,5 +51,13 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         {
             return Ok(await Mediator.Send(new GetFinalScorecardQuery { ApplicationId = appId }));
         }
+
+        [HttpPost("calculate/{appId}")]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> CalculateFinalScore(Guid appId)
+        {
+            return Ok(await Mediator.Send(new CleanArchitecture.Core.Features.Evaluations.Commands.CalculateFinalScore.CalculateFinalScoreCommand { ApplicationId = appId }));
+        }
     }
 }

@@ -10,5 +10,8 @@ namespace CleanArchitecture.Core.Settings
 
         /// <summary>Base URL used when generating exam links in emails.</summary>
         public string ExamBaseUrl { get; set; } = "https://cvnokta.com/exam/take";
+
+        /// <summary>Base URL used when generating AI interview links in emails.</summary>
+        public string InterviewBaseUrl { get; set; } = "http://localhost:3000/interview";
     }
 }

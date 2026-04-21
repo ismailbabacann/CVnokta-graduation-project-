@@ -4,29 +4,29 @@ import styles from './MyApplications.module.css';
 
 // ── Pipeline stage config ────────────────────────────────────────────────────
 const PIPELINE_STAGES = [
+    { key: 'NLP_REVIEW',           label: 'CV Analizi',       icon: '🔍' },
     { key: 'ENGLISH_TEST_PENDING', label: 'İngilizce Testi',  icon: '🇬🇧' },
     { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',     icon: '📝' },
     { key: 'AI_INTERVIEW_PENDING', label: 'AI Mülakat',       icon: '🤖' },
-    { key: 'NLP_REVIEW',           label: 'CV Analizi',       icon: '🔍' },
     { key: 'COMPLETED',            label: 'Tamamlandı',       icon: '🎉' },
 ];
 
 const STAGE_ORDER = {
-    ENGLISH_TEST_PENDING:  0,
-    SKILLS_TEST_PENDING:   1,
-    AI_INTERVIEW_PENDING:  2,
-    NLP_REVIEW:            3,
+    NLP_REVIEW:            0,
+    ENGLISH_TEST_PENDING:  1,
+    SKILLS_TEST_PENDING:   2,
+    AI_INTERVIEW_PENDING:  3,
     COMPLETED:             4,
-    REJECTED_ENGLISH:      0,
-    REJECTED_SKILLS:       1,
-    REJECTED_AI:           2,
-    REJECTED_NLP:          3,
+    REJECTED_NLP:          0,
+    REJECTED_ENGLISH:      1,
+    REJECTED_SKILLS:       2,
+    REJECTED_AI:           3,
 };
 
 const STAGE_MESSAGES = {
     ENGLISH_TEST_PENDING:  { text: '📧 İngilizce değerlendirme sınavı bilgileriniz e-postanıza gönderilmiştir.', color: '#00b4db' },
     SKILLS_TEST_PENDING:   { text: '📧 Beceri testi e-postanıza gönderildi. Sınavı tamamlayın.', color: '#ed8936' },
-    AI_INTERVIEW_PENDING:  { text: '📧 AI Mülakat linki e-postanıza gönderildi.', color: '#f5576c' },
+    AI_INTERVIEW_PENDING:  { text: '🤖 AI Mülakat aşamasına geçtiniz! Mülakat linkiniz e-postanıza gönderildi veya aşağıdaki butona tıklayarak erişebilirsiniz.', color: '#f5576c' },
     NLP_REVIEW:            { text: 'Başvurunuz CV analizi ve uzman incelemesinde.', color: '#667eea' },
     COMPLETED:             { text: '🎉 Tebrikler! Tüm aşamaları başarıyla tamamladınız. Gerekli değerlendirmeler yapılmaktadır.', color: '#48bb78' },
     REJECTED_ENGLISH:      { text: 'İngilizce testi aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
@@ -130,8 +130,12 @@ function MyApplications() {
                         date:          new Date(a.appliedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
                         location:      a.location,
                         workType:      a.workType,
-                        stage:         a.currentPipelineStage || 'ENGLISH_TEST_PENDING',
+                        stage:         a.currentPipelineStage || 'NLP_REVIEW',
                         rejectionReason: a.rejectionReason,
+                        activeExamToken: a.activeExamToken,
+                        interviewUrl:  a.currentPipelineStage === 'AI_INTERVIEW_PENDING'
+                            ? `/interview/${a.applicationId}`
+                            : null,
                     }));
 
                     setApplications(allData.filter(a => !isResult(a.stage)));
@@ -186,6 +190,33 @@ function MyApplications() {
                         <hr className={styles.divider} />
                         <h4 className={styles.stepperHeader}>Süreç Detayı</h4>
                         <PipelineStepper stage={app.stage} rejectionReason={app.rejectionReason} />
+                        {app.stage === 'AI_INTERVIEW_PENDING' && (
+                            <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                                <a
+                                    href={app.interviewUrl || `/interview/${app.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.interviewBtn}
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    🤖 AI Mülakata Git
+                                </a>
+                            </div>
+                        )}
+                        {(app.stage === 'ENGLISH_TEST_PENDING' || app.stage === 'SKILLS_TEST_PENDING') && app.activeExamToken && (
+                            <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                                <a
+                                    href={`/exam/take/${app.activeExamToken}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.interviewBtn}
+                                    style={{ background: 'linear-gradient(135deg, #00b4db, #0083b0)' }}
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    📝 Sınava Başla
+                                </a>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

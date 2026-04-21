@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './VideoInterview.css';
 
@@ -23,13 +24,42 @@ function VideoInterview() {
   const audioQueueRef    = useRef([]);
   const isPlayingRef     = useRef(false);
   const sessionIdRef     = useRef(null);
+  const { applicationId: routeApplicationId } = useParams();
+  const navigate = useNavigate();
 
-  // URL parametrelerinden bilgi al
+  // URL parametrelerinden bilgi al (fallback için)
   const params = new URLSearchParams(window.location.search);
-  const applicationId = params.get('applicationId') || '';
-  const candidateName = params.get('candidateName') || 'Aday';
-  const jobTitle      = params.get('jobTitle')      || 'Yazılım Geliştirici';
-  const jobPostingId  = params.get('jobPostingId')  || '';
+  const applicationId = routeApplicationId || params.get('applicationId') || '';
+  const [candidateName, setCandidateName] = useState(params.get('candidateName') || 'Aday');
+  const [jobTitle, setJobTitle]           = useState(params.get('jobTitle')      || 'Yazılım Geliştirici');
+  const [jobPostingId, setJobPostingId]   = useState(params.get('jobPostingId')  || '');
+
+  // ── Başvuru bilgilerini backend'den al ──────────────────────────────────────
+  useEffect(() => {
+    const fetchApplicationDetails = async () => {
+      if (!applicationId) return;
+      try {
+        const token = localStorage.getItem('jwToken');
+        const response = await axios.get(`${BACKEND_URL}/Applications/${applicationId}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        
+        if (response.data && response.data.application) {
+          const app = response.data.application;
+          if (app.candidateProfile) setCandidateName(app.candidateProfile.fullName);
+          if (app.jobPosting) {
+            setJobTitle(app.jobPosting.jobTitle);
+            setJobPostingId(app.jobPosting.id);
+          } else if (app.jobPostingId) {
+            setJobPostingId(app.jobPostingId);
+          }
+        }
+      } catch (err) {
+        console.warn('Başvuru detayı alınamadı:', err.message);
+      }
+    };
+    fetchApplicationDetails();
+  }, [applicationId]);
 
   // ── İlan bilgilerini backend'den al ────────────────────────────────────────
   useEffect(() => {
@@ -338,6 +368,10 @@ function VideoInterview() {
                 ⏹ Mülakatı Bitir
               </button>
             </>
+          ) : status === 'ended' ? (
+            <button className="vi-btn vi-btn-start" onClick={() => navigate('/profile/applications')}>
+              🔙 Başvurularıma Dön
+            </button>
           ) : null}
         </div>
 

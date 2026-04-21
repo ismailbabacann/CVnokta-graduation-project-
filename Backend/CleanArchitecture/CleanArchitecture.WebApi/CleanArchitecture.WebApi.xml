@@ -432,6 +432,11 @@
              </remarks>
              <returns>Davet edilen başvuru sayısı ve başarı durumu</returns>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.InterviewsController.SaveRealtime(CleanArchitecture.Core.Features.Interviews.Commands.SaveRealtimeInterviewSummary.SaveRealtimeInterviewSummaryCommand)">
+            <summary>
+            Mülakat bitiminde yapay zeka veya frontend tarafından gönderilen gerçek zamanlı değerlendirme raporunu kaydeder.
+            </summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobExamController.GetExamsForJob(System.Guid)">
              <summary>
              Bir iş ilanına bağlı tüm onaylı sınavları listeler.

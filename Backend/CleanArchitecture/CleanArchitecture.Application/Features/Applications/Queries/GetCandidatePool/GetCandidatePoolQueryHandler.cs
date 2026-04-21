@@ -16,16 +16,19 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
         private readonly IGenericRepositoryAsync<CandidateProfile> _profileRepository;
         private readonly IGenericRepositoryAsync<JobPosting> _jobPostingRepository;
         private readonly IAuthenticatedUserService _authenticatedUserService;
+        private readonly IGenericRepositoryAsync<CvAnalysisResult> _cvAnalysisRepository;
 
         public GetCandidatePoolQueryHandler(
             IGenericRepositoryAsync<JobApplication> applicationRepository,
             IGenericRepositoryAsync<CandidateProfile> profileRepository,
             IGenericRepositoryAsync<JobPosting> jobPostingRepository,
+            IGenericRepositoryAsync<CvAnalysisResult> cvAnalysisRepository,
             IAuthenticatedUserService authenticatedUserService)
         {
             _applicationRepository = applicationRepository;
             _profileRepository = profileRepository;
             _jobPostingRepository = jobPostingRepository;
+            _cvAnalysisRepository = cvAnalysisRepository;
             _authenticatedUserService = authenticatedUserService;
         }
 
@@ -39,6 +42,7 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
 
             var apps = await _applicationRepository.GetAllAsync();
             var profiles = await _profileRepository.GetAllAsync();
+            var cvAnalyses = await _cvAnalysisRepository.GetAllAsync();
 
             // SuperAdmin / Admin sees everyone; HiringManager sees only their own postings
             bool isAdmin = _authenticatedUserService.Roles != null &&
@@ -51,11 +55,13 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
                 ? allJobs
                 : allJobs.Where(j => j.HiringManagerId == currentUserId).ToList();
 
-            // LEFT JOIN: profiles olmayan adaylar da görünsün
+            // LEFT JOIN: profiles olmayan adaylar da görünsün, NLP score eklensin
             var query = from a in apps
                         join j in jobs on a.JobPostingId equals j.Id
                         join p in profiles on a.CandidateId equals p.Id into profileGroup
                         from p in profileGroup.DefaultIfEmpty()
+                        join cv in cvAnalyses on a.Id equals cv.ApplicationId into cvGroup
+                        from cv in cvGroup.DefaultIfEmpty()
                         where !request.JobPostingId.HasValue || a.JobPostingId == request.JobPostingId.Value
                         select new CandidatePoolDto
                         {
@@ -69,7 +75,7 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool
                             ApplicationDate = a.AppliedAt,
                             ExperienceYears = p != null ? p.ExperienceYears : 0,
                             EducationLevel = p != null ? p.EducationLevel : "",
-                            NlpMatchScore = 0m,
+                            NlpMatchScore = cv != null ? (cv.AnalysisScore ?? 0m) : 0m,
                             Email = p != null ? p.Email : "",
                             Phone = p != null ? p.Phone : "",
                             LinkedInProfile = p != null ? p.LinkedInProfile : "",

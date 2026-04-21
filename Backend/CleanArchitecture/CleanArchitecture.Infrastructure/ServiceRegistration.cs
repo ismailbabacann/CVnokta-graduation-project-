@@ -113,9 +113,11 @@ namespace CleanArchitecture.Infrastructure
             services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
             services.Configure<ResendSettings>(configuration.GetSection("ResendSettings"));
             services.Configure<ExamSettings>(configuration.GetSection("ExamSettings"));
+            services.Configure<AiSettings>(configuration.GetSection("AiSettings"));
             services.AddTransient<IDateTimeService, DateTimeService>();
             services.AddTransient<IEmailService, ResendEmailService>();
-            services.AddTransient<IAiJobPostingGenerationService, MockAiJobPostingGenerationService>();
+            services.AddHttpClient();
+            services.AddHttpClient<IAiJobPostingGenerationService, HttpAiJobPostingGenerationService>();
             services.AddTransient<IExamTokenService, ExamTokenService>();
             services.AddTransient<CleanArchitecture.Core.Features.Exams.Services.JobExamSeedService>();
 
