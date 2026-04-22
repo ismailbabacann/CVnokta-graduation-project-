@@ -53,7 +53,7 @@ namespace CleanArchitecture.Infrastructure.Services
             _examSettings    = examSettings.Value;
         }
 
-        public async Task AdvanceIfEligibleAsync(Guid applicationId, string completedStage, decimal score, List<QuestionResultDto> results = null)
+        public async Task AdvanceIfEligibleAsync(Guid applicationId, string completedStage, decimal score, List<QuestionResultDto> results = null, string cvFeedback = null)
         {
             var application = await _applicationRepo.GetByIdAsync(applicationId);
             if (application == null) return;
@@ -101,14 +101,20 @@ namespace CleanArchitecture.Infrastructure.Services
                     }
                     else
                     {
+                        // Rejection reason: combine score info + AI feedback
+                        var rejectionReason = $"CV analiz skorunuz ({score:0}), bu ilan için gerekli minimum eşiğin ({threshold}) altında kalmıştır.";
+                        if (!string.IsNullOrWhiteSpace(cvFeedback))
+                            rejectionReason += $" AI Değerlendirmesi: {cvFeedback}";
+
                         application.CurrentPipelineStage  = "REJECTED_NLP";
                         application.ApplicationStatus     = "REJECTED";
-                        application.RejectionReason       = $"CV analiz skorunuz ({score:0}), bu ilan için gerekli minimum eşiğin ({threshold}) altında kalmıştır.";
+                        application.RejectionReason       = rejectionReason;
                         application.PipelineStageUpdatedAt = DateTime.UtcNow;
                         await _applicationRepo.UpdateAsync(application);
                         await SendEmailSafe(candidateEmail,
                             $"Başvurunuz Hakkında — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "CV Analizi", (int)score, threshold));
+                            EmailTemplateService.GetPipelineRejectionTemplate(
+                                candidateName, jobTitle, "CV Analizi", (int)score, threshold, cvFeedback));
                     }
                     break;
 

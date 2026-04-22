@@ -21,6 +21,7 @@ namespace CleanArchitecture.Core.Features.JobPostings.Commands.UpdateJobPosting
         public string AboutRole { get; set; }
         public string Responsibilities { get; set; }
         public string RequiredQualifications { get; set; }
+        public string RequiredSkills { get; set; }
         public bool AiScanEnabled { get; set; }
         public int MinMatchScore { get; set; } = 70;
         public bool AutoEmailEnabled { get; set; }
@@ -64,6 +65,7 @@ namespace CleanArchitecture.Core.Features.JobPostings.Commands.UpdateJobPosting
             job.AboutRole = request.AboutRole;
             job.Responsibilities = request.Responsibilities;
             job.RequiredQualifications = request.RequiredQualifications;
+            job.RequiredSkills = request.RequiredSkills;
             job.Benefits = request.Benefits != null ? string.Join(",", request.Benefits) : string.Empty;
             
             job.Status = request.SaveAsDraft ? "Draft" : "Active";

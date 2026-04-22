@@ -44,6 +44,9 @@ namespace CleanArchitecture.Core.Features.JobPostings.Commands.CreateJobPosting
         /// <summary>Required Qualifications (rich text / HTML supported)</summary>
         public string RequiredQualifications { get; set; }
 
+        /// <summary>Required Skills (comma-separated). Used for AI CV scoring.</summary>
+        public string RequiredSkills { get; set; }
+
         // ── AI Assistant Settings ────────────────────────────────────────────
         /// <summary>Enable AI CV scanning</summary>
         public bool AiScanEnabled { get; set; }

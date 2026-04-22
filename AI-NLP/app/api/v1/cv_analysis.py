@@ -13,6 +13,7 @@ import logging
 from pathlib import Path
 from uuid import UUID, uuid4
 
+import httpx
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form
 from pydantic import BaseModel, Field, ValidationError
 from typing import Optional
@@ -128,6 +129,47 @@ def _ensure_llm_ready_for_analysis() -> None:
         )
 
 
+def _is_url(path: str) -> bool:
+    """Return True if the given string looks like an http/https URL."""
+    return path.startswith("http://") or path.startswith("https://")
+
+
+async def _download_pdf_from_url(url: str, upload_dir: Path) -> Path:
+    """
+    Download a PDF from a remote URL (e.g. Cloudinary) and save it to a
+    temporary file in upload_dir.  Returns the local Path.
+
+    Raises HTTPException on network / content-type errors.
+    """
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(30.0, connect=10.0), verify=False) as client:
+            resp = await client.get(url, follow_redirects=True)
+        if resp.status_code != 200:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Could not download CV from URL (HTTP {resp.status_code}): {url}",
+            )
+        content = resp.content
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Failed to download CV from URL: {exc}",
+        ) from exc
+
+    if not content:
+        raise HTTPException(status_code=422, detail="Downloaded CV file is empty.")
+
+    # Be permissive: Cloudinary may serve PDFs without the %PDF magic bytes in
+    # the raw response but the file is still valid PDF data.
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    temp_path = upload_dir / f"remote_{uuid4().hex}.pdf"
+    temp_path.write_bytes(content)
+    logger.info("Downloaded remote CV to %s (%d bytes)", temp_path, len(content))
+    return temp_path
+
+
 def _resolve_internal_pdf_path(raw_path: str) -> Path:
     settings = get_settings()
     project_root = settings.project_root.resolve()
@@ -169,26 +211,36 @@ def _parse_job_posting_json(raw_json: str) -> JobPostingInput:
 async def analyze_cv(request: CVAnalysisRequest):
     """
     Full CV analysis pipeline:
-    1. Parse PDF → structured CV data
+    1. Parse PDF → structured CV data (local path OR remote URL supported)
     2. Build RAG context (embeddings + FAISS)
     3. Score via GPT
     4. Return analysis result with pass/fail decision
 
-    The cv_file_path must point to an accessible PDF file.
+    cv_file_path can be:
+      - A local filesystem path (must be inside project directories)
+      - An http/https URL (e.g. Cloudinary) — the PDF is downloaded automatically
     """
     settings = get_settings()
     _ensure_llm_ready_for_analysis()
 
-    # Validate file exists
-    pdf_path = _resolve_internal_pdf_path(request.cv_file_path)
-
-    if not pdf_path.exists():
-        raise HTTPException(
-            status_code=404,
-            detail=f"CV file not found: {request.cv_file_path}",
-        )
+    temp_path: Optional[Path] = None
 
     try:
+        # ── Resolve PDF: URL → download, otherwise local path ────────────
+        if _is_url(request.cv_file_path):
+            logger.info("CV path is a URL — downloading: %s", request.cv_file_path)
+            pdf_path = await _download_pdf_from_url(
+                request.cv_file_path, settings.cv_upload_path
+            )
+            temp_path = pdf_path  # will be cleaned up in finally
+        else:
+            pdf_path = _resolve_internal_pdf_path(request.cv_file_path)
+            if not pdf_path.exists():
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"CV file not found: {request.cv_file_path}",
+                )
+
         result = await score_cv(
             CVAnalysisRequest(
                 application_id=request.application_id,
@@ -202,6 +254,8 @@ async def analyze_cv(request: CVAnalysisRequest):
         )
         await _push_result_to_backend(result)
         return result
+    except HTTPException:
+        raise
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail={"error_code": ErrorCode.FILE_NOT_FOUND, "message": str(exc)})
     except PDFNoTextError as exc:
@@ -215,6 +269,13 @@ async def analyze_cv(request: CVAnalysisRequest):
     except Exception as exc:
         logger.exception("CV analysis failed")
         raise HTTPException(status_code=500, detail={"error_code": ErrorCode.INTERNAL_ERROR, "message": "CV analysis failed due to an internal error."})
+    finally:
+        # Clean up the downloaded temp file (if any)
+        if temp_path is not None and temp_path.exists():
+            try:
+                temp_path.unlink()
+            except Exception:
+                pass
 
 
 @router.post("/parse", response_model=ParsedCV)

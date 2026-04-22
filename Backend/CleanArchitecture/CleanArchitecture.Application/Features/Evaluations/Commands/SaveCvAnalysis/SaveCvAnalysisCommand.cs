@@ -85,7 +85,11 @@ namespace CleanArchitecture.Core.Features.Evaluations.Commands.SaveCvAnalysis
             // ── Pipeline: automatically advance or reject based on NLP score ──
             try
             {
-                await _pipelineService.AdvanceIfEligibleAsync(request.ApplicationId, "NLP_REVIEW", request.AnalysisScore);
+                await _pipelineService.AdvanceIfEligibleAsync(
+                    request.ApplicationId,
+                    "NLP_REVIEW",
+                    request.AnalysisScore,
+                    cvFeedback: request.OverallAssessment);
             }
             catch { /* pipeline failures must not block the analysis save */ }
 
