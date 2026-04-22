@@ -29,6 +29,7 @@ function CreateJob() {
         aboutRole: '',
         responsibilities: '',
         requiredQualifications: '',
+        requiredSkills: '',
         benefits: '', // we will split this by commas before sending
     });
 
@@ -160,10 +161,11 @@ function CreateJob() {
                 aboutRole: formData.aboutRole,
                 responsibilities: formData.responsibilities,
                 requiredQualifications: formData.requiredQualifications,
+                requiredSkills: formData.requiredSkills,
                 benefits: benefitsArray,
-                aiScanEnabled: false, // Defaulting to false for now
-                minMatchScore: 70, // Defaulting to 70 for now
-                autoEmailEnabled: false, // Defaulting to false for now
+                aiScanEnabled: true,  // ✅ AI CV taraması aktif
+                minMatchScore: 70,
+                autoEmailEnabled: true,
                 saveAsDraft: saveAsDraft
             };
 
