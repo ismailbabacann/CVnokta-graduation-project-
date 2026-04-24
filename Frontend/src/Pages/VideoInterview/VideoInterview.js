@@ -340,7 +340,7 @@ function VideoInterview() {
           </div>
           {isAiSpeaking && <div className="vi-speaking-ring" />}
         </div>
-        <p className="vi-avatar-name">CVNokta AI Mülakat</p>
+        <p className="vi-avatar-name">hr.ai Mülakat</p>
         <p className="vi-avatar-status">
           {loadingData             && '⏳ İlan bilgileri yükleniyor...'}
           {!loadingData && status === 'connecting' && '🔄 Bağlanıyor...'}

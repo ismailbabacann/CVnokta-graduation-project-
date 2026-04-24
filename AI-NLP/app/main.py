@@ -107,6 +107,7 @@ from app.api.v1.rankings import router as rankings_router  # noqa: E402
 from app.api.v1.realtime_interview import router as realtime_router  # noqa: E402
 from app.api.v1.tests import router as tests_router  # noqa: E402
 from app.api.v1.backend_integration import router as backend_router  # noqa: E402
+from app.api.v1.chatbot import router as chatbot_router  # noqa: E402
 
 app.include_router(cv_router, prefix="/api/v1")
 app.include_router(tests_router, prefix="/api/v1")
@@ -114,6 +115,7 @@ app.include_router(rankings_router, prefix="/api/v1")
 app.include_router(interview_router, prefix="/api/v1")
 app.include_router(realtime_router, prefix="/api/v1")
 app.include_router(backend_router, prefix="/api/v1")
+app.include_router(chatbot_router, prefix="/api/v1")
 
 # ── Static files (interview room UI) ───────────────────────────────────
 _static_dir = Path(__file__).resolve().parent / "static"
