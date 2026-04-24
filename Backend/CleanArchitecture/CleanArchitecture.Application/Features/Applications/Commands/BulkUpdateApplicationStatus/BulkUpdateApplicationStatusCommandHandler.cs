@@ -42,6 +42,14 @@ namespace CleanArchitecture.Core.Features.Applications.Commands.BulkUpdateApplic
                 if (app != null)
                 {
                     app.ApplicationStatus = request.NewStatus;
+
+                    // Pipeline stage'i de güncelle — aksi hâlde kandidat paneli pipeline'ı güncellenmez
+                    if (request.NewStatus.Equals("Rejected", StringComparison.OrdinalIgnoreCase))
+                    {
+                        app.CurrentPipelineStage   = "REJECTED_MANUAL";
+                        app.PipelineStageUpdatedAt = DateTime.UtcNow;
+                    }
+
                     await _applicationRepository.UpdateAsync(app);
 
                     var stage = new ApplicationStage

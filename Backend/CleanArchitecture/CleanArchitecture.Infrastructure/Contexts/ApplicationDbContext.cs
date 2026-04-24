@@ -172,6 +172,18 @@ namespace CleanArchitecture.Infrastructure.Contexts
             builder.Entity<JobPosting>()
                 .Property(jp => jp.IsDraft).HasDefaultValue(true);
 
+            // --- Pipeline Thresholds ---
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.PipelinePassThreshold).HasDefaultValue(60);
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.CvPassThreshold).HasDefaultValue(60);
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.EnglishPassThreshold).HasDefaultValue(70);
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.TechnicalPassThreshold).HasDefaultValue(70);
+            builder.Entity<JobPosting>()
+                .Property(jp => jp.AiInterviewPassThreshold).HasDefaultValue(60);
+
             // --- İlişki ---
             builder.Entity<JobPosting>()
                 .HasOne(jp => jp.HiringManager)

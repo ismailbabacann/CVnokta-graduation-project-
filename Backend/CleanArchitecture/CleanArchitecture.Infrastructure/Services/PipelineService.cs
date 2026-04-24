@@ -61,7 +61,11 @@ namespace CleanArchitecture.Infrastructure.Services
             var jobPosting = await _jobRepo.GetByIdAsync(application.JobPostingId);
             if (jobPosting == null) return;
 
-            int threshold = jobPosting.PipelinePassThreshold > 0 ? jobPosting.PipelinePassThreshold : 70;
+            // Per-stage thresholds with fallback to legacy PipelinePassThreshold
+            int cvThreshold          = jobPosting.CvPassThreshold > 0          ? jobPosting.CvPassThreshold          : (jobPosting.PipelinePassThreshold > 0 ? jobPosting.PipelinePassThreshold : 60);
+            int englishThreshold     = jobPosting.EnglishPassThreshold > 0      ? jobPosting.EnglishPassThreshold      : 70;
+            int technicalThreshold   = jobPosting.TechnicalPassThreshold > 0    ? jobPosting.TechnicalPassThreshold    : 70;
+            int aiInterviewThreshold = jobPosting.AiInterviewPassThreshold > 0  ? jobPosting.AiInterviewPassThreshold  : 60;
 
             // Get candidate info for emails
             var profile = await _candidateRepo.GetByIdAsync(application.CandidateId);
@@ -69,17 +73,17 @@ namespace CleanArchitecture.Infrastructure.Services
             string candidateEmail = profile?.Email ?? "";
             string jobTitle       = jobPosting.JobTitle ?? "Position";
 
-            bool passed = score >= threshold;
-
             Console.WriteLine($"[Pipeline] --- Processing Application: {applicationId} ---");
             Console.WriteLine($"[Pipeline] Stage Completed: {completedStage}");
-            Console.WriteLine($"[Pipeline] Score: {score} | Threshold: {threshold} | Passed: {passed}");
+            Console.WriteLine($"[Pipeline] Score: {score} | CV:{cvThreshold} EN:{englishThreshold} TECH:{technicalThreshold} AI:{aiInterviewThreshold}");
             Console.WriteLine($"[Pipeline] Candidate: {candidateName} ({candidateEmail})");
 
             switch (completedStage.ToUpper())
             {
                 case "NLP_REVIEW":
-                    if (passed)
+                    bool passedNlp = score >= cvThreshold;
+                    Console.WriteLine($"[Pipeline] NLP Passed: {passedNlp} (score={score} threshold={cvThreshold})");
+                    if (passedNlp)
                     {
                         Console.WriteLine($"[Pipeline] Advancing NLP_REVIEW -> ENGLISH_TEST_PENDING");
                         // FORCE English exam as the next step after NLP Review
@@ -96,13 +100,13 @@ namespace CleanArchitecture.Infrastructure.Services
                         var link = $"{_examSettings.ExamBaseUrl}/{token}";
                         await SendEmailSafe(candidateEmail,
                             $"İngilizce Testi Daveti — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetEnglishTestInviteTemplate(candidateName, jobTitle, threshold)
+                            EmailTemplateService.GetEnglishTestInviteTemplate(candidateName, jobTitle, englishThreshold)
                                 .Replace("Sisteme giriş yaparak", $"<a href='{link}'>Buraya tıklayarak</a> veya sisteme giriş yaparak"));
                     }
                     else
                     {
                         // Rejection reason: combine score info + AI feedback
-                        var rejectionReason = $"CV analiz skorunuz ({score:0}), bu ilan için gerekli minimum eşiğin ({threshold}) altında kalmıştır.";
+                        var rejectionReason = $"CV analiz skorunuz ({score:0}), bu ilan için gerekli minimum eşiğin ({cvThreshold}) altında kalmıştır.";
                         if (!string.IsNullOrWhiteSpace(cvFeedback))
                             rejectionReason += $" AI Değerlendirmesi: {cvFeedback}";
 
@@ -114,12 +118,14 @@ namespace CleanArchitecture.Infrastructure.Services
                         await SendEmailSafe(candidateEmail,
                             $"Başvurunuz Hakkında — {jobTitle} | CVNokta",
                             EmailTemplateService.GetPipelineRejectionTemplate(
-                                candidateName, jobTitle, "CV Analizi", (int)score, threshold, cvFeedback));
+                                candidateName, jobTitle, "CV Analizi", (int)score, cvThreshold, cvFeedback));
                     }
                     break;
 
                 case "ENGLISH_TEST":
-                    if (passed)
+                    bool passedEnglish = score >= englishThreshold;
+                    Console.WriteLine($"[Pipeline] English Passed: {passedEnglish} (score={score} threshold={englishThreshold})");
+                    if (passedEnglish)
                     {
                         Console.WriteLine($"[Pipeline] Advancing ENGLISH_TEST -> SKILLS_TEST_PENDING");
                         application.CurrentPipelineStage  = "SKILLS_TEST_PENDING";
@@ -135,7 +141,7 @@ namespace CleanArchitecture.Infrastructure.Services
                         var link = $"{_examSettings.ExamBaseUrl}/{token}";
                         await SendEmailSafe(candidateEmail,
                             $"Teknik Testi Daveti — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetSkillsTestInviteTemplate(candidateName, jobTitle, threshold)
+                            EmailTemplateService.GetSkillsTestInviteTemplate(candidateName, jobTitle, technicalThreshold)
                                 .Replace("Sisteme giriş yaparak", $"<a href='{link}'>Buraya tıklayarak</a> veya sisteme giriş yaparak"));
                     }
                     else
@@ -153,12 +159,14 @@ namespace CleanArchitecture.Infrastructure.Services
                         await _applicationRepo.UpdateAsync(application);
                         await SendEmailSafe(candidateEmail,
                             $"Başvurunuz Hakkında — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "İngilizce Testi", (int)score, threshold, aiFeedback));
+                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "İngilizce Testi", (int)score, englishThreshold, aiFeedback));
                     }
                     break;
 
                 case "SKILLS_TEST":
-                    if (passed)
+                    bool passedTechnical = score >= technicalThreshold;
+                    Console.WriteLine($"[Pipeline] Technical Passed: {passedTechnical} (score={score} threshold={technicalThreshold})");
+                    if (passedTechnical)
                     {
                         Console.WriteLine($"[Pipeline] Advancing SKILLS_TEST -> AI_INTERVIEW_PENDING");
                         application.CurrentPipelineStage  = "AI_INTERVIEW_PENDING";
@@ -173,7 +181,7 @@ namespace CleanArchitecture.Infrastructure.Services
 
                         await SendEmailSafe(candidateEmail,
                             $"Mülakat Davetiniz ({DateTime.UtcNow.Ticks}) — {jobTitle}",
-                            EmailTemplateService.GetAiInterviewInviteTemplate(candidateName, jobTitle, threshold, interviewUrl));
+                            EmailTemplateService.GetAiInterviewInviteTemplate(candidateName, jobTitle, aiInterviewThreshold, interviewUrl));
                     }
                     else
                     {
@@ -190,12 +198,14 @@ namespace CleanArchitecture.Infrastructure.Services
                         await _applicationRepo.UpdateAsync(application);
                         await SendEmailSafe(candidateEmail,
                             $"Başvurunuz Hakkında — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "Genel Beceri Testi", (int)score, threshold, aiFeedback));
+                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "Genel Beceri Testi", (int)score, technicalThreshold, aiFeedback));
                     }
                     break;
 
                 case "AI_INTERVIEW":
-                    if (passed)
+                    bool passedAiInterview = score >= aiInterviewThreshold;
+                    Console.WriteLine($"[Pipeline] AI Interview Passed: {passedAiInterview} (score={score} threshold={aiInterviewThreshold})");
+                    if (passedAiInterview)
                     {
                         application.CurrentPipelineStage  = "COMPLETED";
                         application.ApplicationStatus     = "COMPLETED";
@@ -209,16 +219,17 @@ namespace CleanArchitecture.Infrastructure.Services
                     {
                         application.CurrentPipelineStage  = "REJECTED_AI";
                         application.ApplicationStatus     = "REJECTED";
-                        application.RejectionReason       = $"AI mülakat skorunuz ({score:0}), gerekli minimum eşiğin ({threshold}) altında kalmıştır.";
+                        application.RejectionReason       = $"AI mülakat skorunuz ({score:0}), gerekli minimum eşiğin ({aiInterviewThreshold}) altında kalmıştır.";
                         application.PipelineStageUpdatedAt = DateTime.UtcNow;
                         await _applicationRepo.UpdateAsync(application);
                         await SendEmailSafe(candidateEmail,
                             $"Başvurunuz Hakkında — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "AI Mülakat", (int)score, threshold));
+                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "AI Mülakat", (int)score, aiInterviewThreshold));
                     }
                     break;
             }
         }
+
 
         private async Task CreateAssignment(JobApplication app, Exam exam, string token)
         {
