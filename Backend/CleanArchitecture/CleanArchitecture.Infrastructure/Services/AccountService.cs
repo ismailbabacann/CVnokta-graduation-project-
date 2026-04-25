@@ -1,4 +1,4 @@
-using CleanArchitecture.Core.DTOs.Account;
+a3using CleanArchitecture.Core.DTOs.Account;
 using CleanArchitecture.Core.DTOs.Email;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Enums;
@@ -33,6 +33,7 @@ namespace CleanArchitecture.Infrastructure.Services
         private readonly JWTSettings _jwtSettings;
         private readonly IDateTimeService _dateTimeService;
         private readonly IGenericRepositoryAsync<User> _userRepository;
+        private readonly IGenericRepositoryAsync<CandidateProfile> _candidateRepository;
 
         public AccountService(UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
@@ -40,7 +41,8 @@ namespace CleanArchitecture.Infrastructure.Services
             IDateTimeService dateTimeService,
             SignInManager<ApplicationUser> signInManager,
             IEmailService emailService,
-            IGenericRepositoryAsync<User> userRepository)
+            IGenericRepositoryAsync<User> userRepository,
+            IGenericRepositoryAsync<CandidateProfile> candidateRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -49,6 +51,7 @@ namespace CleanArchitecture.Infrastructure.Services
             _signInManager = signInManager;
             _emailService = emailService;
             _userRepository = userRepository;
+            _candidateRepository = candidateRepository;
         }
 
         public async Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, string ipAddress)
@@ -125,6 +128,24 @@ namespace CleanArchitecture.Infrastructure.Services
 
                     var verificationUri = await SendVerificationEmail(user, origin);
                     
+                    // -- If the user registered as Basic (Candidate), link existing standalone profile by email --
+                    if (roleName == Roles.Basic.ToString())
+                    {
+                        var allCandidates = await _candidateRepository.GetAllAsync();
+                        var existingCandidate = allCandidates.FirstOrDefault(c => 
+                            c.Email.ToLower() == user.Email.ToLower() && c.UserId == null);
+
+                        if (existingCandidate != null)
+                        {
+                            existingCandidate.UserId = Guid.Parse(user.Id);
+                            // Also update Name fields if they were missing or want to be synced
+                            if (string.IsNullOrWhiteSpace(existingCandidate.FullName))
+                                existingCandidate.FullName = $"{user.FirstName} {user.LastName}";
+                            
+                            await _candidateRepository.UpdateAsync(existingCandidate);
+                        }
+                    }
+
                     var emailHtml = EmailTemplateService.GetRegistrationConfirmationTemplate(user.FirstName, verificationUri);
                     
                     await _emailService.SendAsync(new Core.DTOs.Email.EmailRequest() 

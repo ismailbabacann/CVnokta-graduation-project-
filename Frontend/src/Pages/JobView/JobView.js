@@ -29,7 +29,14 @@ function JobView() {
   }, [id]);
 
   const handleApplyClick = () => {
-    navigate(`/apply/${id}`);
+    const token = localStorage.getItem('jwToken');
+    if (token) {
+      // Eğer kullanıcı giriş yapmışsa, profilindeki iş ilanı detayına (oradan hızlı başvuruya) yönlendir
+      navigate(`/profile/jobs/${id}`);
+    } else {
+      // Giriş yapmamışsa herkese açık başvuru formuna yönlendir
+      navigate(`/apply/${id}`);
+    }
     window.scrollTo(0, 0);
   };
 
