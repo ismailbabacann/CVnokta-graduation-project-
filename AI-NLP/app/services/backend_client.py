@@ -120,3 +120,70 @@ async def push_statistics_from_cv(
         await push_positions([position_title])
     if location:
         await push_locations([location])
+
+
+# ── Interview Token Validation ──────────────────────────────────
+
+
+async def validate_interview_token(token: str) -> Optional[Dict[str, Any]]:
+    """
+    Validate an interview token against the Backend.
+
+    Returns token data dict on success, None on failure.
+    Expected response: { isValid, isUsed, applicationId, jobPostingId,
+                         candidateName, jobTitle, requiredSkills }
+    """
+    settings = get_settings()
+    url = f"{settings.backend_api_url}/v1/Interviews/validate-token/{token}"
+
+    headers: Dict[str, str] = {}
+    if settings.backend_api_key:
+        headers["X-Api-Key"] = settings.backend_api_key
+
+    try:
+        client = _get_client()
+        resp = await client.get(url, headers=headers)
+        if resp.status_code < 300:
+            data = resp.json()
+            if data.get("isValid") and not data.get("isUsed"):
+                logger.info("Interview token validated: %s…", token[:8])
+                return data
+            reason = data.get("reason", "invalid or used")
+            logger.warning("Interview token rejected (%s…): %s", token[:8], reason)
+            return None
+        logger.warning("Token validation failed: %d %s", resp.status_code, resp.text[:200])
+        return None
+    except Exception as exc:
+        logger.error("Token validation error: %s", exc)
+        return None
+
+
+async def mark_interview_token_used(token: str) -> bool:
+    """Mark an interview token as used in the Backend (no re-take)."""
+    return await _post(f"v1/Interviews/mark-used/{token}", {})
+
+
+async def fetch_cv_summary(application_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Fetch CV summary for interview context from the Backend.
+
+    Returns dict with candidateName, summary, skills, experience, education.
+    """
+    settings = get_settings()
+    url = f"{settings.backend_api_url}/v1/Applications/{application_id}/cv-summary"
+
+    headers: Dict[str, str] = {}
+    if settings.backend_api_key:
+        headers["X-Api-Key"] = settings.backend_api_key
+
+    try:
+        client = _get_client()
+        resp = await client.get(url, headers=headers)
+        if resp.status_code < 300:
+            logger.info("CV summary fetched for application %s", application_id)
+            return resp.json()
+        logger.warning("CV summary fetch failed: %d %s", resp.status_code, resp.text[:200])
+        return None
+    except Exception as exc:
+        logger.error("CV summary fetch error: %s", exc)
+        return None

@@ -58,9 +58,9 @@ class Settings(BaseSettings):
     cv_max_upload_size_mb: int = 10
 
     # ── Ranking ──────────────────────────────────────────────
-    ranking_weight_cv: float = 0.30
+    ranking_weight_cv: float = 0.20
     ranking_weight_general_test: float = 0.25
-    ranking_weight_english_test: float = 0.15
+    ranking_weight_english_test: float = 0.25
     ranking_weight_interview: float = 0.30
 
     @property

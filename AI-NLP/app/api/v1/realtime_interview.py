@@ -60,10 +60,114 @@ router = APIRouter(prefix="/interview/realtime", tags=["Realtime Interview"])
 # Singleton engine instance
 _engine = RealtimeInterviewEngine()
 
+# Track tokens → session_ids for re-take prevention
+_token_session_map: dict[str, str] = {}
+
 
 def get_realtime_engine() -> RealtimeInterviewEngine:
     """Get the singleton realtime engine instance."""
     return _engine
+
+
+# ── Token-based interview start ───────────────────────────────────
+
+
+@router.post("/start-with-token")
+async def start_interview_with_token(payload: dict):
+    """
+    Validate an interview token and return session configuration.
+
+    The frontend calls this before opening the WebSocket connection.
+    Returns session_id, application_id, job_posting, cv_summary, candidate_name
+    that the frontend should pass in the WebSocket init message.
+    """
+    from app.services.backend_client import (
+        validate_interview_token,
+        fetch_cv_summary,
+    )
+
+    token = payload.get("token", "").strip()
+    if not token:
+        raise HTTPException(status_code=400, detail="Token is required")
+
+    # Check if this token was already used in this AI-NLP instance
+    if token in _token_session_map:
+        raise HTTPException(
+            status_code=409,
+            detail="This interview has already been completed. Re-take is not allowed.",
+        )
+
+    # Validate token against Backend
+    token_data = await validate_interview_token(token)
+    if token_data is None:
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid, expired, or already used interview token.",
+        )
+
+    application_id = token_data.get("applicationId", "")
+    job_posting_id = token_data.get("jobPostingId", "")
+    candidate_name = token_data.get("candidateName", "Candidate")
+    job_title = token_data.get("jobTitle", "")
+    required_skills = token_data.get("requiredSkills", "")
+
+    # Fetch CV summary from Backend
+    cv_summary = ""
+    cv_data = await fetch_cv_summary(application_id)
+    if cv_data:
+        parts = []
+        if cv_data.get("candidateName"):
+            parts.append(f"Name: {cv_data['candidateName']}")
+        if cv_data.get("summary"):
+            parts.append(f"Summary: {cv_data['summary']}")
+        if cv_data.get("skills"):
+            skills = cv_data["skills"]
+            if isinstance(skills, list):
+                parts.append(f"Skills: {', '.join(skills[:20])}")
+            elif isinstance(skills, str):
+                parts.append(f"Skills: {skills}")
+        if cv_data.get("experience"):
+            exp_items = []
+            for exp in cv_data["experience"][:5]:
+                if isinstance(exp, dict):
+                    title = exp.get("title", "")
+                    company = exp.get("company", "")
+                    if title or company:
+                        exp_items.append(f"{title} at {company}".strip())
+            if exp_items:
+                parts.append(f"Experience: {'; '.join(exp_items)}")
+        if cv_data.get("education"):
+            edu_items = []
+            for edu in cv_data["education"][:3]:
+                if isinstance(edu, dict):
+                    degree = edu.get("degree", "")
+                    institution = edu.get("institution", "")
+                    if degree or institution:
+                        edu_items.append(f"{degree} - {institution}".strip(" -"))
+            if edu_items:
+                parts.append(f"Education: {'; '.join(edu_items)}")
+        cv_summary = "\n".join(parts)
+
+    if not cv_summary:
+        cv_summary = f"Candidate: {candidate_name}. Position: {job_title}."
+
+    session_id = str(uuid4())
+
+    # Store token → session mapping for re-take prevention
+    _token_session_map[token] = session_id
+
+    return {
+        "session_id": session_id,
+        "application_id": application_id,
+        "job_posting_id": job_posting_id,
+        "candidate_name": candidate_name,
+        "job_posting": {
+            "job_title": job_title,
+            "required_skills": required_skills,
+        },
+        "cv_summary": cv_summary,
+        "token": token,
+    }
 
 
 # ── WebSocket endpoint ────────────────────────────────────────────
@@ -337,7 +441,10 @@ async def end_realtime_interview(session_id: str):
 
     Called by the client after receiving 'interview_complete' via WebSocket.
     Extracts Q&A from transcript and runs batch evaluation.
+    Returns summary scores + full Q&A list for backend storage.
     """
+    from app.services.backend_client import mark_interview_token_used
+
     session = _engine.get_session(session_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -355,7 +462,30 @@ async def end_realtime_interview(session_id: str):
             detail="Could not evaluate interview — insufficient transcript data",
         )
 
-    return summary
+    # Mark token as used (no re-take)
+    token = None
+    for t, sid in _token_session_map.items():
+        if sid == session_id:
+            token = t
+            break
+    if token:
+        await mark_interview_token_used(token)
+
+    # Build Q&A list from the session for backend storage
+    qa_list = _engine.get_session_qa_pairs(session_id)
+
+    response = summary.model_dump()
+    response["qa_list"] = [
+        {
+            "questionSequence": qa.question_sequence,
+            "questionCategory": qa.question_category,
+            "questionText": qa.question_text,
+            "candidateAnswerText": qa.candidate_answer_text,
+        }
+        for qa in qa_list
+    ] if qa_list else []
+
+    return response
 
 
 @router.get("/{session_id}/status")
@@ -373,4 +503,92 @@ async def realtime_interview_status(session_id: str):
         "started_at": session.started_at.isoformat(),
         "ended_at": session.ended_at.isoformat() if session.ended_at else None,
         "end_reason": session.end_reason,
+    }
+
+
+# ── Setup endpoints (used by interview-room UI) ──────────────────
+
+import tempfile
+from pathlib import Path
+
+from fastapi import UploadFile, File
+
+from app.config import get_settings
+
+setup_router = APIRouter(prefix="/interview/setup", tags=["Interview Setup"])
+
+
+@setup_router.get("/job-postings")
+async def get_job_postings():
+    """Return available job postings for interview setup."""
+    mock_dir = get_settings().mock_data_dir
+    path = mock_dir / "sample_job_postings.json"
+    if not path.exists():
+        return []
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+@setup_router.post("/parse-cv")
+async def parse_cv_for_interview(
+    file: UploadFile = File(..., description="CV in PDF format"),
+):
+    """Upload and parse a CV PDF, return a structured summary for interview context."""
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are accepted")
+
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="File too large (max 10 MB)")
+
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+        tmp.write(content)
+        tmp_path = tmp.name
+
+    try:
+        from app.core.cv_parser import parse_cv_from_pdf
+        parsed = parse_cv_from_pdf(tmp_path)
+    except Exception as exc:
+        logger.error("CV parse failed: %s", exc)
+        raise HTTPException(status_code=422, detail=f"CV parse failed: {exc}")
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
+
+    parts = []
+    if parsed.full_name:
+        parts.append(f"Name: {parsed.full_name}")
+    if parsed.summary:
+        parts.append(f"Summary: {parsed.summary}")
+    if parsed.skills:
+        parts.append(f"Skills: {', '.join(parsed.skills[:20])}")
+    if parsed.experience:
+        exp_items = []
+        for exp in parsed.experience[:5]:
+            title = exp.title or ""
+            company = exp.company or ""
+            duration = f" ({exp.duration_months} months)" if exp.duration_months else ""
+            if title or company:
+                exp_items.append(f"{title} at {company}{duration}".strip())
+        if exp_items:
+            parts.append(f"Experience: {'; '.join(exp_items)}")
+    if parsed.education:
+        edu_items = []
+        for edu in parsed.education[:3]:
+            degree = edu.degree or ""
+            institution = edu.institution or ""
+            if degree or institution:
+                edu_items.append(f"{degree} - {institution}".strip(" -"))
+        if edu_items:
+            parts.append(f"Education: {'; '.join(edu_items)}")
+    if parsed.languages:
+        parts.append(f"Languages: {', '.join(parsed.languages)}")
+
+    summary_text = "\n".join(parts) if parts else "CV uploaded — no structured data extracted"
+
+    return {
+        "full_name": parsed.full_name or "",
+        "summary_text": summary_text,
+        "skills": parsed.skills,
+        "experience_count": len(parsed.experience),
+        "education_count": len(parsed.education),
+        "total_experience_years": parsed.total_experience_years,
     }

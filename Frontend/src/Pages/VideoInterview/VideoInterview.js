@@ -3,19 +3,18 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './VideoInterview.css';
 
+const AI_NLP_URL = 'http://localhost:8000/api/v1/interview/realtime';
 const AI_NLP_WS_URL = 'ws://localhost:8000/api/v1/interview/realtime/ws';
-const AI_NLP_HTTP_URL = 'http://localhost:8000/api/v1/interview/realtime';
 const BACKEND_URL = 'https://localhost:9001/api/v1';
 
 function VideoInterview() {
-  const [status, setStatus]           = useState('idle'); // idle | connecting | active | ended | error
+  const [status, setStatus]           = useState('loading'); // loading | idle | connecting | active | ended | error | invalid
   const [transcript, setTranscript]   = useState([]);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [isCandidateMuted, setIsCandidateMuted] = useState(false);
   const [errorMsg, setErrorMsg]       = useState('');
   const [summary, setSummary]         = useState(null);
-  const [jobPostingData, setJobPostingData] = useState(null);
-  const [loadingData, setLoadingData] = useState(true);
+  const [sessionConfig, setSessionConfig] = useState(null);
 
   const wsRef            = useRef(null);
   const audioContextRef  = useRef(null);
@@ -24,63 +23,38 @@ function VideoInterview() {
   const audioQueueRef    = useRef([]);
   const isPlayingRef     = useRef(false);
   const sessionIdRef     = useRef(null);
-  const { applicationId: routeApplicationId } = useParams();
+  const { token } = useParams();
   const navigate = useNavigate();
 
-  // URL parametrelerinden bilgi al (fallback için)
-  const params = new URLSearchParams(window.location.search);
-  const applicationId = routeApplicationId || params.get('applicationId') || '';
-  const [candidateName, setCandidateName] = useState(params.get('candidateName') || 'Aday');
-  const [jobTitle, setJobTitle]           = useState(params.get('jobTitle')      || 'Yazılım Geliştirici');
-  const [jobPostingId, setJobPostingId]   = useState(params.get('jobPostingId')  || '');
-
-  // ── Başvuru bilgilerini backend'den al ──────────────────────────────────────
+  // ── Token validation — call AI-NLP's start-with-token ──────────────────────
   useEffect(() => {
-    const fetchApplicationDetails = async () => {
-      if (!applicationId) return;
-      try {
-        const token = localStorage.getItem('jwToken');
-        const response = await axios.get(`${BACKEND_URL}/Applications/${applicationId}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        });
-        
-        if (response.data && response.data.application) {
-          const app = response.data.application;
-          if (app.candidateProfile) setCandidateName(app.candidateProfile.fullName);
-          if (app.jobPosting) {
-            setJobTitle(app.jobPosting.jobTitle);
-            setJobPostingId(app.jobPosting.id);
-          } else if (app.jobPostingId) {
-            setJobPostingId(app.jobPostingId);
-          }
-        }
-      } catch (err) {
-        console.warn('Başvuru detayı alınamadı:', err.message);
-      }
-    };
-    fetchApplicationDetails();
-  }, [applicationId]);
-
-  // ── İlan bilgilerini backend'den al ────────────────────────────────────────
-  useEffect(() => {
-    const fetchJobPosting = async () => {
-      if (!jobPostingId) {
-        setLoadingData(false);
+    const validateToken = async () => {
+      if (!token) {
+        setStatus('invalid');
+        setErrorMsg('Mülakat token bulunamadı.');
         return;
       }
       try {
-        const response = await axios.get(`${BACKEND_URL}/JobPostings/public/${jobPostingId}`);
+        const response = await axios.post(`${AI_NLP_URL}/start-with-token`, { token });
         if (response.data) {
-          setJobPostingData(response.data);
+          setSessionConfig(response.data);
+          sessionIdRef.current = response.data.session_id;
+          setStatus('idle');
         }
       } catch (err) {
-        console.warn('İlan bilgisi alınamadı:', err.message);
-      } finally {
-        setLoadingData(false);
+        const detail = err.response?.data?.detail || err.message;
+        setStatus('invalid');
+        if (err.response?.status === 409) {
+          setErrorMsg('Bu mülakat daha önce tamamlanmış. Tekrar giriş yapılamaz.');
+        } else if (err.response?.status === 403) {
+          setErrorMsg('Geçersiz veya süresi dolmuş mülakat linki.');
+        } else {
+          setErrorMsg(`Mülakat başlatılamadı: ${detail}`);
+        }
       }
     };
-    fetchJobPosting();
-  }, [jobPostingId]);
+    validateToken();
+  }, [token]);
 
   // ── Ses oynatma kuyruğu ────────────────────────────────────────────────────
   const playNextAudio = useCallback(async () => {
@@ -117,12 +91,14 @@ function VideoInterview() {
 
   // ── Sonuçları backend'e kaydet ──────────────────────────────────────────────
   const saveResultsToBackend = useCallback(async (summaryData) => {
-    if (!applicationId || !jobPostingId) return;
+    if (!sessionConfig) return;
+    const { application_id, job_posting_id } = sessionConfig;
+    if (!application_id || !job_posting_id) return;
     try {
-      const token = localStorage.getItem('jwToken');
+      const jwToken = localStorage.getItem('jwToken');
       await axios.post(`${BACKEND_URL}/Interviews/save-realtime`, {
-        applicationId,
-        jobPostingId,
+        applicationId: application_id,
+        jobPostingId: job_posting_id,
         externalSessionId: sessionIdRef.current,
         overallInterviewScore: summaryData.overall_interview_score,
         communicationScore: summaryData.communication_score,
@@ -135,21 +111,22 @@ function VideoInterview() {
         strengths: summaryData.strengths,
         weaknesses: summaryData.weaknesses,
         recommendations: summaryData.recommendations,
-        isPassed: summaryData.is_passed
+        isPassed: summaryData.is_passed,
+        qaList: summaryData.qa_list || []
       }, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
+        headers: jwToken ? { Authorization: `Bearer ${jwToken}` } : {}
       });
     } catch (err) {
       console.error('Mülakat sonuçları kaydedilemedi:', err.message);
     }
-  }, [applicationId, jobPostingId]);
+  }, [sessionConfig]);
 
   // ── AI-NLP'den değerlendirme al ────────────────────────────────────────────
   const fetchEvaluation = useCallback(async () => {
     const sid = sessionIdRef.current;
     if (!sid) return;
     try {
-      const response = await axios.post(`${AI_NLP_HTTP_URL}/${sid}/end`);
+      const response = await axios.post(`${AI_NLP_URL}/${sid}/end`);
       if (response.data) {
         setSummary(response.data);
         await saveResultsToBackend(response.data);
@@ -264,34 +241,33 @@ function VideoInterview() {
 
   // ── Mülakati başlat ────────────────────────────────────────────────────────
   const startInterview = useCallback(async () => {
+    if (!sessionConfig) return;
     setStatus('connecting');
     setTranscript([]);
     setSummary(null);
     setErrorMsg('');
 
-    // Generate a unique session ID to track this interview
-    const sid = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+    const sid = sessionConfig.session_id;
     sessionIdRef.current = sid;
 
     const ws = new WebSocket(AI_NLP_WS_URL);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      // Init mesajı gönder — gerçek ilan bilgileriyle
-      const jp = jobPostingData || {};
+      const jp = sessionConfig.job_posting || {};
       ws.send(JSON.stringify({
         type: 'init',
         session_id: sid,
-        application_id: applicationId,
+        application_id: sessionConfig.application_id,
         job_posting: {
-          job_title: jp.jobTitle || jobTitle,
+          job_title: jp.job_title || '',
           department: jp.department || '',
-          required_skills: jp.requiredQualifications || '',
-          required_qualifications: jp.requiredQualifications || '',
+          required_skills: jp.required_skills || '',
+          required_qualifications: jp.required_qualifications || '',
           responsibilities: jp.responsibilities || ''
         },
-        candidate_name: candidateName,
-        cv_summary: `Aday: ${candidateName}. Pozisyon: ${jp.jobTitle || jobTitle} başvurusu. Departman: ${jp.department || 'Belirtilmemiş'}.`
+        candidate_name: sessionConfig.candidate_name,
+        cv_summary: sessionConfig.cv_summary || ''
       }));
       setStatus('active');
       startMicrophone();
@@ -308,7 +284,7 @@ function VideoInterview() {
       if (status === 'active') setStatus('ended');
       stopMicrophone();
     };
-  }, [applicationId, candidateName, jobTitle, jobPostingData, handleMessage, startMicrophone, status]);
+  }, [sessionConfig, handleMessage, startMicrophone, status]);
 
   // ── Mülakatı bitir ─────────────────────────────────────────────────────────
   const endInterview = () => {
@@ -327,6 +303,42 @@ function VideoInterview() {
   }, []); // eslint-disable-line
 
   // ── Render ─────────────────────────────────────────────────────────────────
+
+  // Invalid/expired token page
+  if (status === 'invalid') {
+    return (
+      <div className="vi-container">
+        <div className="vi-left" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <div className="vi-avatar">
+            <div className="vi-avatar-face">
+              <div className="vi-avatar-eyes"><span /><span /></div>
+              <div className="vi-avatar-mouth" />
+            </div>
+          </div>
+          <p className="vi-avatar-name">CVNokta AI Mülakat</p>
+          <p className="vi-error" style={{ marginTop: '1rem', fontSize: '1.1rem' }}>{errorMsg}</p>
+          <button className="vi-btn vi-btn-start" onClick={() => navigate('/')} style={{ marginTop: '1rem' }}>
+            🏠 Ana Sayfaya Dön
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state
+  if (status === 'loading') {
+    return (
+      <div className="vi-container">
+        <div className="vi-left" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <p>⏳ Mülakat bilgileri doğrulanıyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const candidateName = sessionConfig?.candidate_name || 'Aday';
+  const jobTitle = sessionConfig?.job_posting?.job_title || '';
+
   return (
     <div className="vi-container">
       {/* Avatar panel */}
@@ -341,19 +353,19 @@ function VideoInterview() {
           {isAiSpeaking && <div className="vi-speaking-ring" />}
         </div>
         <p className="vi-avatar-name">hr.ai Mülakat</p>
+        {jobTitle && <p style={{ color: '#888', fontSize: '0.9rem', margin: '0.25rem 0' }}>{jobTitle}</p>}
         <p className="vi-avatar-status">
-          {loadingData             && '⏳ İlan bilgileri yükleniyor...'}
-          {!loadingData && status === 'connecting' && '🔄 Bağlanıyor...'}
-          {!loadingData && status === 'active'     && (isAiSpeaking ? '🔊 Konuşuyor...' : '👂 Dinliyor...')}
-          {!loadingData && status === 'ended'      && '✅ Mülakat tamamlandı'}
-          {!loadingData && status === 'error'      && '❌ Bağlantı hatası'}
-          {!loadingData && status === 'idle'       && 'Başlamak için hazır'}
+          {status === 'connecting' && '🔄 Bağlanıyor...'}
+          {status === 'active'     && (isAiSpeaking ? '🔊 Konuşuyor...' : '👂 Dinliyor...')}
+          {status === 'ended'      && '✅ Mülakat tamamlandı'}
+          {status === 'error'      && '❌ Bağlantı hatası'}
+          {status === 'idle'       && `Merhaba ${candidateName}, başlamak için hazır`}
         </p>
 
         {/* Kontroller */}
         <div className="vi-controls">
           {(status === 'idle' || status === 'error') ? (
-            <button className="vi-btn vi-btn-start" onClick={startInterview} disabled={loadingData}>
+            <button className="vi-btn vi-btn-start" onClick={startInterview}>
               🎯 Mülakatı Başlat
             </button>
           ) : status === 'active' || status === 'connecting' ? (
