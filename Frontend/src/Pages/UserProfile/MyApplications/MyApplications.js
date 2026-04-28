@@ -133,8 +133,9 @@ function MyApplications() {
                         stage:         a.currentPipelineStage || 'NLP_REVIEW',
                         rejectionReason: a.rejectionReason,
                         activeExamToken: a.activeExamToken,
-                        interviewUrl:  a.currentPipelineStage === 'AI_INTERVIEW_PENDING'
-                            ? `/interview/${a.applicationId}`
+                        interviewToken: a.interviewToken,
+                        interviewUrl:  a.currentPipelineStage === 'AI_INTERVIEW_PENDING' && a.interviewToken
+                            ? `/interview/take/${a.interviewToken}`
                             : null,
                     }));
 
@@ -190,10 +191,10 @@ function MyApplications() {
                         <hr className={styles.divider} />
                         <h4 className={styles.stepperHeader}>Süreç Detayı</h4>
                         <PipelineStepper stage={app.stage} rejectionReason={app.rejectionReason} />
-                        {app.stage === 'AI_INTERVIEW_PENDING' && (
+                        {app.stage === 'AI_INTERVIEW_PENDING' && app.interviewToken && (
                             <div style={{ marginTop: '16px', textAlign: 'center' }}>
                                 <a
-                                    href={app.interviewUrl || `/interview/${app.id}`}
+                                    href={app.interviewUrl || `/interview/take/${app.interviewToken}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className={styles.interviewBtn}
