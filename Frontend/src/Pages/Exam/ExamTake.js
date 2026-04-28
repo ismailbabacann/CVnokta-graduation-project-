@@ -269,7 +269,7 @@ const ExamTake = () => {
             </svg>
           </div>
           <h2>Sınav Tamamlandı!</h2>
-          <p>Cevaplarınız <strong>CVNokta</strong> sistemine kaydedildi.</p>
+          <p>Cevaplarınız <strong>hr.ai</strong> sistemine kaydedildi.</p>
           {usedMock && <p style={{ color: '#f59e0b', fontSize: 13 }}>ℹ️ Simülasyon modunda çalıştı.</p>}
           <div className="finished-stats">
             <div className="fstat"><span className="fstat-val">{answered}</span><span className="fstat-lbl">Yanıtlanan</span></div>

@@ -6,6 +6,7 @@ function Header({ user }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeSection, setActiveSection] = useState('home');
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     if (location.pathname !== '/') {
@@ -14,6 +15,9 @@ function Header({ user }) {
     }
 
     const handleScroll = () => {
+      // Add sticky shadow if scrolled
+      setScrolled(window.scrollY > 20);
+
       const scrollPosition = window.scrollY + 200; // offset for header height
       const aboutEl = document.getElementById('about');
       const faqEl = document.getElementById('faq');
@@ -34,14 +38,18 @@ function Header({ user }) {
   }, [location]);
 
   return (
-    <header className={styles.header}>
+    <header className={`${styles.header} ${scrolled ? styles.headerScrolled : ''}`}>
       <div className={styles.container}>
         <div
-          className={styles.logo}
+          className={styles.logoArea}
           onClick={() => navigate('/')}
         >
-          <div className={styles.logoIconContainer}>
-            <span className={styles.logoIcon}>h</span>
+          <div className={styles.logoIconBg}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={styles.logoSvg}>
+              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+              <path d="M2 17l10 5 10-5"></path>
+              <path d="M2 12l10 5 10-5"></path>
+            </svg>
           </div>
           <h1 className={styles.logoText}>hr.ai</h1>
         </div>
@@ -54,7 +62,7 @@ function Header({ user }) {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           >
-            Home
+            Ana Sayfa
           </button>
 
           <button
@@ -64,7 +72,7 @@ function Header({ user }) {
               setTimeout(() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }), 100);
             }}
           >
-            About Us
+            Hakkımızda
           </button>
           
           <button
@@ -74,36 +82,37 @@ function Header({ user }) {
               setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100);
             }}
           >
-            FAQ
+            S.S.S.
           </button>
 
           <button
             className={`${styles.navLink} ${location.pathname === '/insights' ? styles.active : ''}`}
             onClick={() => navigate('/insights')}
           >
-            Insights
+            İstatistikler
           </button>
           
           <button
             className={`${styles.navLink} ${location.pathname === '/jobs' ? styles.active : ''}`}
             onClick={() => navigate('/jobs')}
           >
-            All Jobs
+            Tüm İlanlar
           </button>
         </nav>
 
         <div className={styles.authButtons}>
           {user ? (
-            <button className={styles.signupBtn} onClick={() => navigate('/profile')}>
-              Hesabım
+            <button className={styles.accountBtn} onClick={() => navigate('/profile')}>
+              <span className={styles.btnIcon}>👤</span>
+              <span className={styles.btnText}>Hesabım</span>
             </button>
           ) : (
             <>
               <button className={styles.loginBtn} onClick={() => navigate('/login')}>
-                Login
+                Giriş Yap
               </button>
               <button className={styles.signupBtn} onClick={() => navigate('/signup')}>
-                Sign Up
+                Kayıt Ol
               </button>
             </>
           )}

@@ -72,10 +72,21 @@ namespace CleanArchitecture.Core.Entities
 
         // --- Pipeline Settings ---
         /// <summary>
-        /// Minimum score (0-100) required to advance to next pipeline stage.
-        /// Same threshold applies to NLP, Skills, English and AI Interview stages.
-        /// Default: 70. HR can change per job posting.
+        /// Minimum score (0-100) required to pass the CV Analysis (NLP) stage.
+        /// Default: 60.
         /// </summary>
-        public int PipelinePassThreshold { get; set; } = 70;
+        public int PipelinePassThreshold { get; set; } = 60;  // kept as CV threshold (backward compat alias)
+
+        /// <summary>CV analysis pass threshold (0-100). Default: 60.</summary>
+        public int CvPassThreshold { get; set; } = 60;
+
+        /// <summary>English test pass threshold (0-100). Default: 70.</summary>
+        public int EnglishPassThreshold { get; set; } = 70;
+
+        /// <summary>Technical (skills) test pass threshold (0-100). Default: 70.</summary>
+        public int TechnicalPassThreshold { get; set; } = 70;
+
+        /// <summary>AI Interview pass threshold (0-100). Default: 60.</summary>
+        public int AiInterviewPassThreshold { get; set; } = 60;
     }
 }

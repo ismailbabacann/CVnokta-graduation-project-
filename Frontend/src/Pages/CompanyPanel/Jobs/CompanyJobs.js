@@ -34,7 +34,7 @@ function CompanyJobs() {
     const [modalTab, setModalTab] = useState('candidates'); // 'candidates' | 'pipeline'
     const [pipelineSummary, setPipelineSummary] = useState(null);
     const [pipelineLoading, setPipelineLoading] = useState(false);
-    const [thresholdInput, setThresholdInput] = useState(70);
+    const [thresholds, setThresholds] = useState({ cv: 60, english: 70, technical: 70, aiInterview: 60 });
     const [thresholdSaving, setThresholdSaving] = useState(false);
     const [aiRejectLoading, setAiRejectLoading] = useState(false);
     const [aiRejectResults, setAiRejectResults] = useState(null);
@@ -48,7 +48,12 @@ function CompanyJobs() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setPipelineSummary(res.data);
-            setThresholdInput(res.data.passThreshold || 70);
+            setThresholds({
+                cv:          res.data.cvPassThreshold          ?? res.data.passThreshold ?? 60,
+                english:     res.data.englishPassThreshold     ?? 70,
+                technical:   res.data.technicalPassThreshold   ?? 70,
+                aiInterview: res.data.aiInterviewPassThreshold ?? 60,
+            });
         } catch (e) {
             console.error('Pipeline summary error:', e);
         } finally {
@@ -63,10 +68,16 @@ function CompanyJobs() {
             const token = localStorage.getItem('jwToken');
             const jobId = selectedJob.jobId || selectedJob.id;
             await axios.put(`https://localhost:9001/api/v1/Pipeline/${jobId}/threshold`,
-                { passThreshold: parseInt(thresholdInput) },
+                {
+                    passThreshold:            parseInt(thresholds.cv),
+                    cvPassThreshold:          parseInt(thresholds.cv),
+                    englishPassThreshold:     parseInt(thresholds.english),
+                    technicalPassThreshold:   parseInt(thresholds.technical),
+                    aiInterviewPassThreshold: parseInt(thresholds.aiInterview),
+                },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            alert('Eşik değeri kaydedildi.');
+            alert('Eşik değerleri kaydedildi.');
             loadPipelineSummary(jobId);
         } catch (e) {
             alert('Kayıt hatası: ' + (e.response?.data?.message || 'Bilinmeyen hata'));
@@ -97,7 +108,18 @@ function CompanyJobs() {
             );
             alert(`${toReject.length} aday elendi ve bildirim mailleri gönderildi.`);
             setAiRejectResults(toReject.length);
+            // Aday listesini ve pipeline özetini yenile
             loadPipelineSummary(jobId);
+            setModalLoading(true);
+            try {
+                const res = await axios.get(`https://localhost:9001/api/v1/Applications/pool`, {
+                    params: { JobPostingId: jobId, PageNumber: 1, PageSize: 100, SortBy: 'nlpscoredesc' },
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setJobCandidates(res.data?.data || []);
+            } finally {
+                setModalLoading(false);
+            }
         } catch (e) {
             alert('AI eleme hatası: ' + (e.response?.data?.message || 'Bilinmeyen hata'));
         } finally {
@@ -170,6 +192,21 @@ function CompanyJobs() {
             alert("Seçili adayların durumu güncellendi ve otomatik bilgilendirme e-postaları gönderildi.");
             // Reset selection
             setSelectedCandIds([]);
+            // Aday listesini ve pipeline özetini yenile
+            const jobId = selectedJob?.jobId || selectedJob?.id;
+            if (jobId) {
+                setModalLoading(true);
+                try {
+                    const res = await axios.get(`https://localhost:9001/api/v1/Applications/pool`, {
+                        params: { JobPostingId: jobId, PageNumber: 1, PageSize: 100, SortBy: 'nlpscoredesc' },
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    setJobCandidates(res.data?.data || []);
+                } finally {
+                    setModalLoading(false);
+                }
+                loadPipelineSummary(jobId);
+            }
         } catch (err) {
             console.error("Toplu işlem hatası:", err);
             alert("Toplu işlem veritabanına işlenirken bir hata oluştu.");
@@ -605,22 +642,37 @@ function CompanyJobs() {
                                             </div>
 
                                             {/* Threshold setting */}
-                                            <div style={{ background: '#f8f9fa', borderRadius: '10px', padding: '18px', marginBottom: '20px' }}>
-                                                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#333' }}>⚙️ Geçiş Eşiği</h4>
-                                                <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#666' }}>Tüm aşamalar (NLP, Beceri, İngilizce, AI Mülakat) için geçiş eşiği. Bu değere ulaşan adaylar otomatik ileri alınır.</p>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                    <input
-                                                        type="number" min="1" max="100"
-                                                        value={thresholdInput}
-                                                        onChange={e => setThresholdInput(e.target.value)}
-                                                        style={{ width: '80px', padding: '8px', borderRadius: '8px', border: '2px solid #764ba2', fontSize: '16px', fontWeight: '700', textAlign: 'center' }}
-                                                    />
-                                                    <span style={{ color: '#555', fontWeight: '600' }}>%</span>
+                                            <div style={{ background: '#f8f9fa', borderRadius: '12px', padding: '18px', marginBottom: '20px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                                                    <h4 style={{ margin: 0, fontSize: '14px', color: '#333' }}>⚙️ Geçiş Eşiği</h4>
                                                     <button
                                                         onClick={handleSaveThreshold}
                                                         disabled={thresholdSaving}
-                                                        style={{ padding: '8px 20px', background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
-                                                    >{thresholdSaving ? 'Kaydediliyor...' : 'Kaydet'}</button>
+                                                        style={{ padding: '7px 18px', background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}
+                                                    >{thresholdSaving ? 'Kaydediliyor...' : '💾 Kaydet'}</button>
+                                                </div>
+                                                <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#888' }}>Her aşama için ayrı geçiş eşiği belirleyin. Bu değere ulaşan adaylar otomatik olarak ileri alınır.</p>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                                    {[
+                                                        { key: 'cv',          label: '📄 CV Analizi',      color: '#667eea', default: 60 },
+                                                        { key: 'english',     label: '🇬🇧 İngilizce Testi', color: '#00b4db', default: 70 },
+                                                        { key: 'technical',   label: '🛠️ Teknik Test',     color: '#ed8936', default: 70 },
+                                                        { key: 'aiInterview', label: '🤖 AI Mülakat',      color: '#f5576c', default: 60 },
+                                                    ].map(({ key, label, color, default: def }) => (
+                                                        <div key={key} style={{ background: '#fff', borderRadius: '10px', padding: '14px', border: `2px solid ${color}20`, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                            <span style={{ fontSize: '12px', fontWeight: '700', color }}>{label}</span>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <input
+                                                                    type="number" min="1" max="100"
+                                                                    value={thresholds[key]}
+                                                                    onChange={e => setThresholds(prev => ({ ...prev, [key]: e.target.value }))}
+                                                                    style={{ width: '70px', padding: '6px', borderRadius: '8px', border: `2px solid ${color}`, fontSize: '18px', fontWeight: '700', textAlign: 'center', color }}
+                                                                />
+                                                                <span style={{ color: '#888', fontSize: '13px', fontWeight: '600' }}>%</span>
+                                                                <span style={{ fontSize: '11px', color: '#bbb' }}>Varsayılan: %{def}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
 

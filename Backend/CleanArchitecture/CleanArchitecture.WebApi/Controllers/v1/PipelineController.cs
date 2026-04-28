@@ -43,7 +43,11 @@ namespace CleanArchitecture.WebApi.Controllers.v1
             return Ok(new
             {
                 jobId,
-                passThreshold     = job.PipelinePassThreshold,
+                passThreshold            = job.PipelinePassThreshold,
+                cvPassThreshold          = job.CvPassThreshold > 0 ? job.CvPassThreshold : job.PipelinePassThreshold,
+                englishPassThreshold     = job.EnglishPassThreshold > 0 ? job.EnglishPassThreshold : 70,
+                technicalPassThreshold   = job.TechnicalPassThreshold > 0 ? job.TechnicalPassThreshold : 70,
+                aiInterviewPassThreshold = job.AiInterviewPassThreshold > 0 ? job.AiInterviewPassThreshold : 60,
                 nlpReview         = apps.Count(a => a.CurrentPipelineStage == "NLP_REVIEW"),
                 skillsTestPending = apps.Count(a => a.CurrentPipelineStage == "SKILLS_TEST_PENDING"),
                 englishTestPending= apps.Count(a => a.CurrentPipelineStage == "ENGLISH_TEST_PENDING"),
@@ -70,15 +74,32 @@ namespace CleanArchitecture.WebApi.Controllers.v1
             var job = await _jobPostingRepo.GetByIdAsync(jobId);
             if (job == null) return NotFound();
 
-            job.PipelinePassThreshold = request.PassThreshold;
+            // Update all thresholds; fall back to PassThreshold for any unset field
+            job.PipelinePassThreshold  = request.CvPassThreshold > 0 ? request.CvPassThreshold : request.PassThreshold;
+            job.CvPassThreshold        = request.CvPassThreshold > 0 ? request.CvPassThreshold : request.PassThreshold;
+            job.EnglishPassThreshold   = request.EnglishPassThreshold > 0 ? request.EnglishPassThreshold : 70;
+            job.TechnicalPassThreshold = request.TechnicalPassThreshold > 0 ? request.TechnicalPassThreshold : 70;
+            job.AiInterviewPassThreshold = request.AiInterviewPassThreshold > 0 ? request.AiInterviewPassThreshold : 60;
+
             await _jobPostingRepo.UpdateAsync(job);
 
-            return Ok(new { success = true, passThreshold = job.PipelinePassThreshold });
+            return Ok(new
+            {
+                success                  = true,
+                cvPassThreshold          = job.CvPassThreshold,
+                englishPassThreshold     = job.EnglishPassThreshold,
+                technicalPassThreshold   = job.TechnicalPassThreshold,
+                aiInterviewPassThreshold = job.AiInterviewPassThreshold,
+            });
         }
     }
 
     public class UpdateThresholdRequest
     {
         public int PassThreshold { get; set; }
+        public int CvPassThreshold { get; set; }
+        public int EnglishPassThreshold { get; set; }
+        public int TechnicalPassThreshold { get; set; }
+        public int AiInterviewPassThreshold { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import CompanyChatbot from './CompanyChatbot';
 
 function CompanyHelp() {
     const [openIndex, setOpenIndex] = useState(null);
@@ -32,9 +33,13 @@ function CompanyHelp() {
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-            <h1 style={{ color: '#2c3e50', marginBottom: '10px' }}>Şirket Paneli Yardım / SSS</h1>
-            <p style={{ color: '#7f8c8d', marginBottom: '30px' }}>CV Nokta işveren panelinde işlemlerinizi nasıl yapabileceğiniz hakkında sıkça sorulan sorular.</p>
+            <h1 style={{ color: '#2c3e50', marginBottom: '10px' }}>İşveren Asistanı ve Yardım</h1>
+            <p style={{ color: '#7f8c8d', marginBottom: '30px' }}>hr.ai işveren panelinde işlemlerinizi nasıl yapabileceğiniz hakkında sıkça sorulan sorular ve yapay zeka asistanı.</p>
             
+            {/* AI Chatbot Component */}
+            <CompanyChatbot />
+            
+            <h2 style={{ color: '#2c3e50', marginTop: '40px', marginBottom: '20px' }}>Sıkça Sorulan Sorular</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 {questions.map((item, idx) => (
                     <div key={idx} style={{ background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
@@ -56,7 +61,7 @@ function CompanyHelp() {
 
             <div style={{ marginTop: '40px', padding: '20px', background: '#eff6ff', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
                 <h3 style={{ margin: '0 0 10px 0', color: '#1d4ed8' }}>Hala Sorun Mu Yaşıyorsunuz?</h3>
-                <p style={{ margin: 0, color: '#3b82f6' }}>Lütfen sistem yöneticilerimizle <a href="mailto:support@cvnokta.com" style={{fontWeight: 'bold', color: '#1e40af'}}>support@cvnokta.com</a> üzerinden iletişime geçin.</p>
+                <p style={{ margin: 0, color: '#3b82f6' }}>Lütfen sistem yöneticilerimizle <a href="mailto:support@hr.ai" style={{fontWeight: 'bold', color: '#1e40af'}}>support@hr.ai</a> üzerinden iletişime geçin.</p>
             </div>
         </div>
     );

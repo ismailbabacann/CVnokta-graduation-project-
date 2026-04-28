@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styles from './Help.module.css';
+import CareerChatbot from './CareerChatbot';
 
 function Help() {
     const [openIndex, setOpenIndex] = useState(0);
@@ -81,6 +82,9 @@ function Help() {
                     <p>İş başvuru süreci, CV hazırlama ve platform kullanımı ile ilgili aklınıza takılan tüm soruların cevaplarını burada bulabilirsiniz.</p>
                 </div>
             </div>
+
+            {/* AI Kariyer Asistanı */}
+            <CareerChatbot />
 
             <div className={styles.faqList}>
                 {faqs.map((faq, index) => (

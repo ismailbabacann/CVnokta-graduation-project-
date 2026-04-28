@@ -1,67 +1,159 @@
-.welcomeContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: calc(100vh - 200px);
-    font-family: 'Inter', sans-serif;
+.dashboardContainer {
+    width: 100%;
 }
 
 .welcomeCard {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 60px 40px;
-    max-width: 600px;
-    text-align: center;
-    box-shadow: 0 10px 40px rgba(106, 76, 213, 0.08);
-    border: 1px solid rgba(106, 76, 213, 0.1);
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    border-radius: 24px;
+    padding: 50px 60px;
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
+    color: white;
+    box-shadow: 0 20px 40px rgba(37, 99, 235, 0.2);
+    position: relative;
+    overflow: hidden;
+    gap: 40px;
 }
 
-.iconWrapper {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #e3d9f9 0%, #ffffff 100%);
+.welcomeCard::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
     border-radius: 50%;
-    display: flex;
-    justify-content: center;
+    pointer-events: none;
+}
+
+.welcomeContent {
+    flex: 1;
+    z-index: 2;
+    max-width: 650px;
+}
+
+.badge {
+    display: inline-flex;
     align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     margin-bottom: 24px;
-    box-shadow: 0 4px 15px rgba(106, 76, 213, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
 }
 
 .sparkleIcon {
-    font-size: 32px;
+    margin-right: 8px;
+    font-size: 16px;
 }
 
 .welcomeTitle {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1e2235;
-    margin: 0 0 16px 0;
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 0 0 20px 0;
+    font-family: 'Outfit', sans-serif;
     letter-spacing: -0.5px;
 }
 
+.textHighlight {
+    color: #bfdbfe;
+}
+
 .welcomeText {
-    font-size: 16px;
-    color: #5a607f;
+    font-size: 1.1rem;
     line-height: 1.6;
-    margin: 0 0 32px 0;
+    color: #e0e7ff;
+    margin: 0 0 40px 0;
 }
 
-.welcomeText b {
-    color: #6a4cd5;
-    font-weight: 600;
+.statsContainer {
+    display: flex;
+    gap: 20px;
 }
 
-.illustrationPlaceholder {
-    background-color: #f8f9fc;
-    border: 1px dashed #c8cbd5;
+.statBox {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 20px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    transition: transform 0.3s ease;
+}
+
+.statBox:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.statIcon {
+    font-size: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 12px;
-    padding: 30px;
-    width: 100%;
-    color: #7a829a;
-    font-size: 14px;
-    font-weight: 500;
+}
+
+.statInfo h3 {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.statInfo p {
+    margin: 0;
+    font-size: 12px;
+    color: #bfdbfe;
+}
+
+.welcomeIllustration {
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.glassCircle {
+    width: 220px;
+    height: 220px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.2);
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+@media (max-width: 1100px) {
+    .welcomeCard {
+        flex-direction: column;
+        text-align: center;
+    }
+    .statsContainer {
+        flex-direction: column;
+    }
 }

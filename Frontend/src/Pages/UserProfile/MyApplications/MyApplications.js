@@ -21,6 +21,7 @@ const STAGE_ORDER = {
     REJECTED_ENGLISH:      1,
     REJECTED_SKILLS:       2,
     REJECTED_AI:           3,
+    REJECTED_MANUAL:       0,  // HR tarafından manuel eleme
 };
 
 const STAGE_MESSAGES = {
@@ -33,6 +34,7 @@ const STAGE_MESSAGES = {
     REJECTED_SKILLS:       { text: 'Genel beceri testi aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
     REJECTED_AI:           { text: 'AI mülakat aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
     REJECTED_NLP:          { text: 'CV analiz aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
+    REJECTED_MANUAL:       { text: 'İK ekibi tarafından değerlendirmeniz tamamlandı. Başvurunuz için teşekkür ederiz.', color: '#e53e3e' },
 };
 
 function isRejected(stage) {
