@@ -59,7 +59,7 @@ class _RealtimeSessionEntry:
         "session", "created_at", "last_activity",
         "openai_ws", "question_count",
         "_silence_warning_sent", "_duration_warning_sent",
-        "ended_at_monotonic",
+        "ended_at_monotonic", "qa_pairs",
     )
 
     def __init__(self, session: RealtimeSession) -> None:
@@ -71,6 +71,7 @@ class _RealtimeSessionEntry:
         self._silence_warning_sent: bool = False
         self._duration_warning_sent: bool = False
         self.ended_at_monotonic: Optional[float] = None
+        self.qa_pairs: Optional[List] = None
 
 
 # Valid state transitions for the session state machine
@@ -629,6 +630,7 @@ class RealtimeInterviewEngine:
 
         # Extract Q&A and evaluate
         qa_pairs = self._build_qa_from_transcript(entry)
+        entry.qa_pairs = qa_pairs  # Cache for later retrieval
 
         if not qa_pairs:
             logger.warning("No Q&A pairs extracted (session=%s), marking FAILED", session_id)
@@ -914,6 +916,15 @@ class RealtimeInterviewEngine:
             recommendations=str(raw.get("recommendations") or ""),
             is_passed=overall >= 60.0 if overall is not None else None,
         )
+
+    # ── Q&A retrieval ────────────────────────────────────────────
+
+    def get_session_qa_pairs(self, session_id: str) -> Optional[List[InterviewQA]]:
+        """Return cached Q&A pairs for a completed session."""
+        entry = self._sessions.get(session_id)
+        if entry is None:
+            return None
+        return entry.qa_pairs
 
     # ── Cleanup ───────────────────────────────────────────────────
 

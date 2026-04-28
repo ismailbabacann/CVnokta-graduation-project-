@@ -54,9 +54,9 @@ CLAUDE.md
 tasks/
 ToDo.md
 **/README.md
-front-delete.md
-push.md
 .github/
 
 # Demo app (local only)
 demo/
+start-all.sh
+md-files/

@@ -102,17 +102,17 @@ app.add_middleware(RequestTrackingMiddleware)
 
 # ── Routers ────────────────────────────────────────────────────────────
 from app.api.v1.cv_analysis import router as cv_router  # noqa: E402
-from app.api.v1.interview import router as interview_router  # noqa: E402
 from app.api.v1.rankings import router as rankings_router  # noqa: E402
 from app.api.v1.realtime_interview import router as realtime_router  # noqa: E402
+from app.api.v1.realtime_interview import setup_router as interview_setup_router  # noqa: E402
 from app.api.v1.tests import router as tests_router  # noqa: E402
 from app.api.v1.backend_integration import router as backend_router  # noqa: E402
 
 app.include_router(cv_router, prefix="/api/v1")
 app.include_router(tests_router, prefix="/api/v1")
 app.include_router(rankings_router, prefix="/api/v1")
-app.include_router(interview_router, prefix="/api/v1")
 app.include_router(realtime_router, prefix="/api/v1")
+app.include_router(interview_setup_router, prefix="/api/v1")
 app.include_router(backend_router, prefix="/api/v1")
 
 # ── Static files (interview room UI) ───────────────────────────────────
@@ -150,7 +150,7 @@ async def health():
         "environment": s.app_env,
         "api_key_required": bool(s.ai_nlp_api_key),
         "openai_key_present": bool(s.openai_api_key),
-        "endpoints": ["cv", "tests", "interview", "interview/realtime", "rankings"],
+        "endpoints": ["cv", "tests", "interview/realtime", "rankings"],
     }
 
 
@@ -169,7 +169,6 @@ async def root():
             "cv_analysis": "/api/v1/cv",
             "tests": "/api/v1/tests",
             "rankings": "/api/v1/rankings",
-            "interview": "/api/v1/interview",
             "realtime_interview": "/api/v1/interview/realtime",
         },
     }

@@ -10,19 +10,12 @@ from functools import lru_cache
 
 from app.config import get_settings
 from app.core.test_engine import TestEngine
-from app.core.interview_engine import InterviewEngine
 
 
 @lru_cache()
 def get_test_engine() -> TestEngine:
     """Singleton TestEngine instance."""
     return TestEngine()
-
-
-@lru_cache()
-def get_interview_engine() -> InterviewEngine:
-    """Singleton InterviewEngine instance."""
-    return InterviewEngine()
 
 
 def get_openai_service():
