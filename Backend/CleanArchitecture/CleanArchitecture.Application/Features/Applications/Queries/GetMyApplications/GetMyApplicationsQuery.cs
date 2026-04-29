@@ -32,6 +32,11 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
         /// <summary>Token for the active exam at this stage (if any).</summary>
         public string ActiveExamToken      { get; set; }
         public DateTime AppliedAt          { get; set; }
+
+        // ── AI Interview feedback (visible to candidate after completion/rejection) ──
+        public string AiInterviewStrengths   { get; set; }
+        public string AiInterviewWeaknesses  { get; set; }
+        public string AiInterviewSummary     { get; set; }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -56,17 +61,20 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
         private readonly IGenericRepositoryAsync<JobPosting>               _jobPostingRepo;
         private readonly IGenericRepositoryAsync<CandidateProfile>         _candidateRepo;
         private readonly IGenericRepositoryAsync<CandidateExamAssignment>  _assignmentRepo;
+        private readonly IGenericRepositoryAsync<AiInterviewSummary>       _interviewSummaryRepo;
 
         public GetMyApplicationsQueryHandler(
             IGenericRepositoryAsync<JobApplication>           applicationRepo,
             IGenericRepositoryAsync<JobPosting>       jobPostingRepo,
             IGenericRepositoryAsync<CandidateProfile> candidateRepo,
-            IGenericRepositoryAsync<CandidateExamAssignment>  assignmentRepo)
+            IGenericRepositoryAsync<CandidateExamAssignment>  assignmentRepo,
+            IGenericRepositoryAsync<AiInterviewSummary>       interviewSummaryRepo)
         {
             _applicationRepo = applicationRepo;
             _jobPostingRepo  = jobPostingRepo;
             _candidateRepo   = candidateRepo;
             _assignmentRepo  = assignmentRepo;
+            _interviewSummaryRepo = interviewSummaryRepo;
         }
 
         public async Task<IEnumerable<MyApplicationDto>> Handle(
@@ -80,6 +88,7 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
             var actualCandidateId = candidate?.Id ?? request.CandidateId;
 
             var allAssignments = await _assignmentRepo.GetAllAsync();
+            var allInterviewSummaries = await _interviewSummaryRepo.GetAllAsync();
 
             var result = myApps
                 .Where(a => a.CandidateId == actualCandidateId)
@@ -99,6 +108,15 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
                         activeToken = assignment?.Token;
                     }
 
+                    // AI Interview summary
+                    var interviewSummary = allInterviewSummaries
+                        .Where(s => s.ApplicationId == a.Id)
+                        .OrderByDescending(s => s.Created)
+                        .FirstOrDefault();
+
+                    // Only show feedback for completed or rejected stages
+                    bool showFeedback = a.CurrentPipelineStage == "COMPLETED" || (a.CurrentPipelineStage?.StartsWith("REJECTED_") ?? false);
+
                     return new MyApplicationDto
                     {
                         ApplicationId        = a.Id,
@@ -111,7 +129,10 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
                         CurrentPipelineStage = a.CurrentPipelineStage ?? "NLP_REVIEW",
                         RejectionReason      = a.RejectionReason,
                         ActiveExamToken      = activeToken,
-                        AppliedAt            = a.AppliedAt
+                        AppliedAt            = a.AppliedAt,
+                        AiInterviewStrengths = showFeedback ? interviewSummary?.Strengths : null,
+                        AiInterviewWeaknesses= showFeedback ? interviewSummary?.Weaknesses : null,
+                        AiInterviewSummary   = showFeedback ? interviewSummary?.SummaryText : null,
                     };
                 })
                 .ToList();

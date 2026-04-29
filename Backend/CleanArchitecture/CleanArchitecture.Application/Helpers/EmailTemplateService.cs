@@ -685,7 +685,7 @@ namespace CleanArchitecture.Core.Helpers
         //  10. PIPELINE — REJECTION (stage-aware)
         // ══════════════════════════════════════════════════════════════════
         public static string GetPipelineRejectionTemplate(
-            string candidateName, string jobTitle, string stageName, int score, int threshold, string aiFeedback = null)
+            string candidateName, string jobTitle, string stageName, int score, int threshold, string aiFeedback = null, string strengths = null, string weaknesses = null)
         {
             var body = $@"
                     <!-- Header -->
@@ -729,9 +729,21 @@ namespace CleanArchitecture.Core.Helpers
                             <p><strong>{stageName}</strong> aşamasında elde ettiğiniz skor, bu pozisyon için belirlenen gerekli eşiğin altında kalmıştır.</p>
                             
                             {(!string.IsNullOrWhiteSpace(aiFeedback) ? $@"
-                            <div style='background-color:#fff5f5; border-left: 4px solid {DangerColor}; padding:16px; margin:20px 0;'>
-                                <p style='margin:0 0 8px 0; font-weight:600; color:{DangerColor};'>🤖 Yapay Zeka Değerlendirmesi:</p>
-                                <p style='margin:0; font-size:14px; color:{TextDark};'>{aiFeedback}</p>
+                            <div style='background-color:#f8fafc; border-left: 4px solid #6366f1; padding:16px; margin:20px 0; border-radius:8px;'>
+                                <p style='margin:0 0 8px 0; font-weight:600; color:#4338ca;'>🤖 Yapay Zeka Değerlendirmesi:</p>
+                                <p style='margin:0; font-size:14px; color:{TextDark}; white-space:pre-line;'>{aiFeedback}</p>
+                            </div>" : "")}
+
+                            {(!string.IsNullOrWhiteSpace(strengths) ? $@"
+                            <div style='background-color:#f0fdf4; border-left: 4px solid #22c55e; padding:16px; margin:12px 0; border-radius:8px;'>
+                                <p style='margin:0 0 8px 0; font-weight:600; color:#166534;'>💪 Güçlü Yönleriniz:</p>
+                                <p style='margin:0; font-size:14px; color:#15803d;'>{strengths}</p>
+                            </div>" : "")}
+
+                            {(!string.IsNullOrWhiteSpace(weaknesses) ? $@"
+                            <div style='background-color:#fff1f2; border-left: 4px solid #ef4444; padding:16px; margin:12px 0; border-radius:8px;'>
+                                <p style='margin:0 0 8px 0; font-weight:600; color:#9f1239;'>🔻 Gelişim Alanlarınız:</p>
+                                <p style='margin:0; font-size:14px; color:#be123c;'>{weaknesses}</p>
                             </div>" : "")}
 
                             <p>Bu karar, yetkinliklerinizin ve deneyimlerinizin değerini azaltmamaktadır. Kendinizi geliştirmeye devam etmenizi ve ileride uygun pozisyonlara başvurmanızı tavsiye ederiz.</p>

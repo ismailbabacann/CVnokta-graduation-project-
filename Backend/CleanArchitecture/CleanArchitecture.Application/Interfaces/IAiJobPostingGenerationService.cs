@@ -7,11 +7,18 @@ using CleanArchitecture.Core.Features.Exams.Commands.SubmitExam;
 
 namespace CleanArchitecture.Application.Interfaces
 {
+    public class ExamFeedbackResult
+    {
+        public string Feedback { get; set; }
+        public string Strengths { get; set; }
+        public string Weaknesses { get; set; }
+    }
+
     public interface IAiJobPostingGenerationService
     {
         Task<GeneratedJobPostingDto> GenerateJobPostingAsync(string applicationContext);
         Task<GeneratedExamDto> GenerateEnglishExamAsync(string testContext);
-        Task<string> GetExamFeedbackAsync(Guid applicationId, string jobTitle, int totalQuestions, int correctAnswers, decimal score, bool passed, List<CleanArchitecture.Core.Features.Exams.Commands.SubmitExam.QuestionResultDto> results);
+        Task<ExamFeedbackResult> GetExamFeedbackAsync(Guid applicationId, string jobTitle, int totalQuestions, int correctAnswers, decimal score, bool passed, List<CleanArchitecture.Core.Features.Exams.Commands.SubmitExam.QuestionResultDto> results);
         Task AnalyzeCvAsync(Guid applicationId, string cvFilePath, CleanArchitecture.Core.Entities.JobPosting jobPosting, Guid stageId, Guid cvId);
     }
 }

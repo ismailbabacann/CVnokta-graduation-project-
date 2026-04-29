@@ -1,0 +1,4 @@
+[28.04.2026 18:03:46] SKILLS_TEST Passed. candidateEmail: 'eryinler22@gmail.com', interviewUrl: 'http://localhost:3000/interview/a55a8979-58b0-42b7-2811-08dea54d86e9'
+[28.04.2026 18:16:23] SKILLS_TEST Passed. candidateEmail: 'eryinler22@gmail.com', interviewUrl: 'http://localhost:3000/interview/47930967-197c-40ce-03e5-08dea5509c5d'
+[28.04.2026 18:32:51] SKILLS_TEST Passed. candidateEmail: 'eryinler22@gmail.com', interviewUrl: 'http://localhost:3000/interview/f3ba5baf-ec15-44cd-4b2f-08dea552e2f6'
+[28.04.2026 21:06:15] SKILLS_TEST Passed. candidateEmail: 'eryinler22@gmail.com', interviewUrl: 'http://localhost:3000/interview/24207bec-1430-44dc-1a57-08dea56924a7'
