@@ -36,6 +36,9 @@
   let jobPostings = [];
   let selectedJob = null;
 
+  // Token-based session (when URL has ?token=)
+  let tokenSessionConfig = null;  // filled by start-with-token API
+
   // ── DOM refs ──────────────────────────────────────────────
   const $ = (sel) => document.querySelector(sel);
   const setupScreen = $("#setup-screen");
@@ -78,8 +81,77 @@
 
   // ── Initialization ────────────────────────────────────────
 
-  loadJobPostings();
-  setupEventListeners();
+  // ── Token detection: if ?token= in URL, skip manual setup ──
+  const urlToken = new URLSearchParams(location.search).get('token') || '';
+
+  if (urlToken) {
+    initFromToken(urlToken);
+  } else {
+    loadJobPostings();
+    setupEventListeners();
+  }
+
+  async function initFromToken(token) {
+    // Show a simplified setup card: just a loading -> start button
+    const setupCard = document.querySelector('.setup-card');
+    setupCard.innerHTML = `
+      <h1>AI Mülakat — CVNokta</h1>
+      <p id="token-desc" style="color:#8888aa;margin-bottom:1.5rem">Bilgileriniz yükleniyor...</p>
+      <div id="token-badge" style="display:inline-block;padding:4px 14px;border-radius:20px;
+        background:#1a1a40;border:1px solid #3a3a6a;font-size:13px;color:#9999ff;margin-bottom:20px">...</div>
+      <button id="start-btn" class="btn-primary" disabled>Mülakata Başla</button>
+      <p id="setup-error" class="setup-error" style="display:none;"></p>
+    `;
+    const tokenDesc  = document.getElementById('token-desc');
+    const tokenBadge = document.getElementById('token-badge');
+    const startBtnEl = document.getElementById('start-btn');
+    const setupErrorEl = document.getElementById('setup-error');
+
+    try {
+      const res = await fetch('/api/v1/interview/realtime/start-with-token', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({token})
+      });
+      if (res.status === 409) throw new Error('Bu mülakat daha önce tamamlanmış. Tekrar giriş yapılamaz.');
+      if (res.status === 403) throw new Error('Geçersiz veya süresi dolmuş mülakat linki.');
+      if (!res.ok) { const d = await res.json().catch(()=>({})); throw new Error(d.detail || 'Mülakat başlatılamadı.'); }
+
+      tokenSessionConfig = await res.json();
+      const name = tokenSessionConfig.candidate_name || 'Aday';
+      const job  = tokenSessionConfig.job_posting?.job_title || '';
+
+      tokenDesc.textContent  = `Merhaba ${name}! ${job} pozisyonu için AI mülakatınız hazır.`;
+      tokenBadge.textContent = job || 'Pozisyon';
+      startBtnEl.disabled = false;
+      startBtnEl.addEventListener('click', () => startInterviewFromToken(setupErrorEl));
+    } catch(e) {
+      tokenDesc.textContent = '';
+      tokenBadge.style.display = 'none';
+      setupErrorEl.style.display = 'block';
+      setupErrorEl.textContent = e.message;
+    }
+  }
+
+  async function startInterviewFromToken(setupErrorEl) {
+    const startBtnEl = document.getElementById('start-btn');
+    startBtnEl.disabled = true;
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch(err) {
+      if(setupErrorEl){ setupErrorEl.style.display='block'; setupErrorEl.textContent='Mikrofon erişimi reddedildi: '+err.message; }
+      startBtnEl.disabled = false;
+      return;
+    }
+    // Use the session_id from start-with-token
+    sessionId = tokenSessionConfig.session_id;
+    setupScreen.classList.remove('active');
+    interviewScreen.classList.add('active');
+    startWebcam();
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 1000);
+    connectWebSocket();
+  }
 
   function setupEventListeners() {
     // CV upload
@@ -266,15 +338,27 @@
     ws = new WebSocket(WS_URL);
 
     ws.onopen = () => {
-      // Send init message
-      const initMsg = {
-        type: "init",
-        session_id: sessionId,
-        application_id: crypto.randomUUID ? crypto.randomUUID() : generateUUID(),
-        job_posting: selectedJob,
-        cv_summary: cvData ? cvData.summary_text || "" : "",
-        candidate_name: candidateName.value.trim(),
-      };
+      // Build init message — prefer token session data if available
+      let initMsg;
+      if (tokenSessionConfig) {
+        initMsg = {
+          type: "init",
+          session_id: sessionId,
+          application_id: tokenSessionConfig.application_id || '',
+          job_posting: tokenSessionConfig.job_posting || {},
+          cv_summary: tokenSessionConfig.cv_summary || '',
+          candidate_name: tokenSessionConfig.candidate_name || 'Candidate',
+        };
+      } else {
+        initMsg = {
+          type: "init",
+          session_id: sessionId,
+          application_id: crypto.randomUUID ? crypto.randomUUID() : generateUUID(),
+          job_posting: selectedJob,
+          cv_summary: cvData ? cvData.summary_text || "" : "",
+          candidate_name: candidateName ? candidateName.value.trim() : 'Candidate',
+        };
+      }
       ws.send(JSON.stringify(initMsg));
       setStatus("connecting", "Initializing session...");
     };
@@ -596,6 +680,35 @@
       }
 
       const summary = await res.json();
+
+      // If this was a token-based session, save results to .NET backend
+      if (tokenSessionConfig && tokenSessionConfig.application_id) {
+        try {
+          const jwt = localStorage.getItem('jwToken');
+          await fetch('https://localhost:9001/api/v1/Interviews/save-realtime', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json', ...(jwt ? {Authorization:'Bearer '+jwt} : {})},
+            body: JSON.stringify({
+              applicationId:           tokenSessionConfig.application_id,
+              jobPostingId:            tokenSessionConfig.job_posting_id || '',
+              externalSessionId:       sessionId,
+              overallInterviewScore:   summary.overall_interview_score,
+              communicationScore:      summary.communication_score,
+              technicalKnowledgeScore: summary.technical_knowledge_score,
+              jobMatchScore:           summary.job_match_score,
+              experienceAlignmentScore:summary.experience_alignment_score,
+              totalQuestionsAsked:     summary.total_questions_asked,
+              totalQuestionsAnswered:  summary.total_questions_answered,
+              summaryText:    summary.summary_text,
+              strengths:      Array.isArray(summary.strengths)  ? summary.strengths.join('\n')  : summary.strengths,
+              weaknesses:     Array.isArray(summary.weaknesses) ? summary.weaknesses.join('\n') : summary.weaknesses,
+              recommendations:Array.isArray(summary.recommendations) ? summary.recommendations.join('\n') : summary.recommendations,
+              isPassed: summary.is_passed
+            })
+          });
+        } catch(saveErr) { console.warn('Backend save failed:', saveErr); }
+      }
+
       showResults(summary);
     } catch (err) {
       console.error("Evaluation error:", err);
@@ -648,6 +761,10 @@
     resultWeaknesses.textContent = summary.weaknesses || "-";
     resultRecommendations.textContent = summary.recommendations || "-";
     resultStats.textContent = `Questions: ${summary.total_questions_asked || 0} asked, ${summary.total_questions_answered || 0} answered`;
+
+    if (tokenSessionConfig) {
+      if (btnRestart) btnRestart.style.display = 'none';
+    }
   }
 
   // ── Webcam ────────────────────────────────────────────────

@@ -65,7 +65,7 @@ function App() {
           <Route path="/insights" element={<Insights />} />
           <Route path="/exam" element={<Exam />} />
           <Route path="/exam/take/:token" element={<ExamTake />} />
-          <Route path="/interview/take/:token" element={<VideoInterview />} />
+          <Route path="/interview/:token" element={<VideoInterview />} />
           <Route path="/jobs" element={<JobList />} />
           <Route path="/jobs/:id" element={<JobView />} />
           <Route path="/apply/:id" element={<ApplicationForm onBack={handleBack} />} />

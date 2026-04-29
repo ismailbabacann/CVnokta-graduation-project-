@@ -319,6 +319,23 @@
   </div>
 </div>
 
-<script src="/static/interview-room/realtime.js"></script>
+<script>
+  // Token check — runs after DOM is parsed (script is at end of body)
+  (function() {
+    var token = new URLSearchParams(location.search).get('token');
+    if (token) {
+      var card = document.querySelector('.setup-card');
+      if (card) {
+        card.innerHTML =
+          '<h1>AI M\u00fclakat \u2014 CVNokta</h1>' +
+          '<p id="token-desc" style="color:#8888aa;margin-bottom:1.5rem">Bilgileriniz y\u00fckleniyor...</p>' +
+          '<div id="token-badge" style="display:inline-block;padding:4px 14px;border-radius:20px;background:#1a1a40;border:1px solid #3a3a6a;font-size:13px;color:#9999ff;margin-bottom:20px">...</div>' +
+          '<button id="start-btn" class="btn-primary" disabled>M\u00fclakata Ba\u015fla</button>' +
+          '<p id="setup-error" class="setup-error" style="display:none;"></p>';
+      }
+    }
+  })();
+</script>
+<script src="/static/interview-room/realtime.js?v=3"></script>
 </body>
 </html>

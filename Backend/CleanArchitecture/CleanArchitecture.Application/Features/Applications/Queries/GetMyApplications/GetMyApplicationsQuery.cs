@@ -31,6 +31,8 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
         public string RejectionReason      { get; set; }
         /// <summary>Token for the active exam at this stage (if any).</summary>
         public string ActiveExamToken      { get; set; }
+        /// <summary>One-time AI interview token (only present when stage is AI_INTERVIEW_PENDING).</summary>
+        public string InterviewToken       { get; set; }
         public DateTime AppliedAt          { get; set; }
     }
 
@@ -111,6 +113,7 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
                         CurrentPipelineStage = a.CurrentPipelineStage ?? "NLP_REVIEW",
                         RejectionReason      = a.RejectionReason,
                         ActiveExamToken      = activeToken,
+                        InterviewToken       = a.CurrentPipelineStage == "AI_INTERVIEW_PENDING" ? a.AiInterviewToken : null,
                         AppliedAt            = a.AppliedAt
                     };
                 })

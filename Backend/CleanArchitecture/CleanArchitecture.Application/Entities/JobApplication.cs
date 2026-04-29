@@ -23,6 +23,9 @@ namespace CleanArchitecture.Core.Entities
         public DateTime? PipelineStageUpdatedAt { get; set; }
         public string RejectionReason { get; set; }
 
+        public string AiInterviewToken { get; set; }
+        public bool IsAiInterviewTokenUsed { get; set; } = false;
+
         public virtual JobPosting JobPosting { get; set; }
         public virtual CandidateProfile CandidateProfile { get; set; }
         public virtual CvUpload CvUpload { get; set; }
