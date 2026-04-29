@@ -179,9 +179,13 @@ namespace CleanArchitecture.Infrastructure.Services
                         application.CurrentPipelineStage  = "AI_INTERVIEW_PENDING";
                         application.ApplicationStatus     = "AI_INTERVIEW_PENDING";
                         application.PipelineStageUpdatedAt = DateTime.UtcNow;
+                        
+                        var aiToken = Guid.NewGuid().ToString("N");
+                        application.AiInterviewToken = aiToken;
+                        application.IsAiInterviewTokenUsed = false;
                         await _applicationRepo.UpdateAsync(application);
                         
-                        var interviewUrl = $"{_examSettings.InterviewBaseUrl}/{application.Id}";
+                        var interviewUrl = $"{_examSettings.InterviewBaseUrl}?token={aiToken}";
                         try {
                             System.IO.File.AppendAllText(@"C:\Users\dici-\OneDrive\Masaüstü\pipeline_log.txt", $"[{DateTime.UtcNow}] SKILLS_TEST Passed. candidateEmail: '{candidateEmail}', interviewUrl: '{interviewUrl}'\n");
                         } catch { }

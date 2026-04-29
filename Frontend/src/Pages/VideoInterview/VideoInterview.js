@@ -130,6 +130,7 @@ function VideoInterview() {
       if (response.data) {
         setSummary(response.data);
         await saveResultsToBackend(response.data);
+        setStatus('ended');
       }
     } catch (err) {
       console.error('Değerlendirme alınamadı:', err.message);
@@ -191,7 +192,7 @@ function VideoInterview() {
       }
 
       if (msg.type === 'interview_complete') {
-        setStatus('ended');
+        setStatus('evaluating');
         stopMicrophone();
         // Fetch evaluation from AI-NLP
         fetchEvaluation();
@@ -293,7 +294,7 @@ function VideoInterview() {
       wsRef.current.close();
     }
     stopMicrophone();
-    setStatus('ended');
+    setStatus('evaluating');
     // Fetch evaluation
     fetchEvaluation();
   };
@@ -357,6 +358,7 @@ function VideoInterview() {
         <p className="vi-avatar-status">
           {status === 'connecting' && '🔄 Bağlanıyor...'}
           {status === 'active'     && (isAiSpeaking ? '🔊 Konuşuyor...' : '👂 Dinliyor...')}
+          {status === 'evaluating' && '⏳ Mülakatınız değerlendiriliyor...'}
           {status === 'ended'      && '✅ Mülakat tamamlandı'}
           {status === 'error'      && '❌ Bağlantı hatası'}
           {status === 'idle'       && `Merhaba ${candidateName}, başlamak için hazır`}
@@ -406,8 +408,16 @@ function VideoInterview() {
           ))}
         </div>
 
-        {/* Özet */}
-        {summary && (
+        {/* Özet ve Değerlendirme Ekranı */}
+        {status === 'evaluating' && (
+          <div className="vi-evaluating">
+            <div className="vi-spinner"></div>
+            <h3>Mülakatınız Değerlendiriliyor</h3>
+            <p>Lütfen bekleyin, AI mülakat sonuçlarınızı ve yetkinliklerinizi analiz ediyor...</p>
+          </div>
+        )}
+
+        {summary && status === 'ended' && (
           <div className="vi-summary">
             <h3>📊 Mülakat Özeti</h3>
             <div className="vi-scores">

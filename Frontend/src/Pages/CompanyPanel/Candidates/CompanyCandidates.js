@@ -110,7 +110,7 @@ function CompanyCandidates() {
     const handleRejectCand = async () => {
         if (!selectedCandidate || !selectedCandidate.applicationId) return;
         
-        if (!window.confirm("Bu adayı elemek istediğinize emin misiniz? İşlem geri alınamaz.")) return;
+        if (!window.confirm('Bu adayı elemek istediğinize emin misiniz? İşlem geri alınamaz.')) return;
 
         try {
             const token = localStorage.getItem('jwToken');
@@ -121,12 +121,43 @@ function CompanyCandidates() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             
-            alert("Aday başarıyla elendi.");
+            alert('Aday başarıyla elendi.');
             setCandidates(prev => prev.filter(c => c.applicationId !== selectedCandidate.applicationId));
             closeModal();
         } catch(err) {
-            console.error("Reject candidate error:", err);
-            alert("Aday reddedilirken bir hata oluştu.");
+            console.error('Reject candidate error:', err);
+            alert('Aday reddedilirken bir hata oluştu.');
+        }
+    };
+
+    const handleAdvancePipeline = async () => {
+        if (!selectedCandidate || !selectedCandidate.applicationId) return;
+
+        const stageLabels = {
+            NLP_REVIEW:           'CV Analizi → İngilizce Testi',
+            ENGLISH_TEST_PENDING: 'İngilizce Testi → Beceri Testi',
+            SKILLS_TEST_PENDING:  'Beceri Testi → AI Mülakat',
+            AI_INTERVIEW_PENDING: 'AI Mülakat → Tamamlandı',
+        };
+        const currentStage = selectedCandidate.currentPipelineStage;
+        const label = stageLabels[currentStage] || 'sonraki aşamaya';
+
+        if (!window.confirm(`Bu adayı "${label}" olarak ilerletmek istediğinize emin misiniz?`)) return;
+
+        try {
+            const token = localStorage.getItem('jwToken');
+            await axios.post(
+                `https://localhost:9001/api/v1/Applications/${selectedCandidate.applicationId}/advance-pipeline`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            alert('✅ Aday başarıyla bir sonraki aşamaya ilerletildi.');
+            // Refresh list and close modal
+            setCandidates(prev => prev.filter(c => c.applicationId !== selectedCandidate.applicationId));
+            closeModal();
+        } catch(err) {
+            const msg = err.response?.data?.message || 'Bir hata oluştu.';
+            alert(`❌ Hata: ${msg}`);
         }
     };
 
@@ -465,7 +496,7 @@ function CompanyCandidates() {
                                 </div>
                             )}
 
-                            <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
+                            <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
                                 {selectedCandidate.cvUrl ? (
                                     <a href={selectedCandidate.cvUrl} 
                                        target="_blank" 
@@ -483,6 +514,16 @@ function CompanyCandidates() {
                                     <span style={{ color: '#94a3b8', padding: '12px', display: 'flex', alignItems: 'center' }}>CV yüklenmedi.</span>
                                 )}
                                 
+                                {/* Manuel İlerleme Butonu */}
+                                {selectedCandidate.currentPipelineStage && !selectedCandidate.currentPipelineStage.startsWith('REJECTED_') && selectedCandidate.currentPipelineStage !== 'COMPLETED' && (
+                                    <button
+                                        style={{ ...cvBtnStyle, backgroundColor: '#22c55e', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                        onClick={handleAdvancePipeline}
+                                    >
+                                        ⏭️ Sonraki Aşamaya İlerlet
+                                    </button>
+                                )}
+
                                 <button style={{ ...cvBtnStyle, backgroundColor: '#ec4899', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setIsMeetingModalOpen(true)}>
                                     📅 Mülakat Ayarla
                                 </button>

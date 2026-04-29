@@ -136,8 +136,8 @@ function MyApplications() {
                         rejectionReason: a.rejectionReason,
                         activeExamToken: a.activeExamToken,
                         interviewToken: a.interviewToken,
-                        interviewUrl:  a.currentPipelineStage === 'AI_INTERVIEW_PENDING' && a.interviewToken
-                            ? `/interview/take/${a.interviewToken}`
+                        interviewUrl: a.interviewToken
+                            ? `http://localhost:8000/realtime-interview?token=${a.interviewToken}`
                             : null,
                         // AI Interview feedback
                         aiInterviewStrengths:  a.aiInterviewStrengths,
@@ -200,7 +200,7 @@ function MyApplications() {
                         {app.stage === 'AI_INTERVIEW_PENDING' && app.interviewToken && (
                             <div style={{ marginTop: '16px', textAlign: 'center' }}>
                                 <a
-                                    href={app.interviewUrl || `/interview/take/${app.interviewToken}`}
+                                    href={`http://localhost:8000/realtime-interview?token=${app.interviewToken}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className={styles.interviewBtn}

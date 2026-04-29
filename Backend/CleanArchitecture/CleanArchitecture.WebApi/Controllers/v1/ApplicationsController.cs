@@ -7,6 +7,8 @@ using CleanArchitecture.Core.Features.Applications.Queries.GetApplicationsByJobI
 using CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool;
 using CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePoolStats;
 using CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications;
+using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -132,6 +134,29 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         }
 
         /// <summary>
+        /// Returns a summary of the candidate's CV for AI-NLP interview context.
+        /// </summary>
+        [HttpGet("{id}/cv-summary")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCvSummary(Guid id)
+        {
+            var detail = await Mediator.Send(new GetApplicationDetailQuery { ApplicationId = id });
+            var app = detail?.Application;
+            if (app == null) return NotFound();
+
+            // Try to extract skills and experience from CvUpload or CandidateProfile
+            // Note: Since detailed parsed CV data isn't directly exposed here,
+            // we provide the text content or basic details available.
+            return Ok(new {
+                candidateName = app.CandidateProfile?.FullName ?? "Candidate",
+                summary = "Aday başvurusu", // Fallback if no detailed DB table for summary
+                skills = new string[] {},
+                experience = new object[] {},
+                education = new object[] {}
+            });
+        }
+
+        /// <summary>
         /// Aday havuzunu filtreli ve sayfalı şekilde listeler (İK paneli).
         /// </summary>
         /// <param name="query">Sayfalama ve filtre parametreleri (pageNumber, pageSize, searchTerm, jobPostingId, statusFilter)</param>
@@ -171,6 +196,37 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         public async Task<IActionResult> GetPoolSummary()
         {
             return Ok(await Mediator.Send(new GetCandidatePoolStatsQuery()));
+        }
+
+        /// <summary>
+        /// HR tarafından bir başvuruyu manuel olarak bir sonraki pipeline aşamasına ilerletir.
+        /// POST /api/v1/Applications/{id}/advance-pipeline
+        /// </summary>
+        [HttpPost("{id}/advance-pipeline")]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> AdvancePipeline(Guid id, [FromServices] IPipelineService pipelineService, [FromServices] IGenericRepositoryAsync<JobApplication> appRepo)
+        {
+            var application = await appRepo.GetByIdAsync(id);
+            if (application == null) return NotFound(new { message = "Başvuru bulunamadı." });
+
+            // Determine which stage to report as completed to pipeline
+            var stageToComplete = application.CurrentPipelineStage switch
+            {
+                "NLP_REVIEW"           => "NLP_REVIEW",
+                "ENGLISH_TEST_PENDING" => "ENGLISH_TEST",
+                "SKILLS_TEST_PENDING"  => "SKILLS_TEST",
+                "AI_INTERVIEW_PENDING" => "AI_INTERVIEW",
+                _ => null
+            };
+
+            if (stageToComplete == null)
+                return BadRequest(new { message = $"Bu aşama ({application.CurrentPipelineStage}) manuel olarak ilerletilemez." });
+
+            // Use a passing score of 100 to guarantee advancement
+            await pipelineService.AdvanceIfEligibleAsync(id, stageToComplete, 100m);
+
+            return Ok(new { message = "Başvuru bir sonraki aşamaya ilerledi.", stage = stageToComplete });
         }
     }
 }

@@ -31,6 +31,8 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
         public string RejectionReason      { get; set; }
         /// <summary>Token for the active exam at this stage (if any).</summary>
         public string ActiveExamToken      { get; set; }
+        /// <summary>One-time AI interview token (only present when stage is AI_INTERVIEW_PENDING).</summary>
+        public string InterviewToken       { get; set; }
         public DateTime AppliedAt          { get; set; }
 
         // ── AI Interview feedback (visible to candidate after completion/rejection) ──
@@ -130,6 +132,7 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
                         RejectionReason      = a.RejectionReason,
                         ActiveExamToken      = activeToken,
                         AppliedAt            = a.AppliedAt,
+                        InterviewToken       = a.CurrentPipelineStage == "AI_INTERVIEW_PENDING" ? a.AiInterviewToken : null,
                         AiInterviewStrengths = showFeedback ? interviewSummary?.Strengths : null,
                         AiInterviewWeaknesses= showFeedback ? interviewSummary?.Weaknesses : null,
                         AiInterviewSummary   = showFeedback ? interviewSummary?.SummaryText : null,
