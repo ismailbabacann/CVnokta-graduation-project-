@@ -167,7 +167,15 @@ async def generate_exam(request: GenerateExamRequest):
 
     try:
         if is_english:
-            questions = await engine.generate_english_test("backend-exam", count=10)
+            # Extract language level from context if provided (e.g. "english_proficiency_test B2")
+            language_level = None
+            for lvl in ["C1", "B2", "B1", "A2"]:
+                if lvl.lower() in context_lower:
+                    language_level = lvl
+                    break
+            questions = await engine.generate_english_test(
+                "backend-exam", count=30, language_level=language_level,
+            )
             title = "İngilizce Yeterlilik Testi"
             description = "Adayların iş İngilizcesi bilgilerini ölçen çoktan seçmeli sorular."
         else:
@@ -178,7 +186,7 @@ async def generate_exam(request: GenerateExamRequest):
                 required_qualifications=request.test_context,
                 responsibilities=request.test_context,
             )
-            questions = await engine.generate_technical_test(job_posting, count=10)
+            questions = await engine.generate_technical_test(job_posting, count=20)
             title = "Genel Yetenek Testi"
             description = request.test_context
     except Exception as exc:

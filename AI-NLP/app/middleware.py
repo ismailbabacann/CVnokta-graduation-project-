@@ -26,7 +26,7 @@ _PUBLIC_PATHS = frozenset({
     "/interview-room", "/realtime-interview", "/demo",
 })
 
-_PUBLIC_PREFIXES = ("/static/", "/api/v1/interview/setup/", "/api/v1/interview/realtime/")
+_PUBLIC_PREFIXES = ("/static/", "/local-demo/", "/api/v1/interview/setup/", "/api/v1/interview/realtime/")
 
 
 class ApiKeyMiddleware(BaseHTTPMiddleware):

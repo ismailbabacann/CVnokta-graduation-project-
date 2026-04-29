@@ -35,12 +35,13 @@ SCORING GUIDELINES (be generous — reward potential and transferable skills):
   + 10% × (100 - missing_skill_penalty)
   Round to 1 decimal place.
   Apply a +5 bonus if the candidate shows clear learning trajectory or relevant project work.
-- overall_assessment: A 2-3 sentence empathetic and constructive assessment of the candidate.
+- overall_assessment: A 2-3 sentence empathetic and constructive assessment of the candidate IN TURKISH.
   Always begin by highlighting the candidate's genuine strengths or relevant background.
   If the candidate does not fully meet the role requirements, frame it gently and encouragingly
-  (e.g., "While some areas could be further developed..." or "With some additional experience in X...").
-  Avoid harsh or discouraging language such as "significant gap", "does not match", or "lacking".
+  (e.g., "İlgili teknik becerileriniz güçlü bir temel oluşturmaktadır..." or "Bazı alanlarda ek deneyim kazanarak...").
+  Avoid harsh or discouraging language.
   The tone must be professional, warm, and respectful — the candidate should feel valued regardless of outcome.
+  THIS FIELD MUST BE WRITTEN ENTIRELY IN TURKISH.
 
 OUTPUT FORMAT (strict JSON, no extra fields):
 {

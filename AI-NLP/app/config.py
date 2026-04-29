@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "gpt-4o-mini"
     openai_temperature: float = 0.1
-    openai_max_tokens: int = 1500
+    openai_max_tokens: int = 8000
     llm_fallback_enabled: bool = True
 
     # ── LLM Cache ───────────────────────────────────────────
@@ -75,8 +75,8 @@ class Settings(BaseSettings):
     # ── Tests ───────────────────────────────────────────────
     technical_test_question_count: int = 10
     technical_test_time_limit_minutes: int = 30
-    english_test_question_count: int = 10
-    english_test_time_limit_minutes: int = 25
+    english_test_question_count: int = 30
+    english_test_time_limit_minutes: int = 30
 
     # ── Interview ───────────────────────────────────────────
     interview_question_count: int = 6

@@ -58,5 +58,6 @@ ToDo.md
 
 # Demo app (local only)
 demo/
+local-demo/
 start-all.sh
 md-files/
