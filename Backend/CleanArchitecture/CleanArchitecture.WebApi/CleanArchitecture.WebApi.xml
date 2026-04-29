@@ -88,6 +88,11 @@
             <param name="id">Başvuru Id'si (GUID)</param>
             <returns>Başvuru detay bilgisi</returns>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ApplicationsController.GetCvSummary(System.Guid)">
+            <summary>
+            Returns a summary of the candidate's CV for AI-NLP interview context.
+            </summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.ApplicationsController.GetCandidatePool(CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePool.GetCandidatePoolQuery)">
             <summary>
             Aday havuzunu filtreli ve sayfalı şekilde listeler (İK paneli).
@@ -114,6 +119,12 @@
             <summary>
             Aday havuzu özet istatistiklerini döner (toplam aday, bugünkü başvuru, ortalama NLP skoru).
             GET /api/v1/Applications/stats/pool-summary
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.ApplicationsController.AdvancePipeline(System.Guid,CleanArchitecture.Core.Interfaces.IPipelineService,CleanArchitecture.Core.Interfaces.IGenericRepositoryAsync{CleanArchitecture.Core.Entities.JobApplication})">
+            <summary>
+            HR tarafından bir başvuruyu manuel olarak bir sonraki pipeline aşamasına ilerletir.
+            POST /api/v1/Applications/{id}/advance-pipeline
             </summary>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.CandidateDashboardController.GetDashboard(System.Guid)">
@@ -435,6 +446,16 @@
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.InterviewsController.SaveRealtime(CleanArchitecture.Core.Features.Interviews.Commands.SaveRealtimeInterviewSummary.SaveRealtimeInterviewSummaryCommand)">
             <summary>
             Mülakat bitiminde yapay zeka veya frontend tarafından gönderilen gerçek zamanlı değerlendirme raporunu kaydeder.
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.InterviewsController.ValidateToken(System.String)">
+            <summary>
+            Validates a one-time AI interview token.
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.InterviewsController.MarkUsed(System.String)">
+            <summary>
+            Marks a one-time AI interview token as used.
             </summary>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.JobExamController.GetExamsForJob(System.Guid)">

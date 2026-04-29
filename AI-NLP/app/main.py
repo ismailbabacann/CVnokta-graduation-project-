@@ -133,11 +133,16 @@ async def interview_room():
 @app.get("/realtime-interview", include_in_schema=False)
 @app.get("/demo", include_in_schema=False)
 async def realtime_interview_room():
-    """Serve the Realtime Voice Interview page (WebSocket-based)."""
+    """Serve the original Realtime Voice Interview page (token-aware)."""
     html_path = _static_dir / "interview-room" / "realtime.html"
     if not html_path.exists():
-        raise HTTPException(status_code=404, detail="Realtime interview UI not found. Ensure static assets are included in the deployment.")
-    return FileResponse(str(html_path), media_type="text/html")
+        raise HTTPException(status_code=404, detail="Realtime interview UI not found.")
+    return FileResponse(
+        str(html_path),
+        media_type="text/html",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache"}
+    )
+
 
 
 # ── Health check ───────────────────────────────────────────────────────

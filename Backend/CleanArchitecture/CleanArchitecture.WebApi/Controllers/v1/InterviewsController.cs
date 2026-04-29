@@ -6,12 +6,29 @@ using CleanArchitecture.Core.Features.Interviews.Commands.BulkInviteToInterview;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System;
+using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using System.Linq;
 
 namespace CleanArchitecture.WebApi.Controllers.v1
 {
     [ApiVersion("1.0")]
     public class InterviewsController : BaseApiController
     {
+        private readonly IGenericRepositoryAsync<JobApplication> _applicationRepo;
+        private readonly IGenericRepositoryAsync<JobPosting> _jobPostingRepo;
+        private readonly IGenericRepositoryAsync<CandidateProfile> _candidateRepo;
+
+        public InterviewsController(
+            IGenericRepositoryAsync<JobApplication> applicationRepo,
+            IGenericRepositoryAsync<JobPosting> jobPostingRepo,
+            IGenericRepositoryAsync<CandidateProfile> candidateRepo)
+        {
+            _applicationRepo = applicationRepo;
+            _jobPostingRepo = jobPostingRepo;
+            _candidateRepo = candidateRepo;
+        }
         /// <summary>
         /// Belirtilen başvuru için yapay zeka mülakat oturumu başlatır.
         /// </summary>
@@ -131,11 +148,56 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         /// Mülakat bitiminde yapay zeka veya frontend tarafından gönderilen gerçek zamanlı değerlendirme raporunu kaydeder.
         /// </summary>
         [HttpPost("save-realtime")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(object), 200)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> SaveRealtime([FromBody] CleanArchitecture.Core.Features.Interviews.Commands.SaveRealtimeInterviewSummary.SaveRealtimeInterviewSummaryCommand command)
         {
             return Ok(await Mediator.Send(command));
+        }
+
+        /// <summary>
+        /// Validates a one-time AI interview token.
+        /// </summary>
+        [HttpGet("validate-token/{token}")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(object), 200)]
+        public async Task<IActionResult> ValidateToken(string token)
+        {
+            var apps = await _applicationRepo.GetAllAsync();
+            var app = apps.FirstOrDefault(a => a.AiInterviewToken == token);
+            if (app == null) return Ok(new { isValid = false, reason = "Token not found" });
+
+            // Fetch relations explicitly since GetAllAsync doesn't include navigational properties
+            var jobPosting = await _jobPostingRepo.GetByIdAsync(app.JobPostingId);
+            var candidate = await _candidateRepo.GetByIdAsync(app.CandidateId);
+
+            return Ok(new {
+                isValid = true,
+                isUsed = app.IsAiInterviewTokenUsed,
+                applicationId = app.Id,
+                jobPostingId = app.JobPostingId,
+                candidateName = candidate?.FullName ?? "Candidate",
+                jobTitle = jobPosting?.JobTitle ?? "Genel Başvuru",
+                requiredSkills = jobPosting?.RequiredSkills ?? ""
+            });
+        }
+
+        /// <summary>
+        /// Marks a one-time AI interview token as used.
+        /// </summary>
+        [HttpPost("mark-used/{token}")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(object), 200)]
+        public async Task<IActionResult> MarkUsed(string token)
+        {
+            var apps = await _applicationRepo.GetAllAsync();
+            var app = apps.FirstOrDefault(a => a.AiInterviewToken == token);
+            if (app == null) return NotFound();
+
+            app.IsAiInterviewTokenUsed = true;
+            await _applicationRepo.UpdateAsync(app);
+            return Ok(new { success = true });
         }
     }
 }

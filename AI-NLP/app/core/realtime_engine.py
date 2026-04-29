@@ -232,6 +232,9 @@ class RealtimeInterviewEngine:
                 "voice": self._settings.realtime_voice,
                 "input_audio_format": self._settings.realtime_input_audio_format,
                 "output_audio_format": self._settings.realtime_output_audio_format,
+                "input_audio_transcription": {
+                    "model": "whisper-1",
+                },
                 "turn_detection": {
                     "type": self._settings.realtime_turn_detection,
                     "threshold": self._settings.realtime_vad_threshold,
@@ -463,14 +466,17 @@ class RealtimeInterviewEngine:
             reason = args.get("reason", "sufficient_signal")
             summary_notes = args.get("summary_notes", "")
 
+            # Count actual questions from transcript instead of relying on log_question
+            actual_question_count = len([t for t in entry.session.transcript if t["role"] == "assistant"])
+
             # Server-enforced minimum check
-            if entry.question_count < self._settings.realtime_min_questions:
+            if actual_question_count < self._settings.realtime_min_questions:
                 logger.warning(
                     "AI tried to end interview too early (session=%s): %d/%d questions",
-                    session_id, entry.question_count, self._settings.realtime_min_questions,
+                    session_id, actual_question_count, self._settings.realtime_min_questions,
                 )
                 # Reject the function call — tell model to keep going
-                if entry.openai_ws:
+                if entry.openai_ws and call_id:
                     reject = {
                         "type": "conversation.item.create",
                         "item": {
@@ -478,13 +484,29 @@ class RealtimeInterviewEngine:
                             "call_id": call_id,
                             "output": json.dumps({
                                 "status": "rejected",
-                                "reason": f"Minimum {self._settings.realtime_min_questions} questions required, only {entry.question_count} asked so far. Please continue the interview.",
+                                "reason": f"Minimum {self._settings.realtime_min_questions} questions required, only {actual_question_count} asked so far. Please continue the interview.",
                             }),
                         },
                     }
                     await entry.openai_ws.send(json.dumps(reject))
                     await entry.openai_ws.send(json.dumps({"type": "response.create"}))
                 return None
+
+            # Acknowledge the function call if we need to, but since we are ending,
+            # we just proceed to mark it complete.
+            if entry.openai_ws and call_id:
+                ack = {
+                    "type": "conversation.item.create",
+                    "item": {
+                        "type": "function_call_output",
+                        "call_id": call_id,
+                        "output": json.dumps({"status": "accepted"}),
+                    },
+                }
+                try:
+                    await entry.openai_ws.send(json.dumps(ack))
+                except Exception:
+                    pass
 
             entry.session.end_reason = f"ai_decided:{reason}"
             logger.info(

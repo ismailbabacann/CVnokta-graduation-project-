@@ -66,7 +66,8 @@ namespace CleanArchitecture.Core.Features.Interviews.Commands.SaveRealtimeInterv
             try
             {
                 decimal score = request.OverallInterviewScore ?? 0m;
-                await _pipelineService.AdvanceIfEligibleAsync(request.ApplicationId, "AI_INTERVIEW", score);
+                string aiFeedback = string.IsNullOrWhiteSpace(request.Weaknesses) ? request.SummaryText : request.Weaknesses;
+                await _pipelineService.AdvanceIfEligibleAsync(request.ApplicationId, "AI_INTERVIEW", score, null, aiFeedback);
             }
             catch { /* Ignore */ }
 
