@@ -176,6 +176,7 @@ namespace CleanArchitecture.Core.Features.Exams.Commands.SubmitExam
             assignment.Status      = "submitted";
             assignment.SubmittedAt = submittedAt;
             assignment.Score       = autoPoints;
+            assignment.ScorePercentage = pct;
             await _assignmentRepo.UpdateAsync(assignment);
 
             // ── 6. Mevcut Sınavın bilgilerini çek ──────────────────────────

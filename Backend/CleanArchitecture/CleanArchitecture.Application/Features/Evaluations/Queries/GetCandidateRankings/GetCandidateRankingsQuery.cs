@@ -1,5 +1,6 @@
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Settings;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,9 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetCandidateRankin
         private readonly IGenericRepositoryAsync<CandidateProfile> _profileRepository;
         private readonly IGenericRepositoryAsync<CvAnalysisResult> _cvAnalysisRepository;
         private readonly IGenericRepositoryAsync<AiInterviewSummary> _interviewRepository;
-        private readonly IGenericRepositoryAsync<GeneralTestResult> _testRepository;
+        private readonly IGenericRepositoryAsync<CandidateExamAssignment> _assignmentRepository;
+        private readonly IGenericRepositoryAsync<Exam> _examRepository;
+        private readonly IGenericRepositoryAsync<Question> _questionRepository;
         private readonly IGenericRepositoryAsync<FinalEvaluationScore> _finalScoreRepository;
 
         public GetCandidateRankingsQueryHandler(
@@ -30,14 +33,18 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetCandidateRankin
             IGenericRepositoryAsync<CandidateProfile> profileRepository,
             IGenericRepositoryAsync<CvAnalysisResult> cvAnalysisRepository,
             IGenericRepositoryAsync<AiInterviewSummary> interviewRepository,
-            IGenericRepositoryAsync<GeneralTestResult> testRepository,
+            IGenericRepositoryAsync<CandidateExamAssignment> assignmentRepository,
+            IGenericRepositoryAsync<Exam> examRepository,
+            IGenericRepositoryAsync<Question> questionRepository,
             IGenericRepositoryAsync<FinalEvaluationScore> finalScoreRepository)
         {
             _applicationRepository = applicationRepository;
             _profileRepository = profileRepository;
             _cvAnalysisRepository = cvAnalysisRepository;
             _interviewRepository = interviewRepository;
-            _testRepository = testRepository;
+            _assignmentRepository = assignmentRepository;
+            _examRepository = examRepository;
+            _questionRepository = questionRepository;
             _finalScoreRepository = finalScoreRepository;
         }
 
@@ -47,8 +54,19 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetCandidateRankin
             var profiles = await _profileRepository.GetAllAsync();
             var analyses = await _cvAnalysisRepository.GetAllAsync();
             var interviews = await _interviewRepository.GetAllAsync();
-            var tests = await _testRepository.GetAllAsync();
+            var assignments = await _assignmentRepository.GetAllAsync();
+            var exams = await _examRepository.GetAllAsync();
+            var questions = await _questionRepository.GetAllAsync();
             var finalScores = await _finalScoreRepository.GetAllAsync();
+
+            // Pre-build exam type lookup: ExamId → ExamType/SequenceOrder
+            var examLookup = exams.ToDictionary(e => e.Id, e => e);
+
+            // Pre-compute auto-gradable total points per exam for percentage calculation
+            var examAutoTotals = questions
+                .Where(q => q.QuestionType == "multiple_choice" || q.QuestionType == "true_false")
+                .GroupBy(q => q.ExamId)
+                .ToDictionary(g => g.Key, g => g.Sum(q => q.Points));
 
             // Filter only applications for this job
             var jobApps = apps.Where(a => a.JobPostingId == request.JobPostingId).ToList();
@@ -63,28 +81,44 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetCandidateRankin
                         .Where(i => i.ApplicationId == a.Id)
                         .OrderByDescending(i => i.Created)
                         .FirstOrDefault();
-                    var skillTest = tests.FirstOrDefault(t => t.ApplicationId == a.Id && t.TestName != null && t.TestName.Contains("Skill"));
-                    var englishTest = tests.FirstOrDefault(t => t.ApplicationId == a.Id && t.TestName != null && t.TestName.Contains("English"));
-                    var finalScore = finalScores.FirstOrDefault(f => f.ApplicationId == a.Id);
+
+                    // Get exam scores from CandidateExamAssignment + Exam
+                    var candidateAssignments = assignments
+                        .Where(asgn => asgn.CandidateId == a.CandidateId && asgn.JobId == a.JobPostingId && asgn.Status == "submitted")
+                        .ToList();
+
+                    decimal? skillsScore = null;
+                    decimal? engScore = null;
+                    foreach (var asgn in candidateAssignments)
+                    {
+                        if (!examLookup.TryGetValue(asgn.ExamId, out var exam)) continue;
+
+                        // Use stored percentage if available, otherwise compute from raw score
+                        decimal? pct = asgn.ScorePercentage;
+                        if (pct == null && asgn.Score != null)
+                        {
+                            examAutoTotals.TryGetValue(asgn.ExamId, out int autoTotal);
+                            pct = autoTotal > 0 ? Math.Round(asgn.Score.Value / autoTotal * 100, 1) : 0;
+                        }
+
+                        bool isEnglish = exam.SequenceOrder == 1 || (exam.ExamType != null && exam.ExamType.Contains("english"));
+                        if (isEnglish)
+                            engScore = pct;
+                        else
+                            skillsScore = pct;
+                    }
 
                     decimal? cvScore = analysis?.AnalysisScore;
-                    decimal? skillsScore = skillTest?.Score;
-                    decimal? engScore = englishTest?.Score;
                     decimal? aiScore = interview?.OverallInterviewScore;
 
-                    // Use pre-calculated final score if available, otherwise compute weighted average
-                    decimal? weighted = finalScore?.WeightedFinalScore;
-                    if (weighted == null || weighted == 0)
-                    {
-                        // Weighted: CV 20%, Skills 25%, English 25%, AI Interview 30%
-                        decimal totalWeight = 0m;
-                        decimal totalScore = 0m;
-                        if (cvScore.HasValue && cvScore > 0) { totalScore += cvScore.Value * 0.20m; totalWeight += 0.20m; }
-                        if (skillsScore.HasValue && skillsScore > 0) { totalScore += skillsScore.Value * 0.25m; totalWeight += 0.25m; }
-                        if (engScore.HasValue && engScore > 0) { totalScore += engScore.Value * 0.25m; totalWeight += 0.25m; }
-                        if (aiScore.HasValue && aiScore > 0) { totalScore += aiScore.Value * 0.30m; totalWeight += 0.30m; }
-                        weighted = totalWeight > 0 ? Math.Round(totalScore / totalWeight, 1) : cvScore;
-                    }
+                    // Always compute weighted score on the fly from actual sources
+                    decimal totalWeight = 0m;
+                    decimal totalScore = 0m;
+                    if (cvScore.HasValue) { totalScore += cvScore.Value * ScoringWeights.CvAnalysis; totalWeight += ScoringWeights.CvAnalysis; }
+                    if (skillsScore.HasValue) { totalScore += skillsScore.Value * ScoringWeights.SkillsTest; totalWeight += ScoringWeights.SkillsTest; }
+                    if (engScore.HasValue) { totalScore += engScore.Value * ScoringWeights.EnglishTest; totalWeight += ScoringWeights.EnglishTest; }
+                    if (aiScore.HasValue) { totalScore += aiScore.Value * ScoringWeights.AiInterview; totalWeight += ScoringWeights.AiInterview; }
+                    decimal? weighted = totalWeight > 0 ? Math.Round(totalScore / totalWeight, 1) : cvScore;
 
                     return new CandidateRankingView
                     {

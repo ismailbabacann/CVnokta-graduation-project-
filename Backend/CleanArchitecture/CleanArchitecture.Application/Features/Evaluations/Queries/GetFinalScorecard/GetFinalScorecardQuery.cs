@@ -1,5 +1,6 @@
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Settings;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -67,18 +68,27 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetFinalScorecard
     public class GetFinalScorecardQueryHandler : IRequestHandler<GetFinalScorecardQuery, ScorecardResponse>
     {
         private readonly IGenericRepositoryAsync<CvAnalysisResult> _cvRepository;
-        private readonly IGenericRepositoryAsync<GeneralTestResult> _testRepository;
+        private readonly IGenericRepositoryAsync<CandidateExamAssignment> _assignmentRepository;
+        private readonly IGenericRepositoryAsync<Exam> _examRepository;
+        private readonly IGenericRepositoryAsync<Question> _questionRepository;
+        private readonly IGenericRepositoryAsync<JobApplication> _applicationRepository;
         private readonly IGenericRepositoryAsync<AiInterviewSummary> _interviewRepository;
         private readonly IGenericRepositoryAsync<FinalEvaluationScore> _finalRepository;
 
         public GetFinalScorecardQueryHandler(
             IGenericRepositoryAsync<CvAnalysisResult> cvRepository,
-            IGenericRepositoryAsync<GeneralTestResult> testRepository,
+            IGenericRepositoryAsync<CandidateExamAssignment> assignmentRepository,
+            IGenericRepositoryAsync<Exam> examRepository,
+            IGenericRepositoryAsync<Question> questionRepository,
+            IGenericRepositoryAsync<JobApplication> applicationRepository,
             IGenericRepositoryAsync<AiInterviewSummary> interviewRepository,
             IGenericRepositoryAsync<FinalEvaluationScore> finalRepository)
         {
             _cvRepository = cvRepository;
-            _testRepository = testRepository;
+            _assignmentRepository = assignmentRepository;
+            _examRepository = examRepository;
+            _questionRepository = questionRepository;
+            _applicationRepository = applicationRepository;
             _interviewRepository = interviewRepository;
             _finalRepository = finalRepository;
         }
@@ -86,6 +96,10 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetFinalScorecard
         public async Task<ScorecardResponse> Handle(GetFinalScorecardQuery request, CancellationToken cancellationToken)
         {
             var response = new ScorecardResponse();
+
+            // Get the application to find candidateId and jobId
+            var allApps = await _applicationRepository.GetAllAsync();
+            var app = allApps.FirstOrDefault(a => a.Id == request.ApplicationId);
 
             // CV Analysis
             var cvAll = await _cvRepository.GetAllAsync();
@@ -101,22 +115,50 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetFinalScorecard
                 };
             }
 
-            // Test Results
-            var testAll = await _testRepository.GetAllAsync();
-            var skillTest = testAll.FirstOrDefault(t => t.ApplicationId == request.ApplicationId && t.TestName != null && t.TestName.Contains("Skill"));
-            if (skillTest != null)
+            // Test Results from CandidateExamAssignment + Exam
+            if (app != null)
             {
-                response.GeneralTestResult = new GeneralTestDto
-                {
-                    Score = skillTest.Score,
-                    TotalQuestions = skillTest.TotalQuestions,
-                    CorrectAnswers = skillTest.CorrectAnswers,
-                    WrongAnswers = skillTest.WrongAnswers
-                };
-            }
+                var allAssignments = await _assignmentRepository.GetAllAsync();
+                var allExams = await _examRepository.GetAllAsync();
+                var allQuestions = await _questionRepository.GetAllAsync();
+                var examLookup = allExams.ToDictionary(e => e.Id, e => e);
 
-            var englishTest = testAll.FirstOrDefault(t => t.ApplicationId == request.ApplicationId && t.TestName != null && t.TestName.Contains("English"));
-            response.EnglishTestScore = englishTest?.Score;
+                // Pre-compute auto-gradable total points per exam
+                var examAutoTotals = allQuestions
+                    .Where(q => q.QuestionType == "multiple_choice" || q.QuestionType == "true_false")
+                    .GroupBy(q => q.ExamId)
+                    .ToDictionary(g => g.Key, g => g.Sum(q => q.Points));
+
+                var candidateAssignments = allAssignments
+                    .Where(a => a.CandidateId == app.CandidateId && a.JobId == app.JobPostingId && a.Status == "submitted")
+                    .ToList();
+
+                foreach (var asgn in candidateAssignments)
+                {
+                    if (!examLookup.TryGetValue(asgn.ExamId, out var exam)) continue;
+
+                    // Use stored percentage if available, otherwise compute from raw score
+                    decimal? pct = asgn.ScorePercentage;
+                    if (pct == null && asgn.Score != null)
+                    {
+                        examAutoTotals.TryGetValue(asgn.ExamId, out int autoTotal);
+                        pct = autoTotal > 0 ? Math.Round(asgn.Score.Value / autoTotal * 100, 1) : 0;
+                    }
+
+                    bool isEnglish = exam.SequenceOrder == 1 || (exam.ExamType != null && exam.ExamType.Contains("english"));
+                    if (isEnglish)
+                    {
+                        response.EnglishTestScore = pct;
+                    }
+                    else
+                    {
+                        response.GeneralTestResult = new GeneralTestDto
+                        {
+                            Score = pct
+                        };
+                    }
+                }
+            }
 
             // AI Interview Summary
             var interviewAll = await _interviewRepository.GetAllAsync();
@@ -143,15 +185,29 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetFinalScorecard
                 };
             }
 
-            // Final Evaluation Score
-            var finalAll = await _finalRepository.GetAllAsync();
-            var final_ = finalAll.FirstOrDefault(f => f.ApplicationId == request.ApplicationId);
-            if (final_ != null)
+            // Final Evaluation Score — always compute on the fly from actual sources
             {
+                decimal? cvVal = response.CvAnalysisResult?.AnalysisScore;
+                decimal? skillVal = response.GeneralTestResult?.Score;
+                decimal? engVal = response.EnglishTestScore;
+                decimal? aiVal = response.AiInterviewSummary?.OverallInterviewScore;
+
+                decimal totalWeight = 0m, totalScore = 0m;
+                if (cvVal.HasValue) { totalScore += cvVal.Value * ScoringWeights.CvAnalysis; totalWeight += ScoringWeights.CvAnalysis; }
+                if (skillVal.HasValue) { totalScore += skillVal.Value * ScoringWeights.SkillsTest; totalWeight += ScoringWeights.SkillsTest; }
+                if (engVal.HasValue) { totalScore += engVal.Value * ScoringWeights.EnglishTest; totalWeight += ScoringWeights.EnglishTest; }
+                if (aiVal.HasValue) { totalScore += aiVal.Value * ScoringWeights.AiInterview; totalWeight += ScoringWeights.AiInterview; }
+
+                decimal? weighted = totalWeight > 0 ? Math.Round(totalScore / totalWeight, 1) : cvVal;
+
+                // Use DB status but compute score on the fly
+                var finalAll = await _finalRepository.GetAllAsync();
+                var final_ = finalAll.FirstOrDefault(f => f.ApplicationId == request.ApplicationId);
+
                 response.FinalEvaluationScore = new FinalScoreDto
                 {
-                    WeightedFinalScore = final_.WeightedFinalScore,
-                    EvaluationStatus = final_.EvaluationStatus
+                    WeightedFinalScore = weighted,
+                    EvaluationStatus = final_?.EvaluationStatus ?? (weighted.HasValue ? "Completed" : "Pending")
                 };
             }
 

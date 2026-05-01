@@ -1,5 +1,6 @@
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Settings;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,9 @@ namespace CleanArchitecture.Core.Features.Interviews.Commands.SaveRealtimeInterv
         private readonly IGenericRepositoryAsync<ApplicationStage> _stageRepository;
         private readonly IGenericRepositoryAsync<CvUpload> _cvUploadRepository;
         private readonly IGenericRepositoryAsync<CvAnalysisResult> _cvRepository;
-        private readonly IGenericRepositoryAsync<GeneralTestResult> _testRepository;
+        private readonly IGenericRepositoryAsync<CandidateExamAssignment> _assignmentRepository;
+        private readonly IGenericRepositoryAsync<Exam> _examRepository;
+        private readonly IGenericRepositoryAsync<Question> _questionRepository;
         private readonly IGenericRepositoryAsync<FinalEvaluationScore> _finalScoreRepository;
         private readonly IPipelineService _pipelineService;
 
@@ -47,7 +50,9 @@ namespace CleanArchitecture.Core.Features.Interviews.Commands.SaveRealtimeInterv
             IGenericRepositoryAsync<ApplicationStage> stageRepository,
             IGenericRepositoryAsync<CvUpload> cvUploadRepository,
             IGenericRepositoryAsync<CvAnalysisResult> cvRepository,
-            IGenericRepositoryAsync<GeneralTestResult> testRepository,
+            IGenericRepositoryAsync<CandidateExamAssignment> assignmentRepository,
+            IGenericRepositoryAsync<Exam> examRepository,
+            IGenericRepositoryAsync<Question> questionRepository,
             IGenericRepositoryAsync<FinalEvaluationScore> finalScoreRepository,
             IPipelineService pipelineService)
         {
@@ -57,7 +62,9 @@ namespace CleanArchitecture.Core.Features.Interviews.Commands.SaveRealtimeInterv
             _stageRepository = stageRepository;
             _cvUploadRepository = cvUploadRepository;
             _cvRepository = cvRepository;
-            _testRepository = testRepository;
+            _assignmentRepository = assignmentRepository;
+            _examRepository = examRepository;
+            _questionRepository = questionRepository;
             _finalScoreRepository = finalScoreRepository;
             _pipelineService = pipelineService;
         }
@@ -151,18 +158,47 @@ namespace CleanArchitecture.Core.Features.Interviews.Commands.SaveRealtimeInterv
                 var cvResults = await _cvRepository.GetAllAsync();
                 var cvScore = cvResults.FirstOrDefault(c => c.ApplicationId == request.ApplicationId)?.AnalysisScore ?? 0;
 
-                var testResults = await _testRepository.GetAllAsync();
-                var skillsScore = testResults.FirstOrDefault(t => t.ApplicationId == request.ApplicationId && t.TestName != null && t.TestName.Contains("Skill"))?.Score ?? 0;
-                var englishScore = testResults.FirstOrDefault(t => t.ApplicationId == request.ApplicationId && t.TestName != null && t.TestName.Contains("English"))?.Score ?? 0;
+                // Get exam scores from CandidateExamAssignment + Exam
+                var allAssignments = await _assignmentRepository.GetAllAsync();
+                var allExams = await _examRepository.GetAllAsync();
+                var allQuestions = await _questionRepository.GetAllAsync();
+                var examLookup = allExams.ToDictionary(e => e.Id, e => e);
+
+                // Pre-compute auto-gradable total points per exam
+                var examAutoTotals = allQuestions
+                    .Where(q => q.QuestionType == "multiple_choice" || q.QuestionType == "true_false")
+                    .GroupBy(q => q.ExamId)
+                    .ToDictionary(g => g.Key, g => g.Sum(q => q.Points));
+
+                decimal skillsScore = 0m;
+                decimal englishScore = 0m;
+                foreach (var asgn in allAssignments.Where(a => a.CandidateId == application.CandidateId && a.JobId == request.JobPostingId && a.Status == "submitted"))
+                {
+                    if (!examLookup.TryGetValue(asgn.ExamId, out var exam)) continue;
+
+                    // Use stored percentage if available, otherwise compute from raw score
+                    decimal pct = asgn.ScorePercentage ?? 0;
+                    if (pct == 0 && asgn.Score != null && asgn.Score > 0)
+                    {
+                        examAutoTotals.TryGetValue(asgn.ExamId, out int autoTotal);
+                        pct = autoTotal > 0 ? Math.Round(asgn.Score.Value / autoTotal * 100, 1) : 0;
+                    }
+
+                    bool isEnglish = exam.SequenceOrder == 1 || (exam.ExamType != null && exam.ExamType.Contains("english"));
+                    if (isEnglish)
+                        englishScore = pct;
+                    else
+                        skillsScore = pct;
+                }
 
                 decimal interviewScore = request.OverallInterviewScore ?? 0m;
 
                 // Weighted: CV 20%, Skills 25%, English 25%, AI Interview 30%
                 decimal totalWeight = 0m, totalScore = 0m;
-                if (cvScore > 0) { totalScore += cvScore * 0.20m; totalWeight += 0.20m; }
-                if (skillsScore > 0) { totalScore += skillsScore * 0.25m; totalWeight += 0.25m; }
-                if (englishScore > 0) { totalScore += englishScore * 0.25m; totalWeight += 0.25m; }
-                if (interviewScore > 0) { totalScore += interviewScore * 0.30m; totalWeight += 0.30m; }
+                if (cvScore > 0) { totalScore += cvScore * ScoringWeights.CvAnalysis; totalWeight += ScoringWeights.CvAnalysis; }
+                if (skillsScore > 0) { totalScore += skillsScore * ScoringWeights.SkillsTest; totalWeight += ScoringWeights.SkillsTest; }
+                if (englishScore > 0) { totalScore += englishScore * ScoringWeights.EnglishTest; totalWeight += ScoringWeights.EnglishTest; }
+                if (interviewScore > 0) { totalScore += interviewScore * ScoringWeights.AiInterview; totalWeight += ScoringWeights.AiInterview; }
                 decimal finalWeighted = totalWeight > 0 ? Math.Round(totalScore / totalWeight, 1) : 0m;
 
                 var allFinals = await _finalScoreRepository.GetAllAsync();
