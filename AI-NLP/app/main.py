@@ -119,8 +119,11 @@ app.include_router(chatbot_router, prefix="/api/v1")
 
 # ── Static files (interview room UI) ───────────────────────────────────
 _static_dir = Path(__file__).resolve().parent / "static"
+_local_demo_dir = Path(__file__).resolve().parent.parent / "local-demo"
 if _static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
+if _local_demo_dir.exists():
+    app.mount("/local-demo", StaticFiles(directory=str(_local_demo_dir)), name="local-demo")
 
 
 # ── Interview Room pages ──────────────────────────────────────────────
@@ -133,16 +136,11 @@ async def interview_room():
 @app.get("/realtime-interview", include_in_schema=False)
 @app.get("/demo", include_in_schema=False)
 async def realtime_interview_room():
-    """Serve the original Realtime Voice Interview page (token-aware)."""
-    html_path = _static_dir / "interview-room" / "realtime.html"
+    """Serve the Realtime Voice Interview page (WebSocket-based)."""
+    html_path = _local_demo_dir / "interview-room" / "realtime.html"
     if not html_path.exists():
-        raise HTTPException(status_code=404, detail="Realtime interview UI not found.")
-    return FileResponse(
-        str(html_path),
-        media_type="text/html",
-        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache"}
-    )
-
+        raise HTTPException(status_code=404, detail="Realtime interview UI not found. Place demo files in local-demo/interview-room/.")
+    return FileResponse(str(html_path), media_type="text/html")
 
 
 # ── Health check ───────────────────────────────────────────────────────

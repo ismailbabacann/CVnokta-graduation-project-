@@ -25,6 +25,7 @@ namespace CleanArchitecture.Infrastructure.Services
         private readonly IGenericRepositoryAsync<JobPosting>               _jobRepo;
         private readonly IGenericRepositoryAsync<CandidateProfile>         _candidateRepo;
         private readonly IGenericRepositoryAsync<CandidateExamAssignment>  _assignmentRepo;
+        private readonly IGenericRepositoryAsync<AiInterviewSummary>       _interviewSummaryRepo;
         private readonly JobExamSeedService                                _examSeedService;
         private readonly IExamTokenService                                 _tokenService;
         private readonly IAiJobPostingGenerationService                  _aiService;
@@ -36,6 +37,7 @@ namespace CleanArchitecture.Infrastructure.Services
             IGenericRepositoryAsync<JobPosting>               jobRepo,
             IGenericRepositoryAsync<CandidateProfile>         candidateRepo,
             IGenericRepositoryAsync<CandidateExamAssignment>  assignmentRepo,
+            IGenericRepositoryAsync<AiInterviewSummary>       interviewSummaryRepo,
             JobExamSeedService                                examSeedService,
             IExamTokenService                                 tokenService,
             IAiJobPostingGenerationService                  aiService,
@@ -46,6 +48,7 @@ namespace CleanArchitecture.Infrastructure.Services
             _jobRepo         = jobRepo;
             _candidateRepo   = candidateRepo;
             _assignmentRepo  = assignmentRepo;
+            _interviewSummaryRepo = interviewSummaryRepo;
             _examSeedService = examSeedService;
             _tokenService    = tokenService;
             _aiService       = aiService;
@@ -106,9 +109,7 @@ namespace CleanArchitecture.Infrastructure.Services
                     else
                     {
                         // Rejection reason: combine score info + AI feedback
-                        var rejectionReason = $"CV analiz skorunuz ({score:0}), bu ilan için gerekli minimum eşiğin ({cvThreshold}) altında kalmıştır.";
-                        if (!string.IsNullOrWhiteSpace(cvFeedback))
-                            rejectionReason += $" AI Değerlendirmesi: {cvFeedback}";
+                        var rejectionReason = !string.IsNullOrWhiteSpace(cvFeedback) ? cvFeedback : "CV'niz değerlendirildi.";
 
                         application.CurrentPipelineStage  = "REJECTED_NLP";
                         application.ApplicationStatus     = "REJECTED";
@@ -148,8 +149,14 @@ namespace CleanArchitecture.Infrastructure.Services
                     {
                         // 🤖 Get REAL AI Feedback
                         string aiFeedback = "Sınav sonucunuz sistem tarafından değerlendirildi.";
+                        string strengths = null, weaknesses = null;
                         try {
-                            aiFeedback = await _aiService.GetExamFeedbackAsync(application.Id, jobTitle, 10, (int)(score/10) , score, false, results ?? new List<QuestionResultDto>());
+                            int totalQ = results?.Count ?? 30;
+                            int correctQ = results?.Count(r => r.IsCorrect == true) ?? 0;
+                            var fbResult = await _aiService.GetExamFeedbackAsync(application.Id, jobTitle, totalQ, correctQ, score, false, results ?? new List<QuestionResultDto>());
+                            aiFeedback = fbResult.Feedback ?? aiFeedback;
+                            strengths = fbResult.Strengths;
+                            weaknesses = fbResult.Weaknesses;
                         } catch { }
 
                         application.CurrentPipelineStage  = "REJECTED_ENGLISH";
@@ -159,7 +166,7 @@ namespace CleanArchitecture.Infrastructure.Services
                         await _applicationRepo.UpdateAsync(application);
                         await SendEmailSafe(candidateEmail,
                             $"Başvurunuz Hakkında — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "İngilizce Testi", (int)score, englishThreshold, aiFeedback));
+                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "İngilizce Testi", (int)score, englishThreshold, aiFeedback, strengths, weaknesses));
                     }
                     break;
 
@@ -191,8 +198,14 @@ namespace CleanArchitecture.Infrastructure.Services
                     {
                         // 🤖 Get REAL AI Feedback
                         string aiFeedback = "Sınav sonucunuz sistem tarafından değerlendirildi.";
+                        string strengths = null, weaknesses = null;
                         try {
-                            aiFeedback = await _aiService.GetExamFeedbackAsync(application.Id, jobTitle, 10, (int)(score/10), score, false, results ?? new List<QuestionResultDto>());
+                            int totalQ = results?.Count ?? 20;
+                            int correctQ = results?.Count(r => r.IsCorrect == true) ?? 0;
+                            var fbResult = await _aiService.GetExamFeedbackAsync(application.Id, jobTitle, totalQ, correctQ, score, false, results ?? new List<QuestionResultDto>());
+                            aiFeedback = fbResult.Feedback ?? aiFeedback;
+                            strengths = fbResult.Strengths;
+                            weaknesses = fbResult.Weaknesses;
                         } catch { }
 
                         application.CurrentPipelineStage  = "REJECTED_SKILLS";
@@ -202,7 +215,7 @@ namespace CleanArchitecture.Infrastructure.Services
                         await _applicationRepo.UpdateAsync(application);
                         await SendEmailSafe(candidateEmail,
                             $"Başvurunuz Hakkında — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "Genel Beceri Testi", (int)score, technicalThreshold, aiFeedback));
+                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "Genel Beceri Testi", (int)score, technicalThreshold, aiFeedback, strengths, weaknesses));
                     }
                     break;
 
@@ -221,14 +234,36 @@ namespace CleanArchitecture.Infrastructure.Services
                     }
                     else
                     {
+                        // 🤖 Build rich AI feedback from interview summary
+                        string aiFeedback = $"AI mülakat skorunuz ({score:0}), gerekli minimum eşiğin ({aiInterviewThreshold}) altında kalmıştır.";
+                        string strengths = null, weaknesses = null;
+                        try
+                        {
+                            var allSummaries = (List<AiInterviewSummary>)await _interviewSummaryRepo.GetAllAsync();
+                            var summary = allSummaries.FindLast(s => s.ApplicationId == applicationId);
+                            if (summary != null)
+                            {
+                                var parts = new List<string>();
+                                parts.Add($"AI mülakat skorunuz: %{score:0} (Eşik: %{aiInterviewThreshold}).");
+                                if (!string.IsNullOrWhiteSpace(summary.SummaryText))
+                                    parts.Add(summary.SummaryText);
+                                if (!string.IsNullOrWhiteSpace(summary.Recommendations))
+                                    parts.Add($"Tavsiyeler: {summary.Recommendations}");
+                                aiFeedback = string.Join("\n\n", parts);
+                                strengths = summary.Strengths;
+                                weaknesses = summary.Weaknesses;
+                            }
+                        }
+                        catch { }
+
                         application.CurrentPipelineStage  = "REJECTED_AI";
                         application.ApplicationStatus     = "REJECTED";
-                        application.RejectionReason       = $"AI mülakat skorunuz ({score:0}), gerekli minimum eşiğin ({aiInterviewThreshold}) altında kalmıştır.";
+                        application.RejectionReason       = aiFeedback;
                         application.PipelineStageUpdatedAt = DateTime.UtcNow;
                         await _applicationRepo.UpdateAsync(application);
                         await SendEmailSafe(candidateEmail,
                             $"Başvurunuz Hakkında — {jobTitle} | CVNokta",
-                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "AI Mülakat", (int)score, aiInterviewThreshold, cvFeedback));
+                            EmailTemplateService.GetPipelineRejectionTemplate(candidateName, jobTitle, "AI Mülakat", (int)score, aiInterviewThreshold, aiFeedback, strengths, weaknesses));
                     }
                     break;
             }

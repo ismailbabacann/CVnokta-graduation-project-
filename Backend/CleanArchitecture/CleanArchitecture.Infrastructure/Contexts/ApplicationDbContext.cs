@@ -618,6 +618,8 @@ namespace CleanArchitecture.Infrastructure.Contexts
             builder.Entity<CandidateExamAssignment>()
                 .Property(a => a.Score).HasColumnType("decimal(5,2)");
             builder.Entity<CandidateExamAssignment>()
+                .Property(a => a.ScorePercentage).HasColumnType("decimal(5,2)");
+            builder.Entity<CandidateExamAssignment>()
                 .HasOne(a => a.Candidate)
                 .WithMany()
                 .HasForeignKey(a => a.CandidateId)

@@ -32,6 +32,9 @@ namespace CleanArchitecture.Core.Entities
         /// <summary>Calculated total score after submission</summary>
         public decimal? Score { get; set; }
 
+        /// <summary>Score as percentage (0-100) for weighted ranking calculations</summary>
+        public decimal? ScorePercentage { get; set; }
+
         // ── Navigation ──────────────────────────────────────────
         public virtual CandidateProfile Candidate { get; set; }
         public virtual Exam Exam { get; set; }

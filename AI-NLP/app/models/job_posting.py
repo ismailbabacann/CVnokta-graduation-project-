@@ -73,6 +73,11 @@ class JobPostingInput(BaseModel):
     posted_date: Optional[datetime] = None
     closing_date: Optional[datetime] = None
     has_english_exam: Optional[bool] = None
+    language_level: Optional[str] = Field(
+        None,
+        description="CEFR English level required: A2, B1, B2, C1. Defaults to B1 if not set.",
+        validation_alias=AliasChoices("language_level", "languageLevel"),
+    )
 
     @field_validator("required_skills", mode="before")
     @classmethod

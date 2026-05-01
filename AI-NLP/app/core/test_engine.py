@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional
 
 from app.config import get_settings
 from app.core.prompts.test_generation import (
+    CEFR_LEVEL_DESCRIPTIONS,
     ENGLISH_SYSTEM_PROMPT,
     ENGLISH_USER_PROMPT_TEMPLATE,
     TECHNICAL_SYSTEM_PROMPT,
@@ -56,7 +57,11 @@ def _parse_questions_from_response(raw: Dict[str, Any]) -> List[TestQuestion]:
     """Parse LLM JSON response into TestQuestion list with validation."""
     items = raw.get("questions", [])
     if not isinstance(items, list):
-        return []
+        items = []
+
+    # Fallback: if no "questions" key but raw itself looks like a single question
+    if not items and "question" in raw and "options" in raw:
+        items = [raw]
 
     questions: list[TestQuestion] = []
     for item in items:
@@ -129,6 +134,8 @@ class TestEngine:
         
         user_prompt = TECHNICAL_USER_PROMPT_TEMPLATE.format(
             count=count,
+            easy_count=count // 2,
+            medium_count=count - count // 2,
             job_title=job_posting.job_title,
             department=job_posting.department or "N/A",
             required_skills=job_posting.required_skills or "N/A",
@@ -154,10 +161,16 @@ class TestEngine:
         self,
         job_posting_id: str,
         count: Optional[int] = None,
+        language_level: Optional[str] = None,
     ) -> List[TestQuestion]:
-        """Generate B1-B2 English proficiency questions via LLM."""
+        """Generate English proficiency questions via LLM at the specified CEFR level."""
         if count is None:
             count = self._settings.english_test_question_count
+
+        # Validate and default CEFR level
+        cefr_level = (language_level or "").upper().strip()
+        if cefr_level not in CEFR_LEVEL_DESCRIPTIONS:
+            cefr_level = "B1"
 
         from app.services.openai_service import OpenAIService
         import random
@@ -165,15 +178,17 @@ class TestEngine:
         service = OpenAIService()
         variation_seed = random.randint(1000, 9999)
 
-        grammar_count = count // 3
-        vocab_count = count // 3
+        grammar_count = 10
+        vocab_count = 10
         reading_count = count - grammar_count - vocab_count
 
         user_prompt = ENGLISH_USER_PROMPT_TEMPLATE.format(
             count=count,
+            cefr_level=cefr_level,
             grammar_count=grammar_count,
             vocab_count=vocab_count,
             reading_count=reading_count,
+            level_description=CEFR_LEVEL_DESCRIPTIONS[cefr_level],
         )
         user_prompt += f"\n\nVariation Seed: {variation_seed}"
 
@@ -181,7 +196,10 @@ class TestEngine:
         questions = _parse_questions_from_response(raw)
 
         if questions:
-            logger.info("Generated %d English questions for posting %s (Seed: %d)", len(questions), job_posting_id, variation_seed)
+            logger.info(
+                "Generated %d English questions [%s] for posting %s (Seed: %d)",
+                len(questions), cefr_level, job_posting_id, variation_seed,
+            )
         else:
             logger.error("LLM returned no valid English questions")
 

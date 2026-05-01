@@ -71,6 +71,7 @@ async def generate_test(
             questions = await engine.generate_english_test(
                 request.job_posting.id or "default",
                 count=request.question_count,
+                language_level=request.job_posting.language_level,
             )
     except Exception as exc:
         logger.error("Test generation failed: %s", exc)

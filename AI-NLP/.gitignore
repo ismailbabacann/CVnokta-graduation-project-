@@ -41,6 +41,7 @@ Thumbs.db
 .coverage
 htmlcov/
 .pytest_cache/
+Tests/
 
 # Logs
 *.log
@@ -58,5 +59,6 @@ ToDo.md
 
 # Demo app (local only)
 demo/
+local-demo/
 start-all.sh
 md-files/

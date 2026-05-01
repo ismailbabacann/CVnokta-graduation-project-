@@ -137,8 +137,12 @@ function MyApplications() {
                         activeExamToken: a.activeExamToken,
                         interviewToken: a.interviewToken,
                         interviewUrl: a.interviewToken
-                            ? `http://localhost:8000/realtime-interview?token=${a.interviewToken}`
+                            ? `/interview/${a.interviewToken}`
                             : null,
+                        // AI Interview feedback
+                        aiInterviewStrengths:  a.aiInterviewStrengths,
+                        aiInterviewWeaknesses: a.aiInterviewWeaknesses,
+                        aiInterviewSummary:    a.aiInterviewSummary,
                     }));
 
                     setApplications(allData.filter(a => !isResult(a.stage)));
@@ -196,7 +200,7 @@ function MyApplications() {
                         {app.stage === 'AI_INTERVIEW_PENDING' && app.interviewToken && (
                             <div style={{ marginTop: '16px', textAlign: 'center' }}>
                                 <a
-                                    href={`http://localhost:8000/realtime-interview?token=${app.interviewToken}`}
+                                    href={`/interview/${app.interviewToken}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className={styles.interviewBtn}
@@ -218,6 +222,33 @@ function MyApplications() {
                                 >
                                     📝 Sınava Başla
                                 </a>
+                            </div>
+                        )}
+
+                        {/* ── AI Interview Feedback (visible for COMPLETED / REJECTED_AI) ── */}
+                        {(completed || app.stage === 'REJECTED_AI') && (app.aiInterviewStrengths || app.aiInterviewWeaknesses || app.aiInterviewSummary) && (
+                            <div style={{ marginTop: 16 }}>
+                                <h4 style={{ margin: '0 0 12px 0', fontSize: 14, color: '#1e293b' }}>🤖 AI Mülakat Değerlendirmesi</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                    {app.aiInterviewStrengths && (
+                                        <div style={{ background: '#f0fdf4', borderRadius: 10, padding: 14, border: '1px solid #bbf7d0' }}>
+                                            <div style={{ fontWeight: 700, color: '#166534', fontSize: 12, marginBottom: 6 }}>💪 Güçlü Yönleriniz</div>
+                                            <p style={{ margin: 0, color: '#15803d', fontSize: 13, lineHeight: 1.6 }}>{app.aiInterviewStrengths}</p>
+                                        </div>
+                                    )}
+                                    {app.aiInterviewWeaknesses && (
+                                        <div style={{ background: '#fff1f2', borderRadius: 10, padding: 14, border: '1px solid #fecdd3' }}>
+                                            <div style={{ fontWeight: 700, color: '#9f1239', fontSize: 12, marginBottom: 6 }}>🔻 Gelişim Alanlarınız</div>
+                                            <p style={{ margin: 0, color: '#be123c', fontSize: 13, lineHeight: 1.6 }}>{app.aiInterviewWeaknesses}</p>
+                                        </div>
+                                    )}
+                                </div>
+                                {app.aiInterviewSummary && (
+                                    <div style={{ marginTop: 10, background: '#f8fafc', borderRadius: 10, padding: 14, border: '1px solid #e2e8f0' }}>
+                                        <div style={{ fontWeight: 700, color: '#475569', fontSize: 12, marginBottom: 6 }}>📋 Genel Değerlendirme</div>
+                                        <p style={{ margin: 0, color: '#334155', fontSize: 13, lineHeight: 1.6 }}>{app.aiInterviewSummary}</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

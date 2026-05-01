@@ -56,7 +56,7 @@ namespace CleanArchitecture.Infrastructure.Services
             return JsonSerializer.Deserialize<GeneratedExamDto>(responseString, options);
         }
 
-        public async Task<string> GetExamFeedbackAsync(Guid applicationId, string jobTitle, int totalQuestions, int correctAnswers, decimal score, bool passed, List<CleanArchitecture.Core.Features.Exams.Commands.SubmitExam.QuestionResultDto> results)
+        public async Task<ExamFeedbackResult> GetExamFeedbackAsync(Guid applicationId, string jobTitle, int totalQuestions, int correctAnswers, decimal score, bool passed, List<CleanArchitecture.Core.Features.Exams.Commands.SubmitExam.QuestionResultDto> results)
         {
             var payload = new
             {
@@ -74,11 +74,34 @@ namespace CleanArchitecture.Infrastructure.Services
             var response = await _httpClient.PostAsync("backend/analyze-test-results", content);
             
             if (!response.IsSuccessStatusCode)
-                return "Sınav sonucunuz sistem tarafından değerlendirildi. Detaylar için İK ekibiyle iletişime geçebilirsiniz.";
+                return new ExamFeedbackResult { Feedback = "Sınav sonucunuz sistem tarafından değerlendirildi. Detaylar için İK ekibiyle iletişime geçebilirsiniz." };
 
             var responseString = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(responseString);
-            return doc.RootElement.GetProperty("feedback").GetString();
+            
+            var feedbackText = doc.RootElement.TryGetProperty("feedback", out var fb) ? fb.GetString() : "";
+            
+            string strengthsText = null;
+            string weaknessesText = null;
+            if (doc.RootElement.TryGetProperty("strengths", out var str) && str.ValueKind == JsonValueKind.Array)
+            {
+                var items = new List<string>();
+                foreach (var item in str.EnumerateArray()) items.Add(item.GetString());
+                if (items.Count > 0) strengthsText = string.Join(", ", items);
+            }
+            if (doc.RootElement.TryGetProperty("weaknesses", out var weak) && weak.ValueKind == JsonValueKind.Array)
+            {
+                var items = new List<string>();
+                foreach (var item in weak.EnumerateArray()) items.Add(item.GetString());
+                if (items.Count > 0) weaknessesText = string.Join(", ", items);
+            }
+            
+            return new ExamFeedbackResult
+            {
+                Feedback = feedbackText,
+                Strengths = strengthsText,
+                Weaknesses = weaknessesText
+            };
         }
 
         public async Task AnalyzeCvAsync(Guid applicationId, string cvFilePath, CleanArchitecture.Core.Entities.JobPosting jobPosting, Guid stageId, Guid cvId)

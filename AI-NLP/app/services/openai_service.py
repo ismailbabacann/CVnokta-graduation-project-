@@ -119,11 +119,20 @@ def _coerce_response_text(content: Any) -> str:
 def _extract_json_payload(text: str) -> Dict[str, Any]:
     decoder = json.JSONDecoder()
 
+    def _normalize(parsed: Any) -> Optional[Dict[str, Any]]:
+        """Accept dicts directly; wrap top-level lists as {"questions": list}."""
+        if isinstance(parsed, dict):
+            return parsed
+        if isinstance(parsed, list) and parsed:
+            return {"questions": parsed}
+        return None
+
     # 1) Direct parse first.
     try:
         parsed = json.loads(text)
-        if isinstance(parsed, dict):
-            return parsed
+        result = _normalize(parsed)
+        if result is not None:
+            return result
     except json.JSONDecodeError:
         pass
 
@@ -134,19 +143,21 @@ def _extract_json_payload(text: str) -> Dict[str, Any]:
             continue
         try:
             parsed = json.loads(block)
-            if isinstance(parsed, dict):
-                return parsed
+            result = _normalize(parsed)
+            if result is not None:
+                return result
         except json.JSONDecodeError:
             continue
 
-    # 3) Parse first decodable object from noisy text.
+    # 3) Parse first decodable object/array from noisy text.
     for idx, ch in enumerate(text):
         if ch not in "[{":
             continue
         try:
             parsed, _ = decoder.raw_decode(text[idx:])
-            if isinstance(parsed, dict):
-                return parsed
+            result = _normalize(parsed)
+            if result is not None:
+                return result
         except json.JSONDecodeError:
             continue
 
