@@ -187,3 +187,29 @@ async def fetch_cv_summary(application_id: str) -> Optional[Dict[str, Any]]:
     except Exception as exc:
         logger.error("CV summary fetch error: %s", exc)
         return None
+
+
+async def download_cv_pdf(cv_url: str) -> Optional[bytes]:
+    """
+    Download CV PDF from a Cloudinary (or any public) URL.
+
+    Returns the raw PDF bytes, or None on failure.
+    """
+    if not cv_url:
+        return None
+
+    try:
+        client = _get_client()
+        resp = await client.get(cv_url)
+        if resp.status_code < 300:
+            content_type = resp.headers.get("content-type", "")
+            if len(resp.content) < 100:
+                logger.warning("CV download returned suspiciously small file (%d bytes)", len(resp.content))
+                return None
+            logger.info("CV PDF downloaded: %d bytes from %s", len(resp.content), cv_url[:80])
+            return resp.content
+        logger.warning("CV download failed: %d from %s", resp.status_code, cv_url[:80])
+        return None
+    except Exception as exc:
+        logger.error("CV download error: %s", exc)
+        return None

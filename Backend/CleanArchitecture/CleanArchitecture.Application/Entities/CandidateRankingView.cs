@@ -12,6 +12,8 @@ namespace CleanArchitecture.Core.Entities
         public string CvUrl { get; set; }
         public decimal? CvAnalysisScore { get; set; }
         public decimal? GeneralTestScore { get; set; }
+        public decimal? SkillsTestScore { get; set; }
+        public decimal? EnglishTestScore { get; set; }
         public decimal? AiInterviewScore { get; set; }
         public decimal? FinalWeightedScore { get; set; }
         public int? RankPosition { get; set; }

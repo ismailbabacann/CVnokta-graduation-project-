@@ -179,7 +179,8 @@ namespace CleanArchitecture.WebApi.Controllers.v1
                 jobPostingId = app.JobPostingId,
                 candidateName = candidate?.FullName ?? "Candidate",
                 jobTitle = jobPosting?.JobTitle ?? "Genel Başvuru",
-                requiredSkills = jobPosting?.RequiredSkills ?? ""
+                requiredSkills = jobPosting?.RequiredSkills ?? "",
+                cvUrl = candidate?.CvUrl ?? ""
             });
         }
 

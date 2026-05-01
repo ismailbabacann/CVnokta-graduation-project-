@@ -6,27 +6,93 @@ import './VideoInterview.css';
 const AI_NLP_URL = 'http://localhost:8000/api/v1/interview/realtime';
 const AI_NLP_WS_URL = 'ws://localhost:8000/api/v1/interview/realtime/ws';
 const BACKEND_URL = 'https://localhost:9001/api/v1';
+const SAMPLE_RATE = 24000;
 
 function VideoInterview() {
-  const [status, setStatus]           = useState('loading'); // loading | idle | connecting | active | ended | error | invalid
-  const [transcript, setTranscript]   = useState([]);
-  const [isAiSpeaking, setIsAiSpeaking] = useState(false);
-  const [isCandidateMuted, setIsCandidateMuted] = useState(false);
-  const [errorMsg, setErrorMsg]       = useState('');
-  const [summary, setSummary]         = useState(null);
+  // ── State ──────────────────────────────────────────────────
+  const [status, setStatus] = useState('loading');
+  const [statusText, setStatusText] = useState('');
+  const [transcript, setTranscript] = useState([]);
+  const [liveText, setLiveText] = useState('Waiting for AI interviewer...');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [summary, setSummary] = useState(null);
   const [sessionConfig, setSessionConfig] = useState(null);
+  const [timer, setTimer] = useState('0:00');
+  const [warningMsg, setWarningMsg] = useState('');
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
-  const wsRef            = useRef(null);
-  const audioContextRef  = useRef(null);
-  const mediaStreamRef   = useRef(null);
-  const processorRef     = useRef(null);
-  const audioQueueRef    = useRef([]);
-  const isPlayingRef     = useRef(false);
-  const sessionIdRef     = useRef(null);
+  // ── Refs ───────────────────────────────────────────────────
+  const wsRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const micStreamRef = useRef(null);
+  const webcamStreamRef = useRef(null);
+  const workletNodeRef = useRef(null);
+  const scriptNodeRef = useRef(null);
+  const playbackQueueRef = useRef([]);
+  const isPlayingRef = useRef(false);
+  const activeSourceRef = useRef(null);
+  const sessionIdRef = useRef(null);
+  const startTimeRef = useRef(null);
+  const timerIntervalRef = useRef(null);
+  const partialTextRef = useRef('');
+  const partialElIndexRef = useRef(null);
+  const webcamRef = useRef(null);
+  const transcriptBodyRef = useRef(null);
+  const warningTimerRef = useRef(null);
+  const statusRef = useRef(status);
+
   const { token } = useParams();
   const navigate = useNavigate();
 
-  // ── Token validation — call AI-NLP's start-with-token ──────────────────────
+  // Keep statusRef in sync
+  useEffect(() => { statusRef.current = status; }, [status]);
+
+  // ── Playback helpers ───────────────────────────────────────
+  const stopPlayback = useCallback(() => {
+    playbackQueueRef.current = [];
+    isPlayingRef.current = false;
+    if (activeSourceRef.current) {
+      try { activeSourceRef.current.stop(); } catch (e) { /* ignore */ }
+      activeSourceRef.current = null;
+    }
+  }, []);
+
+  // ── Cleanup ────────────────────────────────────────────────
+  const cleanup = useCallback(() => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    if (wsRef.current) {
+      try { wsRef.current.close(); } catch (e) { /* ignore */ }
+      wsRef.current = null;
+    }
+    if (workletNodeRef.current) {
+      try { workletNodeRef.current.disconnect(); } catch (e) { /* ignore */ }
+      workletNodeRef.current = null;
+    }
+    if (scriptNodeRef.current) {
+      try { scriptNodeRef.current.disconnect(); } catch (e) { /* ignore */ }
+      scriptNodeRef.current = null;
+    }
+    if (micStreamRef.current) {
+      micStreamRef.current.getTracks().forEach(t => t.stop());
+      micStreamRef.current = null;
+    }
+    if (webcamStreamRef.current) {
+      webcamStreamRef.current.getTracks().forEach(t => t.stop());
+      webcamStreamRef.current = null;
+      if (webcamRef.current) webcamRef.current.srcObject = null;
+    }
+    if (audioContextRef.current) {
+      try { audioContextRef.current.close(); } catch (e) { /* ignore */ }
+      audioContextRef.current = null;
+    }
+    stopPlayback();
+    setIsSpeaking(false);
+  }, [stopPlayback]);
+
+  // ── Token validation ───────────────────────────────────────
   useEffect(() => {
     const validateToken = async () => {
       if (!token) {
@@ -56,40 +122,49 @@ function VideoInterview() {
     validateToken();
   }, [token]);
 
-  // ── Ses oynatma kuyruğu ────────────────────────────────────────────────────
-  const playNextAudio = useCallback(async () => {
-    if (isPlayingRef.current || audioQueueRef.current.length === 0) return;
-    isPlayingRef.current = true;
-    setIsAiSpeaking(true);
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => cleanup();
+  }, [cleanup]);
 
-    const base64Audio = audioQueueRef.current.shift();
-    try {
-      const ctx = audioContextRef.current || new AudioContext();
-      audioContextRef.current = ctx;
-      const binary = atob(base64Audio);
-      const bytes  = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-
-      const audioBuffer = await ctx.decodeAudioData(bytes.buffer);
-      const source = ctx.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(ctx.destination);
-      source.onended = () => {
-        isPlayingRef.current = false;
-        if (audioQueueRef.current.length > 0) {
-          playNextAudio();
-        } else {
-          setIsAiSpeaking(false);
-        }
-      };
-      source.start();
-    } catch {
+  // ── Audio playback (PCM16 base64 → float32 → speaker) ─────
+  const playNextChunk = useCallback(() => {
+    if (!audioContextRef.current || playbackQueueRef.current.length === 0) {
       isPlayingRef.current = false;
-      setIsAiSpeaking(false);
+      return;
     }
+    isPlayingRef.current = true;
+    const samples = playbackQueueRef.current.shift();
+
+    const buffer = audioContextRef.current.createBuffer(1, samples.length, SAMPLE_RATE);
+    buffer.getChannelData(0).set(samples);
+
+    const source = audioContextRef.current.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioContextRef.current.destination);
+    source.onended = () => {
+      if (activeSourceRef.current === source) activeSourceRef.current = null;
+      playNextChunk();
+    };
+    activeSourceRef.current = source;
+    source.start();
   }, []);
 
-  // ── Sonuçları backend'e kaydet ──────────────────────────────────────────────
+  const handleAudioChunk = useCallback((base64Data) => {
+    if (!base64Data) return;
+    const binaryStr = atob(base64Data);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+    const pcm16 = new Int16Array(bytes.buffer);
+    const float32 = new Float32Array(pcm16.length);
+    for (let i = 0; i < pcm16.length; i++) {
+      float32[i] = pcm16[i] / (pcm16[i] < 0 ? 0x8000 : 0x7FFF);
+    }
+    playbackQueueRef.current.push(float32);
+    if (!isPlayingRef.current) playNextChunk();
+  }, [playNextChunk]);
+
+  // ── Save results to Backend ────────────────────────────────
   const saveResultsToBackend = useCallback(async (summaryData) => {
     if (!sessionConfig) return;
     const { application_id, job_posting_id } = sessionConfig;
@@ -121,7 +196,7 @@ function VideoInterview() {
     }
   }, [sessionConfig]);
 
-  // ── AI-NLP'den değerlendirme al ────────────────────────────────────────────
+  // ── Fetch evaluation ───────────────────────────────────────
   const fetchEvaluation = useCallback(async () => {
     const sid = sessionIdRef.current;
     if (!sid) return;
@@ -134,122 +209,223 @@ function VideoInterview() {
       }
     } catch (err) {
       console.error('Değerlendirme alınamadı:', err.message);
+      setStatus('ended');
+      setErrorMsg(`Değerlendirme tamamlanamadı: ${err.message}`);
     }
   }, [saveResultsToBackend]);
 
-  // ── WebSocket mesajı işle ──────────────────────────────────────────────────
+  // ── Transcript handling ────────────────────────────────────
+  const handleTranscript = useCallback((msg) => {
+    if (msg.role === 'assistant') {
+      if (msg.is_final) {
+        setTranscript(prev => {
+          if (partialElIndexRef.current !== null) {
+            const updated = [...prev];
+            updated[partialElIndexRef.current] = { role: 'assistant', text: msg.text };
+            return updated;
+          }
+          return [...prev, { role: 'assistant', text: msg.text }];
+        });
+        partialTextRef.current = '';
+        partialElIndexRef.current = null;
+        setLiveText(msg.text);
+      } else {
+        partialTextRef.current += msg.text;
+        const currentText = partialTextRef.current;
+        setTranscript(prev => {
+          if (partialElIndexRef.current !== null) {
+            const updated = [...prev];
+            updated[partialElIndexRef.current] = { role: 'assistant', text: currentText };
+            return updated;
+          }
+          partialElIndexRef.current = prev.length;
+          return [...prev, { role: 'assistant', text: currentText }];
+        });
+        setLiveText(currentText);
+      }
+    } else if (msg.role === 'user' && msg.is_final) {
+      setTranscript(prev => [...prev, { role: 'user', text: msg.text }]);
+    }
+  }, []);
+
+  // ── WebSocket message handling ─────────────────────────────
   const handleMessage = useCallback((event) => {
     try {
       const msg = JSON.parse(event.data);
-
-      // Session ready — AI-NLP acknowledged init
-      if (msg.type === 'ready') {
-        return;
-      }
-
-      if (msg.type === 'audio' && (msg.audio || msg.data)) {
-        audioQueueRef.current.push(msg.audio || msg.data);
-        playNextAudio();
-      }
-
-      if (msg.type === 'transcript' && msg.text) {
-        setTranscript(prev => {
-          // For partial transcripts, update the last message from same role
-          if (!msg.is_final && prev.length > 0 && prev[prev.length - 1].role === (msg.role || 'ai') && !prev[prev.length - 1].isFinal) {
-            const updated = [...prev];
-            updated[updated.length - 1] = {
-              ...updated[updated.length - 1],
-              text: updated[updated.length - 1].text + msg.text
-            };
-            return updated;
+      switch (msg.type) {
+        case 'ready':
+          setStatusText('AI is ready — speak naturally');
+          break;
+        case 'audio':
+          handleAudioChunk(msg.data || msg.audio || '');
+          break;
+        case 'speaking_started':
+          setIsSpeaking(true);
+          setStatusText('AI is speaking...');
+          break;
+        case 'speaking_stopped':
+          setIsSpeaking(false);
+          setStatusText('Listening...');
+          break;
+        case 'listening':
+          stopPlayback();
+          setIsSpeaking(false);
+          setStatusText('Listening to you...');
+          break;
+        case 'transcript':
+          handleTranscript(msg);
+          break;
+        case 'interview_complete':
+          setStatus('evaluating');
+          cleanup();
+          fetchEvaluation();
+          break;
+        case 'warning':
+          setWarningMsg(msg.message);
+          if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+          warningTimerRef.current = setTimeout(() => setWarningMsg(''), 8000);
+          break;
+        case 'error':
+          console.error('Server error:', msg.message);
+          if (!msg.recoverable) {
+            setStatus('error');
+            setErrorMsg(msg.message);
+            cleanup();
           }
-          return [...prev, {
-            role: msg.role === 'user' ? 'user' : 'ai',
-            text: msg.text,
-            isFinal: msg.is_final,
-            time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
-          }];
-        });
+          break;
+        default:
+          break;
       }
+    } catch { /* non-JSON, ignore */ }
+  }, [handleAudioChunk, handleTranscript, fetchEvaluation, cleanup, stopPlayback]);
 
-      if (msg.type === 'speaking_started') {
-        setIsAiSpeaking(true);
-      }
-      if (msg.type === 'speaking_stopped') {
-        setIsAiSpeaking(false);
-      }
-      if (msg.type === 'listening') {
-        setIsAiSpeaking(false);
-      }
-
-      if (msg.type === 'warning') {
-        setTranscript(prev => [...prev, {
-          role: 'system',
-          text: `⚠️ ${msg.message}`,
-          isFinal: true,
-          time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
-        }]);
-      }
-
-      if (msg.type === 'interview_complete') {
-        setStatus('evaluating');
-        stopMicrophone();
-        // Fetch evaluation from AI-NLP
-        fetchEvaluation();
-      }
-
-      if (msg.type === 'error') {
-        setErrorMsg(msg.message || 'Bir hata oluştu.');
-        if (!msg.recoverable) {
-          setStatus('error');
-        }
-      }
-    } catch { /* JSON değilse ses verisidir, ignore */ }
-  }, [playNextAudio, fetchEvaluation]);
-
-  // ── Mikrofon başlat ────────────────────────────────────────────────────────
-  const startMicrophone = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaStreamRef.current = stream;
-      const ctx = new AudioContext({ sampleRate: 24000 });
-      audioContextRef.current = ctx;
-      const source = ctx.createMediaStreamSource(stream);
-      const processor = ctx.createScriptProcessor(4096, 1, 1);
-
-      processor.onaudioprocess = (e) => {
-        if (wsRef.current?.readyState !== WebSocket.OPEN || isCandidateMuted) return;
-        const samples = e.inputBuffer.getChannelData(0);
-        const int16 = new Int16Array(samples.length);
-        for (let i = 0; i < samples.length; i++)
-          int16[i] = Math.max(-32768, Math.min(32767, samples[i] * 32768));
-        const b64 = btoa(String.fromCharCode(...new Uint8Array(int16.buffer)));
-        wsRef.current.send(JSON.stringify({ type: 'audio', audio: b64 }));
-      };
-
-      source.connect(processor);
-      processor.connect(ctx.destination);
-      processorRef.current = processor;
-    } catch (err) {
-      setErrorMsg('Mikrofon erişimi reddedildi: ' + err.message);
+  // ── Audio send helper ──────────────────────────────────────
+  const sendAudioChunkRef = useRef(null);
+  sendAudioChunkRef.current = (floatSamples) => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    if (ws.bufferedAmount > 256 * 1024) return;
+    const pcm16 = new Int16Array(floatSamples.length);
+    for (let i = 0; i < floatSamples.length; i++) {
+      const s = Math.max(-1, Math.min(1, floatSamples[i]));
+      pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
     }
-  }, [isCandidateMuted]);
-
-  const stopMicrophone = () => {
-    mediaStreamRef.current?.getTracks().forEach(t => t.stop());
-    processorRef.current?.disconnect();
+    const bytes = new Uint8Array(pcm16.buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const base64 = btoa(binary);
+    ws.send(JSON.stringify({ type: 'audio', data: base64 }));
   };
 
-  // ── Mülakati başlat ────────────────────────────────────────────────────────
+  // ── Audio capture ──────────────────────────────────────────
+  const startAudioCapture = useCallback(async () => {
+    const ctx = audioContextRef.current;
+    const stream = micStreamRef.current;
+    if (!ctx || !stream) return;
+    const source = ctx.createMediaStreamSource(stream);
+
+    try {
+      // AudioWorklet path
+      const workletCode = `
+        class PCMProcessor extends AudioWorkletProcessor {
+          constructor() { super(); this.buffer = []; }
+          process(inputs) {
+            const input = inputs[0];
+            if (input.length > 0) {
+              const samples = input[0];
+              for (let i = 0; i < samples.length; i++) this.buffer.push(samples[i]);
+              if (this.buffer.length >= 2400) {
+                this.port.postMessage(this.buffer.splice(0, 2400));
+              }
+            }
+            return true;
+          }
+        }
+        registerProcessor("pcm-processor", PCMProcessor);
+      `;
+      const blob = new Blob([workletCode], { type: 'application/javascript' });
+      const url = URL.createObjectURL(blob);
+      await ctx.audioWorklet.addModule(url);
+      URL.revokeObjectURL(url);
+
+      const worklet = new AudioWorkletNode(ctx, 'pcm-processor');
+      worklet.port.onmessage = (e) => sendAudioChunkRef.current(e.data);
+      source.connect(worklet);
+      const silentGain = ctx.createGain();
+      silentGain.gain.value = 0;
+      worklet.connect(silentGain);
+      silentGain.connect(ctx.destination);
+      workletNodeRef.current = worklet;
+    } catch {
+      // ScriptProcessor fallback
+      console.warn('AudioWorklet not available, using ScriptProcessor fallback');
+      const scriptNode = ctx.createScriptProcessor(4096, 1, 1);
+      let accum = [];
+      scriptNode.onaudioprocess = (e) => {
+        const input = e.inputBuffer.getChannelData(0);
+        for (let i = 0; i < input.length; i++) accum.push(input[i]);
+        if (accum.length >= 2400) {
+          sendAudioChunkRef.current(accum.splice(0, 2400));
+        }
+      };
+      source.connect(scriptNode);
+      const silentGain = ctx.createGain();
+      silentGain.gain.value = 0;
+      scriptNode.connect(silentGain);
+      silentGain.connect(ctx.destination);
+      scriptNodeRef.current = scriptNode;
+    }
+  }, []);
+
+  // ── Webcam ─────────────────────────────────────────────────
+  const startWebcam = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      webcamStreamRef.current = stream;
+      if (webcamRef.current) webcamRef.current.srcObject = stream;
+    } catch { console.warn('Webcam not available'); }
+  }, []);
+
+  // ── Timer ──────────────────────────────────────────────────
+  const startTimer = useCallback(() => {
+    startTimeRef.current = Date.now();
+    timerIntervalRef.current = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const mins = Math.floor(elapsed / 60);
+      const secs = elapsed % 60;
+      setTimer(`${mins}:${secs.toString().padStart(2, '0')}`);
+    }, 1000);
+  }, []);
+
+  // ── Start interview ────────────────────────────────────────
   const startInterview = useCallback(async () => {
     if (!sessionConfig) return;
     setStatus('connecting');
+    setStatusText('Connecting to AI interviewer...');
     setTranscript([]);
     setSummary(null);
     setErrorMsg('');
+    setLiveText('Waiting for AI interviewer...');
+    partialTextRef.current = '';
+    partialElIndexRef.current = null;
+
+    try {
+      micStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      setStatus('error');
+      setErrorMsg('Mikrofon erişimi reddedildi. Mülakat için mikrofon gereklidir.');
+      return;
+    }
+
+    startWebcam();
+    startTimer();
 
     const sid = sessionConfig.session_id;
     sessionIdRef.current = sid;
+
+    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)({
+      sampleRate: SAMPLE_RATE,
+    });
 
     const ws = new WebSocket(AI_NLP_WS_URL);
     wsRef.current = ws;
@@ -265,13 +441,14 @@ function VideoInterview() {
           department: jp.department || '',
           required_skills: jp.required_skills || '',
           required_qualifications: jp.required_qualifications || '',
-          responsibilities: jp.responsibilities || ''
+          responsibilities: jp.responsibilities || '',
         },
         candidate_name: sessionConfig.candidate_name,
-        cv_summary: sessionConfig.cv_summary || ''
+        cv_summary: sessionConfig.cv_summary || '',
       }));
       setStatus('active');
-      startMicrophone();
+      setStatusText('Initializing session...');
+      startAudioCapture();
     };
 
     ws.onmessage = handleMessage;
@@ -282,180 +459,227 @@ function VideoInterview() {
     };
 
     ws.onclose = () => {
-      if (status === 'active') setStatus('ended');
-      stopMicrophone();
+      if (statusRef.current === 'active' || statusRef.current === 'connecting') {
+        setStatus('error');
+        setStatusText('Connection lost');
+      }
     };
-  }, [sessionConfig, handleMessage, startMicrophone, status]);
+  }, [sessionConfig, handleMessage, startAudioCapture, startWebcam, startTimer]);
 
-  // ── Mülakatı bitir ─────────────────────────────────────────────────────────
-  const endInterview = () => {
+  // ── End interview ──────────────────────────────────────────
+  const endInterview = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: 'end_request' }));
-      wsRef.current.close();
     }
-    stopMicrophone();
     setStatus('evaluating');
-    // Fetch evaluation
+    setStatusText('Evaluating your interview...');
+    cleanup();
     fetchEvaluation();
-  };
+  }, [cleanup, fetchEvaluation]);
 
+  // Auto-scroll transcript
   useEffect(() => {
-    return () => { endInterview(); };
-  }, []); // eslint-disable-line
+    if (transcriptBodyRef.current) {
+      transcriptBodyRef.current.scrollTop = transcriptBodyRef.current.scrollHeight;
+    }
+  }, [transcript]);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-
-  // Invalid/expired token page
-  if (status === 'invalid') {
-    return (
-      <div className="vi-container">
-        <div className="vi-left" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <div className="vi-avatar">
-            <div className="vi-avatar-face">
-              <div className="vi-avatar-eyes"><span /><span /></div>
-              <div className="vi-avatar-mouth" />
-            </div>
-          </div>
-          <p className="vi-avatar-name">CVNokta AI Mülakat</p>
-          <p className="vi-error" style={{ marginTop: '1rem', fontSize: '1.1rem' }}>{errorMsg}</p>
-          <button className="vi-btn vi-btn-start" onClick={() => navigate('/')} style={{ marginTop: '1rem' }}>
-            🏠 Ana Sayfaya Dön
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Loading state
-  if (status === 'loading') {
-    return (
-      <div className="vi-container">
-        <div className="vi-left" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <p>⏳ Mülakat bilgileri doğrulanıyor...</p>
-        </div>
-      </div>
-    );
-  }
-
+  // ── Render ─────────────────────────────────────────────────
   const candidateName = sessionConfig?.candidate_name || 'Aday';
   const jobTitle = sessionConfig?.job_posting?.job_title || '';
 
-  return (
-    <div className="vi-container">
-      {/* Avatar panel */}
-      <div className="vi-left">
-        <div className={`vi-avatar ${isAiSpeaking ? 'speaking' : ''}`}>
-          <div className="vi-avatar-face">
-            <div className="vi-avatar-eyes">
-              <span /><span />
-            </div>
-            <div className={`vi-avatar-mouth ${isAiSpeaking ? 'talking' : ''}`} />
+  const statusDotClass =
+    status === 'active' ? (isSpeaking ? 'speaking' : 'listening') :
+    status === 'connecting' ? 'connecting' :
+    status === 'error' ? 'error' : '';
+
+  // Invalid token
+  if (status === 'invalid') {
+    return (
+      <div className="vi-screen vi-screen-active vi-center-screen">
+        <div className="vi-results-card">
+          <h2>Mülakat Erişim Hatası</h2>
+          <p style={{ color: '#ef4444', fontSize: '1.1rem', margin: '1.5rem 0' }}>{errorMsg}</p>
+          <button className="vi-btn-primary" onClick={() => navigate('/')}>🏠 Ana Sayfaya Dön</button>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading
+  if (status === 'loading') {
+    return (
+      <div className="vi-screen vi-screen-active vi-center-screen">
+        <div className="vi-results-card" style={{ textAlign: 'center' }}>
+          <div className="vi-spinner" />
+          <p style={{ marginTop: '1rem' }}>Mülakat bilgileri doğrulanıyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Results
+  if (status === 'ended' && summary) {
+    const overall = Math.round(summary.overall_interview_score || 0);
+    const scores = [
+      { key: 'average_confidence_score', label: 'Confidence' },
+      { key: 'job_match_score', label: 'Job Match' },
+      { key: 'experience_alignment_score', label: 'Experience' },
+      { key: 'communication_score', label: 'Communication' },
+      { key: 'technical_knowledge_score', label: 'Technical' },
+    ];
+    return (
+      <div className="vi-screen vi-screen-active vi-center-screen">
+        <div className="vi-results-card">
+          <h2>Interview Evaluation</h2>
+          <div className="vi-overall-score">
+            <div className="vi-score-value">{overall}</div>
+            <div className="vi-score-label-text">Overall Score / 100</div>
+            <span className={`vi-badge ${summary.is_passed ? 'pass' : 'fail'}`}>
+              {summary.is_passed ? 'PASSED' : 'NEEDS IMPROVEMENT'}
+            </span>
           </div>
-          {isAiSpeaking && <div className="vi-speaking-ring" />}
+          <div className="vi-score-grid">
+            {scores.map(s => (
+              <div key={s.key} className="vi-score-item">
+                <div className="val">{Math.round(summary[s.key] || 0)}</div>
+                <div className="lbl">{s.label}</div>
+              </div>
+            ))}
+          </div>
+          <div className="vi-summary-section">
+            <h3>Summary</h3>
+            <p>{summary.summary_text || '-'}</p>
+          </div>
+          <div className="vi-summary-section">
+            <h3>Strengths</h3>
+            <p>{Array.isArray(summary.strengths) ? summary.strengths.join(', ') : (summary.strengths || '-')}</p>
+          </div>
+          <div className="vi-summary-section">
+            <h3>Areas for Improvement</h3>
+            <p>{Array.isArray(summary.weaknesses) ? summary.weaknesses.join(', ') : (summary.weaknesses || '-')}</p>
+          </div>
+          <div className="vi-summary-section">
+            <h3>Recommendations</h3>
+            <p>{Array.isArray(summary.recommendations) ? summary.recommendations.join(', ') : (summary.recommendations || '-')}</p>
+          </div>
+          <p className="vi-result-stats">
+            Questions: {summary.total_questions_asked || 0} asked, {summary.total_questions_answered || 0} answered
+          </p>
+          <button className="vi-btn-primary" onClick={() => navigate('/profile/applications')}>🔙 Başvurularıma Dön</button>
         </div>
-        <p className="vi-avatar-name">hr.ai Mülakat</p>
-        {jobTitle && <p style={{ color: '#888', fontSize: '0.9rem', margin: '0.25rem 0' }}>{jobTitle}</p>}
-        <p className="vi-avatar-status">
-          {status === 'connecting' && '🔄 Bağlanıyor...'}
-          {status === 'active'     && (isAiSpeaking ? '🔊 Konuşuyor...' : '👂 Dinliyor...')}
-          {status === 'evaluating' && '⏳ Mülakatınız değerlendiriliyor...'}
-          {status === 'ended'      && '✅ Mülakat tamamlandı'}
-          {status === 'error'      && '❌ Bağlantı hatası'}
-          {status === 'idle'       && `Merhaba ${candidateName}, başlamak için hazır`}
-        </p>
+      </div>
+    );
+  }
 
-        {/* Kontroller */}
-        <div className="vi-controls">
-          {(status === 'idle' || status === 'error') ? (
-            <button className="vi-btn vi-btn-start" onClick={startInterview}>
-              🎯 Mülakatı Başlat
-            </button>
-          ) : status === 'active' || status === 'connecting' ? (
-            <>
-              <button
-                className={`vi-btn vi-btn-mute ${isCandidateMuted ? 'muted' : ''}`}
-                onClick={() => setIsCandidateMuted(v => !v)}
-              >
-                {isCandidateMuted ? '🔇 Mikrofon Kapalı' : '🎤 Mikrofon Açık'}
-              </button>
-              <button className="vi-btn vi-btn-end" onClick={endInterview}>
-                ⏹ Mülakatı Bitir
-              </button>
-            </>
-          ) : status === 'ended' ? (
-            <button className="vi-btn vi-btn-start" onClick={() => navigate('/profile/applications')}>
-              🔙 Başvurularıma Dön
-            </button>
-          ) : null}
+  // Evaluating
+  if (status === 'evaluating') {
+    return (
+      <div className="vi-screen vi-screen-active vi-center-screen">
+        <div className="vi-results-card" style={{ textAlign: 'center' }}>
+          <div className="vi-spinner" />
+          <h3 style={{ marginTop: '1rem', color: '#a78bfa' }}>Mülakatınız Değerlendiriliyor</h3>
+          <p style={{ color: '#8888aa', marginTop: '0.5rem' }}>
+            Lütfen bekleyin, AI mülakat sonuçlarınızı analiz ediyor...
+          </p>
         </div>
+      </div>
+    );
+  }
 
-        {errorMsg && <p className="vi-error">{errorMsg}</p>}
+  // Interview screen (idle / connecting / active / error)
+  return (
+    <div className="vi-screen vi-screen-active vi-interview-screen">
+      {warningMsg && <div className="vi-warning-banner">{warningMsg}</div>}
+
+      <div className="vi-header">
+        <div className="vi-header-left">
+          <span className="vi-logo">CVnokta AI Interview</span>
+          <div className="vi-status-indicator">
+            <span className={`vi-dot ${statusDotClass}`} />
+            <span>{statusText || (status === 'idle' ? `Merhaba ${candidateName}, başlamak için hazır` : '')}</span>
+          </div>
+        </div>
+        <div className="vi-header-right">
+          <span className="vi-timer">{timer}</span>
+          {(status === 'active' || status === 'connecting') && (
+            <button className="vi-btn-end" onClick={endInterview}>End Interview</button>
+          )}
+        </div>
       </div>
 
-      {/* Transcript + Özet panel */}
-      <div className="vi-right">
-        <h3 className="vi-transcript-title">Konuşma</h3>
-        <div className="vi-transcript">
-          {transcript.length === 0 && status === 'idle' && (
-            <p className="vi-placeholder">Mülakat başladığında konuşma burada görünecek.</p>
+      <div className="vi-main">
+        <div className={`vi-avatar-container ${isSpeaking ? 'speaking' : ''}`}>
+          <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="120" cy="120" r="118" fill="#1e1e32" stroke="#2d2d4a" strokeWidth="2"/>
+            <ellipse cx="120" cy="105" rx="72" ry="80" fill="#2c1810"/>
+            <rect x="105" y="165" width="30" height="20" rx="5" fill="#f0c8a0"/>
+            <ellipse cx="120" cy="210" rx="70" ry="35" fill="#764ba2"/>
+            <path d="M100 188 L120 198 L140 188" stroke="#fff" strokeWidth="2" fill="none"/>
+            <ellipse cx="120" cy="115" rx="55" ry="62" fill="#f0c8a0"/>
+            <path d="M65 100 Q65 55 120 48 Q175 55 175 100 Q170 70 120 65 Q70 70 65 100Z" fill="#2c1810"/>
+            <ellipse cx="68" cy="115" rx="12" ry="35" fill="#2c1810"/>
+            <ellipse cx="172" cy="115" rx="12" ry="35" fill="#2c1810"/>
+            <path d="M90 95 Q100 89 112 93" stroke="#3d2b1f" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+            <path d="M128 93 Q140 89 150 95" stroke="#3d2b1f" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+            <ellipse cx="100" cy="108" rx="10" ry="7" fill="#fff"/>
+            <ellipse cx="140" cy="108" rx="10" ry="7" fill="#fff"/>
+            <circle cx="102" cy="108" r="4.5" fill="#4a3728"/>
+            <circle cx="142" cy="108" r="4.5" fill="#4a3728"/>
+            <circle cx="102" cy="108" r="2" fill="#1a0f0a"/>
+            <circle cx="142" cy="108" r="2" fill="#1a0f0a"/>
+            <circle cx="104" cy="106" r="1.5" fill="#fff" opacity="0.8"/>
+            <circle cx="144" cy="106" r="1.5" fill="#fff" opacity="0.8"/>
+            <path d="M90 103 Q100 99 110 103" stroke="#2c1810" strokeWidth="1.5" fill="none"/>
+            <path d="M130 103 Q140 99 150 103" stroke="#2c1810" strokeWidth="1.5" fill="none"/>
+            <path d="M118 118 Q120 126 122 118" stroke="#d4a574" strokeWidth="1.5" fill="none"/>
+            <ellipse cx="88" cy="125" rx="10" ry="5" fill="#ffb4b4" opacity="0.3"/>
+            <ellipse cx="152" cy="125" rx="10" ry="5" fill="#ffb4b4" opacity="0.3"/>
+            <g transform="translate(120, 140)">
+              <ellipse cx="0" cy="0" rx="14" ry="5" fill="#d4756b"/>
+              <ellipse className="vi-mouth-inner" cx="0" cy="1" rx="8" ry="2" fill="#8b3a3a"/>
+            </g>
+            <circle cx="68" cy="130" r="3" fill="#a78bfa" opacity="0.7"/>
+            <circle cx="172" cy="130" r="3" fill="#a78bfa" opacity="0.7"/>
+          </svg>
+          <div className="vi-avatar-label">AI İşe Alım Uzmanı</div>
+          {jobTitle && <div className="vi-avatar-job">{jobTitle}</div>}
+        </div>
+
+        <div className="vi-question-bubble">
+          <div className="vi-question-label">Live Transcript</div>
+          <div className="vi-question-text">{liveText}</div>
+        </div>
+
+        <div className="vi-controls">
+          {status === 'idle' && (
+            <button className="vi-btn-primary" onClick={startInterview}>🎯 Mülakatı Başlat</button>
           )}
+          {status === 'error' && (
+            <>
+              <p className="vi-error-text">{errorMsg}</p>
+              <button className="vi-btn-primary" onClick={() => navigate('/profile/applications')}>🔙 Başvurularıma Dön</button>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="vi-transcript-panel">
+        <div className="vi-transcript-header">Conversation</div>
+        <div className="vi-transcript-body" ref={transcriptBodyRef}>
           {transcript.map((t, i) => (
-            <div key={i} className={`vi-message vi-message-${t.role}`}>
-              <span className="vi-message-role">{t.role === 'ai' ? '🤖 AI' : t.role === 'system' ? '⚠️' : '👤 Sen'}</span>
-              <span className="vi-message-time">{t.time}</span>
-              <p className="vi-message-text">{t.text}</p>
+            <div key={i} className={`vi-transcript-entry ${t.role === 'assistant' ? 'assistant' : 'user'}`}>
+              <div className="vi-transcript-role">{t.role === 'assistant' ? 'AI' : 'You'}</div>
+              <div className="vi-transcript-text">{t.text}</div>
             </div>
           ))}
         </div>
-
-        {/* Özet ve Değerlendirme Ekranı */}
-        {status === 'evaluating' && (
-          <div className="vi-evaluating">
-            <div className="vi-spinner"></div>
-            <h3>Mülakatınız Değerlendiriliyor</h3>
-            <p>Lütfen bekleyin, AI mülakat sonuçlarınızı ve yetkinliklerinizi analiz ediyor...</p>
-          </div>
-        )}
-
-        {summary && status === 'ended' && (
-          <div className="vi-summary">
-            <h3>📊 Mülakat Özeti</h3>
-            <div className="vi-scores">
-              <ScoreItem label="Genel Skor"     value={summary.overall_interview_score} />
-              <ScoreItem label="İletişim"       value={summary.communication_score} />
-              <ScoreItem label="Teknik"         value={summary.technical_knowledge_score} />
-              <ScoreItem label="İş Uyumu"       value={summary.job_match_score} />
-            </div>
-            {summary.summary_text && <p className="vi-summary-text">{summary.summary_text}</p>}
-            {summary.strengths?.length > 0 && (
-              <div><strong>✅ Güçlü Yönler:</strong>
-                <ul>{summary.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul>
-              </div>
-            )}
-            {summary.weaknesses?.length > 0 && (
-              <div><strong>⚠️ Gelişim Alanları:</strong>
-                <ul>{summary.weaknesses.map((w, i) => <li key={i}>{w}</li>)}</ul>
-              </div>
-            )}
-            <p className={`vi-result ${summary.is_passed ? 'passed' : 'failed'}`}>
-              {summary.is_passed ? '✅ Mülakat Başarılı' : '❌ Mülakat Başarısız'}
-            </p>
-          </div>
-        )}
       </div>
-    </div>
-  );
-}
 
-function ScoreItem({ label, value }) {
-  const pct = Math.round((value || 0) * 100) / 100;
-  return (
-    <div className="vi-score-item">
-      <span className="vi-score-label">{label}</span>
-      <div className="vi-score-bar">
-        <div className="vi-score-fill" style={{ width: `${Math.min(pct, 100)}%` }} />
+      <div className="vi-webcam-container">
+        <video ref={webcamRef} autoPlay muted playsInline />
+        <div className="vi-webcam-label">You</div>
       </div>
-      <span className="vi-score-val">{pct.toFixed(0)}</span>
     </div>
   );
 }

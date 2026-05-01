@@ -83,7 +83,7 @@ async def start_interview_with_token(payload: dict):
     """
     from app.services.backend_client import (
         validate_interview_token,
-        fetch_cv_summary,
+        download_cv_pdf,
     )
 
     token = payload.get("token", "").strip()
@@ -110,43 +110,60 @@ async def start_interview_with_token(payload: dict):
     candidate_name = token_data.get("candidateName", "Candidate")
     job_title = token_data.get("jobTitle", "")
     required_skills = token_data.get("requiredSkills", "")
+    cv_url = token_data.get("cvUrl", "")
 
-    # Fetch CV summary from Backend
+    # Download and parse the actual CV PDF
     cv_summary = ""
-    cv_data = await fetch_cv_summary(application_id)
-    if cv_data:
-        parts = []
-        if cv_data.get("candidateName"):
-            parts.append(f"Name: {cv_data['candidateName']}")
-        if cv_data.get("summary"):
-            parts.append(f"Summary: {cv_data['summary']}")
-        if cv_data.get("skills"):
-            skills = cv_data["skills"]
-            if isinstance(skills, list):
-                parts.append(f"Skills: {', '.join(skills[:20])}")
-            elif isinstance(skills, str):
-                parts.append(f"Skills: {skills}")
-        if cv_data.get("experience"):
-            exp_items = []
-            for exp in cv_data["experience"][:5]:
-                if isinstance(exp, dict):
-                    title = exp.get("title", "")
-                    company = exp.get("company", "")
-                    if title or company:
-                        exp_items.append(f"{title} at {company}".strip())
-            if exp_items:
-                parts.append(f"Experience: {'; '.join(exp_items)}")
-        if cv_data.get("education"):
-            edu_items = []
-            for edu in cv_data["education"][:3]:
-                if isinstance(edu, dict):
-                    degree = edu.get("degree", "")
-                    institution = edu.get("institution", "")
-                    if degree or institution:
-                        edu_items.append(f"{degree} - {institution}".strip(" -"))
-            if edu_items:
-                parts.append(f"Education: {'; '.join(edu_items)}")
-        cv_summary = "\n".join(parts)
+    if cv_url:
+        pdf_bytes = await download_cv_pdf(cv_url)
+        if pdf_bytes:
+            import tempfile
+            from app.core.cv_parser import parse_cv_from_pdf
+
+            try:
+                with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                    tmp.write(pdf_bytes)
+                    tmp_path = tmp.name
+                parsed = parse_cv_from_pdf(tmp_path)
+                parts = []
+                if parsed.full_name:
+                    parts.append(f"Name: {parsed.full_name}")
+                if parsed.summary:
+                    parts.append(f"Summary: {parsed.summary}")
+                if parsed.skills:
+                    parts.append(f"Skills: {', '.join(parsed.skills[:20])}")
+                if parsed.experience:
+                    exp_items = []
+                    for exp in parsed.experience[:5]:
+                        title = getattr(exp, "title", "") or ""
+                        company = getattr(exp, "company", "") or ""
+                        if title or company:
+                            exp_items.append(f"{title} at {company}".strip())
+                    if exp_items:
+                        parts.append(f"Experience: {'; '.join(exp_items)}")
+                if parsed.education:
+                    edu_items = []
+                    for edu in parsed.education[:3]:
+                        degree = getattr(edu, "degree", "") or ""
+                        institution = getattr(edu, "institution", "") or ""
+                        if degree or institution:
+                            edu_items.append(f"{degree} - {institution}".strip(" -"))
+                    if edu_items:
+                        parts.append(f"Education: {'; '.join(edu_items)}")
+                if parsed.languages:
+                    parts.append(f"Languages: {', '.join(parsed.languages[:10])}")
+                if parsed.certifications:
+                    parts.append(f"Certifications: {', '.join(parsed.certifications[:10])}")
+                cv_summary = "\n".join(parts)
+                logger.info("CV parsed successfully for %s: %d chars", candidate_name, len(cv_summary))
+            except Exception as exc:
+                logger.warning("CV parsing failed: %s", exc)
+            finally:
+                import os
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
 
     if not cv_summary:
         cv_summary = f"Candidate: {candidate_name}. Position: {job_title}."
@@ -313,7 +330,7 @@ async def realtime_interview_ws(websocket: WebSocket):
                     msg_type = msg.get("type", "")
 
                     if msg_type == "audio":
-                        await _engine.relay_client_audio(session_id, msg.get("data", ""))
+                        await _engine.relay_client_audio(session_id, msg.get("audio") or msg.get("data", ""))
 
                     elif msg_type == "end_request":
                         session = _engine.get_session(session_id)
