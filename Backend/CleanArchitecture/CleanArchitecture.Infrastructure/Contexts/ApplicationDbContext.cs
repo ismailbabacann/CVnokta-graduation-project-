@@ -58,6 +58,9 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<CandidateRankingView> CandidateRankingViews { get; set; }
         public DbSet<ActiveJobPostingsView> ActiveJobPostingsViews { get; set; }
 
+        // Feedback
+        public DbSet<StageFeedback> StageFeedbacks { get; set; }
+
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
             foreach (var entry in ChangeTracker.Entries<AuditableBaseEntity>())
@@ -691,6 +694,25 @@ namespace CleanArchitecture.Infrastructure.Contexts
                     .OnDelete(DeleteBehavior.NoAction); 
                 entity.HasIndex(a => a.ApplicationId).HasDatabaseName("idx_application_id");
                 entity.HasIndex(a => a.OverallInterviewScore).HasDatabaseName("idx_overall_interview_score");
+            });
+
+            // StageFeedback Configuration
+            builder.Entity<StageFeedback>(entity =>
+            {
+                entity.HasKey(sf => sf.Id);
+                entity.Property(sf => sf.StageType).IsRequired().HasMaxLength(30);
+                entity.Property(sf => sf.HrStrengths).HasColumnType("nvarchar(max)");
+                entity.Property(sf => sf.HrWeaknesses).HasColumnType("nvarchar(max)");
+                entity.Property(sf => sf.HrOverall).HasColumnType("nvarchar(max)");
+                entity.Property(sf => sf.CandidateStrengths).HasColumnType("nvarchar(max)");
+                entity.Property(sf => sf.CandidateWeaknesses).HasColumnType("nvarchar(max)");
+                entity.Property(sf => sf.CandidateOverall).HasColumnType("nvarchar(max)");
+                entity.HasOne(sf => sf.JobApplication)
+                    .WithMany()
+                    .HasForeignKey(sf => sf.ApplicationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(sf => sf.ApplicationId);
+                entity.HasIndex(sf => new { sf.ApplicationId, sf.StageType }).IsUnique();
             });
         }
     }

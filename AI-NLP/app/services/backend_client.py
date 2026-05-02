@@ -213,3 +213,36 @@ async def download_cv_pdf(cv_url: str) -> Optional[bytes]:
     except Exception as exc:
         logger.error("CV download error: %s", exc)
         return None
+
+
+# ── Feedback Push ───────────────────────────────────────────────
+
+
+async def push_feedback(
+    application_id: str,
+    feedback: Any,
+) -> bool:
+    """
+    Push dual-perspective feedback (HR + Candidate) to Backend.
+
+    Accepts a StageFeedback model and converts to camelCase JSON.
+    Backend endpoint: POST v1/Feedback/save
+    """
+    from app.models.feedback import StageFeedback
+
+    if not isinstance(feedback, StageFeedback):
+        logger.error("push_feedback called with non-StageFeedback object")
+        return False
+
+    payload = {
+        "applicationId": application_id,
+        "stageType": feedback.stage.value,
+        "hrStrengths": feedback.hr_feedback.strengths,
+        "hrWeaknesses": feedback.hr_feedback.weaknesses,
+        "hrOverall": feedback.hr_feedback.overall,
+        "candidateStrengths": feedback.candidate_feedback.strengths,
+        "candidateWeaknesses": feedback.candidate_feedback.weaknesses,
+        "candidateOverall": feedback.candidate_feedback.overall,
+    }
+
+    return await _post("v1/Feedback/save", payload)

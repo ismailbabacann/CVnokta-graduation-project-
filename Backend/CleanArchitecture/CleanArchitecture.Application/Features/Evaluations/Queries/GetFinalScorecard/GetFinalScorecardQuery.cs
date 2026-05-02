@@ -1,10 +1,12 @@
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Settings;
+using CleanArchitecture.Core.Features.Feedback.Queries.GetFeedback;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,6 +22,7 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetFinalScorecard
         public decimal? EnglishTestScore { get; set; }
         public AiInterviewSummaryDto AiInterviewSummary { get; set; }
         public FinalScoreDto FinalEvaluationScore { get; set; }
+        public List<StageFeedbackDto> StageFeedbacks { get; set; }
     }
 
     public class CvAnalysisDto
@@ -74,6 +77,7 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetFinalScorecard
         private readonly IGenericRepositoryAsync<JobApplication> _applicationRepository;
         private readonly IGenericRepositoryAsync<AiInterviewSummary> _interviewRepository;
         private readonly IGenericRepositoryAsync<FinalEvaluationScore> _finalRepository;
+        private readonly IGenericRepositoryAsync<StageFeedback> _feedbackRepository;
 
         public GetFinalScorecardQueryHandler(
             IGenericRepositoryAsync<CvAnalysisResult> cvRepository,
@@ -82,7 +86,8 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetFinalScorecard
             IGenericRepositoryAsync<Question> questionRepository,
             IGenericRepositoryAsync<JobApplication> applicationRepository,
             IGenericRepositoryAsync<AiInterviewSummary> interviewRepository,
-            IGenericRepositoryAsync<FinalEvaluationScore> finalRepository)
+            IGenericRepositoryAsync<FinalEvaluationScore> finalRepository,
+            IGenericRepositoryAsync<StageFeedback> feedbackRepository)
         {
             _cvRepository = cvRepository;
             _assignmentRepository = assignmentRepository;
@@ -91,6 +96,7 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetFinalScorecard
             _applicationRepository = applicationRepository;
             _interviewRepository = interviewRepository;
             _finalRepository = finalRepository;
+            _feedbackRepository = feedbackRepository;
         }
 
         public async Task<ScorecardResponse> Handle(GetFinalScorecardQuery request, CancellationToken cancellationToken)
@@ -211,6 +217,30 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetFinalScorecard
                 };
             }
 
+            // Stage Feedbacks
+            var allFeedbacks = await _feedbackRepository.GetAllAsync();
+            var feedbacks = allFeedbacks
+                .Where(f => f.ApplicationId == request.ApplicationId)
+                .OrderBy(f => GetStageOrder(f.StageType))
+                .ToList();
+
+            response.StageFeedbacks = feedbacks.Select(f => new StageFeedbackDto
+            {
+                StageType = f.StageType,
+                HrFeedback = new FeedbackContentDto
+                {
+                    Strengths = DeserializeList(f.HrStrengths),
+                    Weaknesses = DeserializeList(f.HrWeaknesses),
+                    Overall = f.HrOverall ?? ""
+                },
+                CandidateFeedback = new FeedbackContentDto
+                {
+                    Strengths = DeserializeList(f.CandidateStrengths),
+                    Weaknesses = DeserializeList(f.CandidateWeaknesses),
+                    Overall = f.CandidateOverall ?? ""
+                }
+            }).ToList();
+
             return response;
         }
 
@@ -221,6 +251,32 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetFinalScorecard
                       .Select(s => s.Trim())
                       .Where(s => s.Length > 0)
                       .ToList();
+        }
+
+        private static List<string> DeserializeList(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return new List<string>();
+            try
+            {
+                return JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
+            }
+            catch
+            {
+                return new List<string> { json };
+            }
+        }
+
+        private static int GetStageOrder(string stageType)
+        {
+            return stageType switch
+            {
+                "CV_ANALYSIS" => 1,
+                "ENGLISH_TEST" => 2,
+                "SKILLS_TEST" => 3,
+                "AI_INTERVIEW" => 4,
+                "FINAL_SUMMARY" => 5,
+                _ => 99
+            };
         }
     }
 }

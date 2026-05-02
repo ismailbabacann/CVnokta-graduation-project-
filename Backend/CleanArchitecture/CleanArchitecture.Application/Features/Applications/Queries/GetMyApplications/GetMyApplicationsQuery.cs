@@ -1,9 +1,11 @@
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Features.Feedback.Queries.GetFeedback;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,6 +41,9 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
         public string AiInterviewStrengths   { get; set; }
         public string AiInterviewWeaknesses  { get; set; }
         public string AiInterviewSummary     { get; set; }
+
+        // ── Per-stage candidate feedback (dual-perspective, candidate side only) ──
+        public List<StageFeedbackDto> CandidateFeedbacks { get; set; }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -64,19 +69,22 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
         private readonly IGenericRepositoryAsync<CandidateProfile>         _candidateRepo;
         private readonly IGenericRepositoryAsync<CandidateExamAssignment>  _assignmentRepo;
         private readonly IGenericRepositoryAsync<AiInterviewSummary>       _interviewSummaryRepo;
+        private readonly IGenericRepositoryAsync<StageFeedback>            _feedbackRepo;
 
         public GetMyApplicationsQueryHandler(
             IGenericRepositoryAsync<JobApplication>           applicationRepo,
             IGenericRepositoryAsync<JobPosting>       jobPostingRepo,
             IGenericRepositoryAsync<CandidateProfile> candidateRepo,
             IGenericRepositoryAsync<CandidateExamAssignment>  assignmentRepo,
-            IGenericRepositoryAsync<AiInterviewSummary>       interviewSummaryRepo)
+            IGenericRepositoryAsync<AiInterviewSummary>       interviewSummaryRepo,
+            IGenericRepositoryAsync<StageFeedback>            feedbackRepo)
         {
             _applicationRepo = applicationRepo;
             _jobPostingRepo  = jobPostingRepo;
             _candidateRepo   = candidateRepo;
             _assignmentRepo  = assignmentRepo;
             _interviewSummaryRepo = interviewSummaryRepo;
+            _feedbackRepo = feedbackRepo;
         }
 
         public async Task<IEnumerable<MyApplicationDto>> Handle(
@@ -91,6 +99,7 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
 
             var allAssignments = await _assignmentRepo.GetAllAsync();
             var allInterviewSummaries = await _interviewSummaryRepo.GetAllAsync();
+            var allFeedbacks = await _feedbackRepo.GetAllAsync();
 
             var result = myApps
                 .Where(a => a.CandidateId == actualCandidateId)
@@ -119,6 +128,30 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
                     // Only show feedback for completed or rejected stages
                     bool showFeedback = a.CurrentPipelineStage == "COMPLETED" || (a.CurrentPipelineStage?.StartsWith("REJECTED_") ?? false);
 
+                    // Per-stage candidate feedback
+                    List<StageFeedbackDto> candidateFeedbacks = null;
+                    if (showFeedback)
+                    {
+                        var feedbacks = allFeedbacks
+                            .Where(f => f.ApplicationId == a.Id)
+                            .OrderBy(f => GetStageOrder(f.StageType))
+                            .ToList();
+
+                        if (feedbacks.Any())
+                        {
+                            candidateFeedbacks = feedbacks.Select(f => new StageFeedbackDto
+                            {
+                                StageType = f.StageType,
+                                CandidateFeedback = new FeedbackContentDto
+                                {
+                                    Strengths = DeserializeList(f.CandidateStrengths),
+                                    Weaknesses = DeserializeList(f.CandidateWeaknesses),
+                                    Overall = f.CandidateOverall ?? ""
+                                }
+                            }).ToList();
+                        }
+                    }
+
                     return new MyApplicationDto
                     {
                         ApplicationId        = a.Id,
@@ -136,11 +169,38 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
                         AiInterviewStrengths = showFeedback ? interviewSummary?.Strengths : null,
                         AiInterviewWeaknesses= showFeedback ? interviewSummary?.Weaknesses : null,
                         AiInterviewSummary   = showFeedback ? interviewSummary?.SummaryText : null,
+                        CandidateFeedbacks   = candidateFeedbacks,
                     };
                 })
                 .ToList();
 
             return result;
+        }
+
+        private static List<string> DeserializeList(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return new List<string>();
+            try
+            {
+                return JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
+            }
+            catch
+            {
+                return new List<string> { json };
+            }
+        }
+
+        private static int GetStageOrder(string stageType)
+        {
+            return stageType switch
+            {
+                "CV_ANALYSIS" => 1,
+                "ENGLISH_TEST" => 2,
+                "SKILLS_TEST" => 3,
+                "AI_INTERVIEW" => 4,
+                "FINAL_SUMMARY" => 5,
+                _ => 99
+            };
         }
     }
 }

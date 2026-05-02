@@ -502,6 +502,48 @@ async def end_realtime_interview(session_id: str):
         for qa in qa_list
     ] if qa_list else []
 
+    # Generate dual-perspective feedback (HR + Candidate)
+    try:
+        from app.core.feedback_engine import generate_interview_feedback
+        from app.services.backend_client import push_feedback
+
+        jp = session.job_posting or {}
+        dual_feedback = await generate_interview_feedback(
+            job_title=jp.get("job_title", "N/A"),
+            required_skills=jp.get("required_skills", "N/A"),
+            overall_interview_score=summary.overall_interview_score or 0.0,
+            communication_score=summary.communication_score or 0.0,
+            technical_knowledge_score=summary.technical_knowledge_score or 0.0,
+            job_match_score=summary.job_match_score or 0.0,
+            experience_alignment_score=summary.experience_alignment_score or 0.0,
+            average_confidence_score=summary.average_confidence_score or 0.0,
+            summary_text=summary.summary_text or "",
+            strengths=summary.strengths or "",
+            weaknesses=summary.weaknesses or "",
+        )
+
+        response["dualFeedback"] = {
+            "stage": dual_feedback.stage.value,
+            "hrFeedback": {
+                "strengths": dual_feedback.hr_feedback.strengths,
+                "weaknesses": dual_feedback.hr_feedback.weaknesses,
+                "overall": dual_feedback.hr_feedback.overall,
+            },
+            "candidateFeedback": {
+                "strengths": dual_feedback.candidate_feedback.strengths,
+                "weaknesses": dual_feedback.candidate_feedback.weaknesses,
+                "overall": dual_feedback.candidate_feedback.overall,
+            },
+        }
+
+        # Push feedback to backend
+        await push_feedback(
+            application_id=str(summary.application_id),
+            feedback=dual_feedback,
+        )
+    except Exception as exc:
+        logger.warning("Dual interview feedback generation failed: %s", exc)
+
     return response
 
 

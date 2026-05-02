@@ -243,6 +243,9 @@ class AnalyzeTestRequest(BaseModel):
 async def analyze_test_results(request: AnalyzeTestRequest):
     """
     Generate professional AI feedback for a candidate based on their exam performance.
+
+    Returns both the original single-perspective feedback (backward compatible)
+    AND dual-perspective feedback (hrFeedback + candidateFeedback).
     """
     settings = get_settings()
     logger.info("OpenAI Key present: %s", bool(settings.openai_api_key))
@@ -258,6 +261,7 @@ async def analyze_test_results(request: AnalyzeTestRequest):
         breakdown += f"   - Doğru Cevap: {res.correctAnswer}\n"
         breakdown += f"   - Durum: {status}\n\n"
 
+    # Original single-perspective feedback (backward compatibility)
     user_prompt = TEST_EVALUATION_USER_PROMPT_TEMPLATE.format(
         job_title=request.jobTitle,
         total_questions=request.totalQuestions,
@@ -268,13 +272,57 @@ async def analyze_test_results(request: AnalyzeTestRequest):
     )
 
     service = OpenAIService()
+    original_result = {}
     try:
-        result = await service.generate_json(TEST_EVALUATION_SYSTEM_PROMPT, user_prompt)
-        return result
+        original_result = await service.generate_json(TEST_EVALUATION_SYSTEM_PROMPT, user_prompt)
     except Exception as exc:
         logger.error("Test evaluation failed: %s", exc)
-        return {
+        original_result = {
             "feedback": "Sınav sonucunuz sistem tarafından değerlendirildi. Detaylar için IK ekibiyle iletişime geçebilirsiniz.",
             "strengths": [],
             "weaknesses": [],
         }
+
+    # Dual-perspective feedback (new)
+    try:
+        from app.core.feedback_engine import generate_test_feedback
+
+        test_type = "english" if any(
+            kw in request.jobTitle.lower()
+            for kw in ["english", "ingilizce", "i̇ngilizce"]
+        ) else "technical"
+
+        dual_feedback = await generate_test_feedback(
+            test_type=test_type,
+            job_title=request.jobTitle,
+            total_questions=request.totalQuestions,
+            correct_answers=request.correctAnswers,
+            score=request.score,
+            passed=request.passed,
+            question_breakdown=breakdown,
+        )
+
+        original_result["dualFeedback"] = {
+            "stage": dual_feedback.stage.value,
+            "hrFeedback": {
+                "strengths": dual_feedback.hr_feedback.strengths,
+                "weaknesses": dual_feedback.hr_feedback.weaknesses,
+                "overall": dual_feedback.hr_feedback.overall,
+            },
+            "candidateFeedback": {
+                "strengths": dual_feedback.candidate_feedback.strengths,
+                "weaknesses": dual_feedback.candidate_feedback.weaknesses,
+                "overall": dual_feedback.candidate_feedback.overall,
+            },
+        }
+
+        # Also push feedback to backend
+        from app.services.backend_client import push_feedback
+        await push_feedback(
+            application_id=request.applicationId,
+            feedback=dual_feedback,
+        )
+    except Exception as exc:
+        logger.error("Dual test feedback generation failed: %s", exc)
+
+    return original_result
