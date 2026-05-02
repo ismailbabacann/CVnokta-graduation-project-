@@ -25,7 +25,7 @@ from app.core.cv_scorer import LLMUnavailableError, score_cv
 from app.models.cv import CVAnalysisRequest, CVAnalysisResult, ParsedCV
 from app.models.errors import ErrorCode
 from app.models.job_posting import JobPostingInput
-from app.services.backend_client import push_cv_analysis_score, push_statistics_from_cv
+from app.services.backend_client import push_cv_analysis_score, push_feedback, push_statistics_from_cv
 from app.utils.pdf_extractor import (
     PDFCorruptedError,
     PDFEncryptedError,
@@ -39,8 +39,8 @@ router = APIRouter(prefix="/cv", tags=["CV Analysis"])
 _ALLOWED_PDF_MIME_TYPES = {"application/pdf", "application/octet-stream"}
 
 
-async def _push_result_to_backend(result: CVAnalysisResult) -> None:
-    """Fire-and-forget: push CV analysis result + stats to backend."""
+async def _push_result_to_backend(result: CVAnalysisResult, job_posting: JobPostingInput | None = None) -> None:
+    """Fire-and-forget: push CV analysis result + stats + feedback to backend."""
     try:
         await push_cv_analysis_score(
             application_id=str(result.application_id),
@@ -53,6 +53,29 @@ async def _push_result_to_backend(result: CVAnalysisResult) -> None:
         )
     except Exception as exc:
         logger.error("Failed to push CV score to backend: %s", exc)
+
+    # Generate and push dual-perspective feedback
+    try:
+        from app.core.feedback_engine import generate_cv_feedback
+
+        feedback = await generate_cv_feedback(
+            job_title=job_posting.job_title if job_posting else "N/A",
+            department=job_posting.department if job_posting else "N/A",
+            required_qualifications=job_posting.required_qualifications if job_posting else "N/A",
+            required_skills=job_posting.required_skills if job_posting else "N/A",
+            analysis_score=result.analysis_score or 0.0,
+            experience_match_score=result.experience_match_score or 0.0,
+            education_match_score=result.education_match_score or 0.0,
+            matching_skills=result.matching_skills or "",
+            missing_skills=result.missing_skills or "",
+            overall_assessment=result.overall_assessment or "",
+        )
+        await push_feedback(
+            application_id=str(result.application_id),
+            feedback=feedback,
+        )
+    except Exception as exc:
+        logger.error("Failed to generate/push CV feedback: %s", exc)
 
     try:
         parsed = result.parsed_cv
@@ -252,7 +275,7 @@ async def analyze_cv(request: CVAnalysisRequest):
             openai_service=get_openai_service(),
             embedding_service=get_embedding_service(),
         )
-        await _push_result_to_backend(result)
+        await _push_result_to_backend(result, job_posting=request.job_posting)
         return result
     except HTTPException:
         raise
@@ -363,7 +386,7 @@ async def analyze_cv_upload(
             openai_service=get_openai_service(),
             embedding_service=get_embedding_service(),
         )
-        await _push_result_to_backend(result)
+        await _push_result_to_backend(result, job_posting=job_posting)
         return result
     except HTTPException:
         raise
