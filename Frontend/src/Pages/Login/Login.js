@@ -33,7 +33,7 @@ function Login({ setUser }) {
         setLoading(true);
 
         try {
-            const response = await axios.post('https://localhost:9001/api/Account/authenticate', {
+            const response = await axios.post(process.env.REACT_APP_API_BASE_URL + '/api/Account/authenticate', {
                 email: formData.email,
                 password: formData.password
             });

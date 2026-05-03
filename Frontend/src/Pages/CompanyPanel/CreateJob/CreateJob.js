@@ -45,7 +45,7 @@ function CreateJob() {
                 
                 // Fetch full details from backend
                 setLoading(true);
-                axios.get(`https://localhost:9001/api/v1/JobPostings/public/${jobId}`)
+                axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/JobPostings/public/${jobId}`)
                     .then(response => {
                         const fullJob = response.data;
                         setFormData({
@@ -100,7 +100,7 @@ function CreateJob() {
             setError('');
             const token = localStorage.getItem('jwToken');
             
-            const response = await axios.post('https://localhost:9001/api/v1/JobPostings/generate-details', {
+            const response = await axios.post(process.env.REACT_APP_API_BASE_URL + '/api/v1/JobPostings/generate-details', {
                 applicationContext: aiPrompt
             }, {
                 headers: {
@@ -172,13 +172,13 @@ function CreateJob() {
             let response;
             if (isEditMode) {
                 payload.id = editJobId;
-                response = await axios.put(`https://localhost:9001/api/v1/JobPostings/${editJobId}`, payload, {
+                response = await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/v1/JobPostings/${editJobId}`, payload, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 });
             } else {
-                response = await axios.post('https://localhost:9001/api/v1/JobPostings', payload, {
+                response = await axios.post(process.env.REACT_APP_API_BASE_URL + '/api/v1/JobPostings', payload, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }

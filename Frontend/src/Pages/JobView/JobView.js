@@ -14,7 +14,7 @@ function JobView() {
     const fetchJobDetails = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`https://localhost:9001/api/v1/JobPostings/public/${id}`);
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/JobPostings/public/${id}`);
         setJob(response.data.data || response.data);
         setError(null);
       } catch (err) {

@@ -13,7 +13,7 @@ function ApplicationForm({ onBack }) {
 
   useEffect(() => {
     if (id) {
-      axios.get(`https://localhost:9001/api/v1/JobPostings/public/${id}`)
+      axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/JobPostings/public/${id}`)
         .then(res => setJob(res.data.data || res.data))
         .catch(err => console.error("Error fetching job for application form:", err));
     }
@@ -190,7 +190,7 @@ function ApplicationForm({ onBack }) {
         cvUrl: formData.cvUrl
       };
 
-      const response = await axios.post('https://localhost:9001/api/v1/Applications/public/apply', payload);
+      const response = await axios.post(process.env.REACT_APP_API_BASE_URL + '/api/v1/Applications/public/apply', payload);
       if (response.data.success || response.status === 200) {
         setSubmitted(true);
       }

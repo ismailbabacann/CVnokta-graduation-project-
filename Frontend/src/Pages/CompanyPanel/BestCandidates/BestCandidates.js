@@ -47,7 +47,7 @@ function CandidateDetailModal({ candidate, onClose }) {
         const fetch = async () => {
             try {
                 const token = localStorage.getItem('jwToken');
-                const res = await axios.get(`https://localhost:9001/api/v1/Evaluations/scorecard/${candidate.applicationId}`, {
+                const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Evaluations/scorecard/${candidate.applicationId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setScorecard(res.data);
@@ -68,7 +68,7 @@ function CandidateDetailModal({ candidate, onClose }) {
         try {
             setMeetingLoading(true);
             const token = localStorage.getItem('jwToken');
-            await axios.post('https://localhost:9001/api/v1/Meetings/invite', {
+            await axios.post(process.env.REACT_APP_API_BASE_URL + '/api/v1/Meetings/invite', {
                 applicationId: candidate.applicationId,
                 jobPostingId: candidate.jobPostingId || '00000000-0000-0000-0000-000000000000',
                 candidateId: candidate.candidateId || '00000000-0000-0000-0000-000000000000',
@@ -91,7 +91,7 @@ function CandidateDetailModal({ candidate, onClose }) {
         try {
             setRejectLoading(true);
             const token = localStorage.getItem('jwToken');
-            await axios.post('https://localhost:9001/api/v1/Applications/bulk-status-update', {
+            await axios.post(process.env.REACT_APP_API_BASE_URL + '/api/v1/Applications/bulk-status-update', {
                 applicationIds: [candidate.applicationId],
                 newStatus: 'Rejected'
             }, { headers: { Authorization: `Bearer ${token}` } });
@@ -570,7 +570,7 @@ export default function BestCandidates() {
         const fetchJobs = async () => {
             try {
                 const token = localStorage.getItem('jwToken');
-                const res = await axios.get('https://localhost:9001/api/v1/JobPostings/dashboard/list', {
+                const res = await axios.get(process.env.REACT_APP_API_BASE_URL + '/api/v1/JobPostings/dashboard/list', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
@@ -592,7 +592,7 @@ export default function BestCandidates() {
             try {
                 setRankLoading(true);
                 const token = localStorage.getItem('jwToken');
-                const res = await axios.get(`https://localhost:9001/api/v1/Evaluations/rankings/${selectedJobId}`, {
+                const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Evaluations/rankings/${selectedJobId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setRankings(Array.isArray(res.data) ? res.data : []);
