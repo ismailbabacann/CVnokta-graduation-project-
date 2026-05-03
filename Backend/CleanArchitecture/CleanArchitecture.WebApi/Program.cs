@@ -17,8 +17,13 @@ using System;
 var builder = WebApplication.CreateBuilder(args);
 
 //Add configurations
-builder.Configuration.AddJsonFile("appsettings.json");
-builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true);
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+}
+// Çevre değişkenlerinin her zaman JSON dosyalarını ezmesini sağlamak için en son eklenmelidir:
+builder.Configuration.AddEnvironmentVariables();
 
 // Add services to the container.
 builder.Services.AddApplicationLayer();
