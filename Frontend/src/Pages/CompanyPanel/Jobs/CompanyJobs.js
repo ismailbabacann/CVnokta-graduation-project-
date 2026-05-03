@@ -44,7 +44,7 @@ function CompanyJobs() {
         setPipelineLoading(true);
         try {
             const token = localStorage.getItem('jwToken');
-            const res = await axios.get(`https://localhost:9001/api/v1/Pipeline/${jobId}/summary`, {
+            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Pipeline/${jobId}/summary`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setPipelineSummary(res.data);
@@ -67,7 +67,7 @@ function CompanyJobs() {
         try {
             const token = localStorage.getItem('jwToken');
             const jobId = selectedJob.jobId || selectedJob.id;
-            await axios.put(`https://localhost:9001/api/v1/Pipeline/${jobId}/threshold`,
+            await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Pipeline/${jobId}/threshold`,
                 {
                     passThreshold:            parseInt(thresholds.cv),
                     cvPassThreshold:          parseInt(thresholds.cv),
@@ -102,7 +102,7 @@ function CompanyJobs() {
                 setAiRejectLoading(false);
                 return;
             }
-            await axios.post(`https://localhost:9001/api/v1/Applications/bulk-status-update`,
+            await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Applications/bulk-status-update`,
                 { applicationIds: toReject, newStatus: 'Rejected' },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -112,7 +112,7 @@ function CompanyJobs() {
             loadPipelineSummary(jobId);
             setModalLoading(true);
             try {
-                const res = await axios.get(`https://localhost:9001/api/v1/Applications/pool`, {
+                const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Applications/pool`, {
                     params: { JobPostingId: jobId, PageNumber: 1, PageSize: 100, SortBy: 'nlpscoredesc' },
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -138,7 +138,7 @@ function CompanyJobs() {
         const jobId = job.jobId || job.id;
         try {
             const token = localStorage.getItem('jwToken');
-            const response = await axios.get(`https://localhost:9001/api/v1/Applications/pool`, {
+            const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Applications/pool`, {
                 params: { JobPostingId: jobId, PageNumber: 1, PageSize: 100, SortBy: 'nlpscoredesc' },
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -183,7 +183,7 @@ function CompanyJobs() {
         try {
             setBulkLoading(true);
             const token = localStorage.getItem('jwToken');
-            await axios.post(`https://localhost:9001/api/v1/Applications/bulk-status-update`, {
+            await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Applications/bulk-status-update`, {
                 applicationIds: selectedCandIds,
                 newStatus: newStatus
             }, {
@@ -197,7 +197,7 @@ function CompanyJobs() {
             if (jobId) {
                 setModalLoading(true);
                 try {
-                    const res = await axios.get(`https://localhost:9001/api/v1/Applications/pool`, {
+                    const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Applications/pool`, {
                         params: { JobPostingId: jobId, PageNumber: 1, PageSize: 100, SortBy: 'nlpscoredesc' },
                         headers: { Authorization: `Bearer ${token}` }
                     });
@@ -237,7 +237,7 @@ function CompanyJobs() {
                 candidateApplicationIds: selectedCandIds,
                 context: assignedContext
             };
-            await axios.post(`https://localhost:9001/api/v1/JobPostings/generate-exam`, testPayload, {
+            await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/JobPostings/generate-exam`, testPayload, {
                  headers: { Authorization: `Bearer ${token}` }
             });
             
@@ -257,7 +257,7 @@ function CompanyJobs() {
     const handleToggleStatus = async (id, makeActive) => {
         try {
             const token = localStorage.getItem('jwToken');
-            await axios.put(`https://localhost:9001/api/v1/JobPostings/${id}/status`, {
+            await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/v1/JobPostings/${id}/status`, {
                 id: id,
                 isActive: makeActive
             }, {
@@ -284,7 +284,7 @@ function CompanyJobs() {
             try {
                 const token = localStorage.getItem('jwToken');
                 const jobId = selectedJob.jobId || selectedJob.id;
-                await axios.delete(`https://localhost:9001/api/v1/JobPostings/${jobId}`, {
+                await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/v1/JobPostings/${jobId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 
@@ -311,7 +311,7 @@ function CompanyJobs() {
 
                 // Call the dashboard job list api
                 // Assuming it returns an array in response.data.data
-                const response = await axios.get('https://localhost:9001/api/v1/JobPostings/dashboard/list', {
+                const response = await axios.get(process.env.REACT_APP_API_BASE_URL + '/api/v1/JobPostings/dashboard/list', {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }

@@ -53,7 +53,7 @@ function Signup({ setUser }) {
         setLoading(true);
 
         try {
-            const response = await axios.post('https://localhost:9001/api/Account/register', {
+            const response = await axios.post(process.env.REACT_APP_API_BASE_URL + '/api/Account/register', {
                 firstName: formData.firstName,
                 lastName: formData.lastName,
                 email: formData.email,
@@ -82,7 +82,7 @@ function Signup({ setUser }) {
                     link = urlObj.toString();
                 } catch (e) {
                     // Fallback
-                    link = link.replace(window.location.origin, 'https://localhost:9001');
+                    link = link.replace(window.location.origin, process.env.REACT_APP_API_BASE_URL + '');
                 }
 
                 setConfirmationLink(link);

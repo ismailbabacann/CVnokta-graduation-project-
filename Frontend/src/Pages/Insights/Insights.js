@@ -43,7 +43,7 @@ function Insights() {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('https://localhost:9001/api/v1/Statistics/top?topN=10');
+        const response = await axios.get(process.env.REACT_APP_API_BASE_URL + '/api/v1/Statistics/top?topN=10');
         // Handle Wrapped data response common in this architecture
         const data = response.data?.data || response.data;
         setStats(data);

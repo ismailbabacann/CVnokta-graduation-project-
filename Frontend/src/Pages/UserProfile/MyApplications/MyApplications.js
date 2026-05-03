@@ -120,7 +120,7 @@ function MyApplications() {
                 if (!candidateId) { setLoading(false); return; }
 
                 const response = await axios.get(
-                    `https://localhost:9001/api/v1/Applications/my-applications/${candidateId}`,
+                    `${process.env.REACT_APP_API_BASE_URL}/api/v1/Applications/my-applications/${candidateId}`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
 

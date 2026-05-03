@@ -21,7 +21,7 @@ function ProfileJobs() {
     useEffect(() => {
         const fetchJobs = async () => {
             try {
-                const response = await axios.get('https://localhost:9001/api/v1/JobPostings/public');
+                const response = await axios.get(process.env.REACT_APP_API_BASE_URL + '/api/v1/JobPostings/public');
                 let fetchedJobs = [];
                 if (response.data && response.data.data) {
                     fetchedJobs = response.data.data;

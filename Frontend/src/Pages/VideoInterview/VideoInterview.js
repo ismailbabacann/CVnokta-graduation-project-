@@ -3,9 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './VideoInterview.css';
 
-const AI_NLP_URL = 'http://localhost:8000/api/v1/interview/realtime';
-const AI_NLP_WS_URL = 'ws://localhost:8000/api/v1/interview/realtime/ws';
-const BACKEND_URL = 'https://localhost:9001/api/v1';
+const AI_NLP_URL = process.env.REACT_APP_AI_NLP_HTTP_URL;
+const AI_NLP_WS_URL = process.env.REACT_APP_AI_NLP_WS_URL;
+const BACKEND_URL = process.env.REACT_APP_API_BASE_URL + '/api/v1';
 const SAMPLE_RATE = 24000;
 
 function VideoInterview() {

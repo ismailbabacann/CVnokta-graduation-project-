@@ -45,7 +45,7 @@ function MyProfile() {
                     setCandidateId(uid);
                     let p = null;
                     try {
-                        const response = await axios.get(`https://localhost:9001/api/v1/Candidates/${uid}`, {
+                        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Candidates/${uid}`, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
                         p = response.data.data || response.data;
@@ -105,7 +105,7 @@ function MyProfile() {
                 summary: formData.coverLetter
             };
 
-            await axios.put(`https://localhost:9001/api/v1/Candidates/${candidateId}`, updatePayload, {
+            await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Candidates/${candidateId}`, updatePayload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             alert('Profil bilgileriniz başarıyla güncellendi!');
@@ -150,7 +150,7 @@ function MyProfile() {
 
                     try {
                         const token = localStorage.getItem('jwToken');
-                        await axios.post('https://localhost:9001/api/v1/Candidates/upload-cv', {
+                        await axios.post(process.env.REACT_APP_API_BASE_URL + '/api/v1/Candidates/upload-cv', {
                             candidateId: candidateId,
                             fileName: fileName,
                             cloudinaryUrl: cloudinaryUrl,

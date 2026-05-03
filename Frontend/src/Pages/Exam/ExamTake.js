@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './Exam.css';
 
-const API_BASE = 'https://localhost:9001/api/v1';
+const API_BASE = process.env.REACT_APP_API_BASE_URL + '/api/v1';
 
 // ─── Fallback mock by exam type ───────────────────────────────────────────────
 const MOCK_EXAMS = {

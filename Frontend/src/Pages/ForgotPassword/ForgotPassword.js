@@ -21,7 +21,7 @@ function ForgotPassword() {
         setStatus({ type: '', message: '' });
 
         try {
-            await axios.post('https://localhost:9001/api/Account/forgot-password', {
+            await axios.post(process.env.REACT_APP_API_BASE_URL + '/api/Account/forgot-password', {
                 email: email
             });
 

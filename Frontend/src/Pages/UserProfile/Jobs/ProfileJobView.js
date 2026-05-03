@@ -17,7 +17,7 @@ function ProfileJobView() {
         const fetchJobDetails = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`https://localhost:9001/api/v1/JobPostings/public/${id}`);
+                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/JobPostings/public/${id}`);
                 setJob(response.data.data || response.data);
                 setError(null);
             } catch (err) {
@@ -35,7 +35,7 @@ function ProfileJobView() {
                 const uid = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || payload.uid || payload.sub;
                 
                 if (uid) {
-                    const response = await axios.get(`https://localhost:9001/api/v1/Candidates/${uid}`, {
+                    const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Candidates/${uid}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     const p = response.data.data || response.data;
@@ -83,7 +83,7 @@ function ProfileJobView() {
                 cvId: candidateProfile?.cvId || null
             };
 
-            await axios.post('https://localhost:9001/api/v1/Applications/public/apply', payloadData);
+            await axios.post(process.env.REACT_APP_API_BASE_URL + '/api/v1/Applications/public/apply', payloadData);
             
             alert('Tebrikler! Profilinizdeki mevcut CV ve bilgileriniz kullanılarak başvurunuz başarıyla iletildi. Sürecinizi "Başvurduğum İlanlar" alanından takip edebilirsiniz.');
             navigate('/profile/applications');
