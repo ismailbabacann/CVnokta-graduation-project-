@@ -323,29 +323,19 @@ async function saveResults(data){
 
 function showResults(data){
   const ev=document.getElementById('vi-ev-div');if(ev)ev.remove();
-  setStatus(data.is_passed?'Mulakat basarılı':'Mulakat tamamlandı');
-  const scores=[
-    {label:'Genel Skor',val:data.overall_interview_score},
-    {label:'Iletisim',val:data.communication_score},
-    {label:'Teknik',val:data.technical_knowledge_score},
-    {label:'Is Uyumu',val:data.job_match_score},
-  ];
-  const scHtml=scores.map(s=>{
-    const pct=Math.min(Math.round(s.val||0),100);
-    return '<div class="score-item"><span class="score-label">'+s.label+'</span>'
-      +'<div class="score-bar"><div class="score-fill" style="width:'+pct+'%"></div></div>'
-      +'<span class="score-val">'+pct+'</span></div>';
-  }).join('');
-  const str=Array.isArray(data.strengths)?data.strengths:(data.strengths||'').split('\\n').filter(Boolean);
-  const wk=Array.isArray(data.weaknesses)?data.weaknesses:(data.weaknesses||'').split('\\n').filter(Boolean);
+  setStatus('Mulakat tamamlandı');
   const div=document.createElement('div');
   div.className='vi-summary';
-  div.innerHTML='<h3>Mulakat Ozeti</h3><div>'+scHtml+'</div>'
-    +(data.summary_text?'<p class="vi-summary-text">'+escHtml(data.summary_text)+'</p>':'')
-    +(str.length?'<div><strong style="color:#66ff99">Guclu Yonler:</strong><ul class="vi-list">'+str.map(s=>'<li>'+escHtml(s)+'</li>').join('')+'</ul></div>':'')
-    +(wk.length?'<div><strong style="color:#ff9966">Gelisim Alanları:</strong><ul class="vi-list">'+wk.map(s=>'<li>'+escHtml(s)+'</li>').join('')+'</ul></div>':'')
-    +'<p class="vi-result '+(data.is_passed?'passed':'failed')+'">'
-    +(data.is_passed?'Mulakat Basarili - Tebrikler!':'Mulakat Tamamlandı')+'</p>';
+  div.innerHTML='<h3>&#x2705; Mulakatınız Tamamlandı</h3>'
+    +'<p class="vi-summary-text" style="margin:16px 0;line-height:1.8">'
+    +'Zaman ayırdığınız için teşekkür ederiz! Mülakatınız başarıyla kaydedildi.</p>'
+    +'<p class="vi-summary-text" style="margin:8px 0;line-height:1.8">'
+    +'Değerlendirme sürecimiz tamamlandıktan sonra İK ekibimiz sizinle iletişime geçecektir. '
+    +'Bu süreç genellikle birkaç iş günü içerisinde tamamlanmaktadır.</p>'
+    +'<p class="vi-summary-text" style="margin:16px 0;color:#9999ff">'
+    +'Toplam soru sayısı: '+(data.total_questions_asked||'—')
+    +' | Cevaplanan: '+(data.total_questions_answered||'—')+'</p>'
+    +'<p class="vi-result passed">Mülakat Kaydedildi — Başarılar Diliyoruz!</p>';
   document.querySelector('.vi-right').appendChild(div);
 }
 </script>

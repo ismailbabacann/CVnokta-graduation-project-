@@ -1,24 +1,24 @@
 """
-Prompt templates for AI Video Interview (future implementation).
+Prompt templates for AI Video Interview evaluation.
+
+Contains:
+  - System prompt for evaluation context
+  - First question template (used in HTTP flow)
+  - Follow-up template (used in HTTP flow)
+  - Comprehensive evaluation template with rubric (used by both HTTP and Realtime)
 """
 
 INTERVIEW_SYSTEM_PROMPT = """\
-You are an AI interviewer conducting a professional job interview.
-You are friendly but professional. Ask questions that assess:
-1. Technical knowledge relevant to the position
-2. Problem-solving ability
-3. Communication skills
-4. Cultural fit and motivation
+Sen uzman bir İK değerlendirme asistanısın. Mülakat transkriptlerini analiz ederek \
+adayların performansını değerlendiriyorsun.
 
-RULES:
-- Ask one question at a time
-- Keep questions concise (1-2 sentences)
-- Adapt follow-up questions based on the candidate's previous answers
-- Do not repeat topics already covered
-- Be encouraging but objective
-
-You will be given the job posting details and candidate's CV.
-Generate questions that probe the intersection of their experience and job requirements.
+Değerlendirme prensiplerin:
+1. SADECE transkriptte bulunan bilgilere dayanarak skorla — asla olmayan şeyleri varsayma.
+2. Her skor için rubric'teki tanımları kullan — kendi standardını uydurma.
+3. Pozisyon seviyesine göre beklenti kalibrasyonu yap (Junior vs Senior farklı).
+4. STT (konuşmadan metne) transkript olduğu için yazım/dilbilgisi hatalarını SKORLAMA.
+5. İçerik, mantıksal tutarlılık ve derinliğe odaklan.
+6. Her zaman geçerli JSON döndür.
 """
 
 INTERVIEW_FIRST_QUESTION_TEMPLATE = """\
@@ -59,24 +59,100 @@ Return ONLY the question text, nothing else.
 """
 
 INTERVIEW_EVALUATION_TEMPLATE = """\
-## Job Requirements
+## Pozisyon Bilgileri
 {job_requirements}
 
-## Full Interview Transcript
+## Mülakat Transkripti
 {transcript}
 
-Evaluate the candidate's interview performance.
-Return ONLY valid JSON:
+## DEĞERLENDİRME RUBRİĞİ
+
+Her skor aşağıdaki 5-seviyeli tanıma göre verilmelidir:
+
+### Skor Seviyeleri:
+| Aralık | Seviye | Tanım |
+|--------|--------|-------|
+| 0-20 | Çok Zayıf | Cevap yok veya tamamen alakasız. Temel bilgi eksikliği. |
+| 21-40 | Zayıf | Yüzeysel cevaplar, somut örnek yok, ciddi bilgi boşlukları. |
+| 41-60 | Orta | Kabul edilebilir cevaplar ama derinlik eksik. Bazı doğru noktalar var. |
+| 61-80 | İyi | Detaylı ve somut örneklerle desteklenmiş cevaplar. İş gereksinimleriyle uyumlu. |
+| 81-100 | Mükemmel | Olağanüstü derinlik, yaratıcı yaklaşım, güçlü örnekler, tam uyum. |
+
+### Değerlendirme Boyutları:
+
+1. **technical_knowledge_score**: Pozisyon gereksinimleriyle teknik bilgi uyumu
+   - Doğru terminoloji kullanımı
+   - Kavramların derinliğini anlama
+   - Pratik uygulama örnekleri
+
+2. **communication_score**: İletişim kalitesi
+   - Düşüncelerini açık ve yapılandırılmış ifade etme
+   - Aktif dinleme sinyalleri (sorulara uygun cevap)
+   - Profesyonel dil kullanımı
+
+3. **problem_solving_score**: Problem çözme yaklaşımı
+   - Yapısal düşünme (problemi parçalara ayırma)
+   - Alternatif çözümler üretme
+   - Belirsizlikle başa çıkma yeteneği
+
+4. **job_match_score**: Pozisyonla genel uyum
+   - Deneyim/beceri ile iş gereksinimleri örtüşmesi
+   - Sorumlulukları anlama ve sahiplenme
+   - Sektör/domain bilgisi
+
+5. **experience_alignment_score**: Deneyim uyumu
+   - Geçmiş deneyimlerin pozisyona transferi
+   - Somut başarı örnekleri
+   - Kademeli gelişim göstermesi
+
+6. **motivation_score**: Motivasyon ve kültürel uyum
+   - Pozisyona/şirkete gerçek ilgi göstermesi
+   - Kariyer hedefleriyle uyum
+   - Uzun vadeli bağlılık sinyalleri
+
+7. **adaptability_score**: Uyum ve öğrenme çevikliği
+   - Bilmediği konulara yaklaşımı
+   - Yeni durumlara adaptasyon örnekleri
+   - Geri bildirime açıklık
+
+8. **overall_interview_score**: Genel performans (diğer skorların ağırlıklı ortalaması değil, bütüncül değerlendirme)
+
+### Tavsiye Skalası (recommendation_level):
+- "strongly_recommend": Olağanüstü aday, hemen teklif yapılmalı (overall >= 80)
+- "recommend": Güçlü aday, sürecin devamı uygun (overall 65-79)
+- "neutral": Ortalama aday, ek değerlendirme gerekebilir (overall 50-64)
+- "not_recommend": Zayıf performans, bu pozisyon için uygun değil (overall 30-49)
+- "strongly_not_recommend": Çok zayıf, ciddi uyumsuzluklar (overall < 30)
+
+## ÇIKTI FORMATI
+
+SADECE geçerli JSON döndür:
 {{
-  "average_confidence_score": <float 0-100>,
+  "technical_knowledge_score": <float 0-100>,
+  "communication_score": <float 0-100>,
+  "problem_solving_score": <float 0-100>,
   "job_match_score": <float 0-100>,
   "experience_alignment_score": <float 0-100>,
-  "communication_score": <float 0-100>,
-  "technical_knowledge_score": <float 0-100>,
+  "motivation_score": <float 0-100>,
+  "adaptability_score": <float 0-100>,
   "overall_interview_score": <float 0-100>,
-  "summary_text": "<2-3 paragraph summary>",
-  "strengths": "<comma-separated>",
-  "weaknesses": "<comma-separated>",
-  "recommendations": "<1-2 sentences>"
+  "recommendation_level": "<strongly_recommend|recommend|neutral|not_recommend|strongly_not_recommend>",
+  "summary_text": "<2-3 paragraf özet — adayın güçlü/zayıf yönleri ve genel izlenim>",
+  "strengths": ["güçlü yön 1", "güçlü yön 2", "güçlü yön 3"],
+  "weaknesses": ["zayıf yön 1", "zayıf yön 2"],
+  "recommendations": "<İK ekibine öneriler — aday ile ilgili dikkat edilecek noktalar>",
+  "score_justifications": {{
+    "technical_knowledge": "<bu skoru neden verdin, hangi cevaba dayanıyor>",
+    "communication": "<bu skoru neden verdin>",
+    "problem_solving": "<bu skoru neden verdin>",
+    "job_match": "<bu skoru neden verdin>",
+    "motivation": "<bu skoru neden verdin>"
+  }}
 }}
+
+ÖNEMLİ: 
+- strengths ve weaknesses MUTLAKA liste (array) formatında olmalı.
+- score_justifications her skor için transkriptten somut referans içermeli.
+- overall_interview_score diğerlerinin basit ortalaması DEĞİL, bütüncül değerlendirme.
 """
+

@@ -168,8 +168,19 @@ function ApplicationForm({ onBack }) {
 
     setIsSubmitting(true);
     try {
+      // If user is logged in, include their candidateId so Backend can link the profile
+      let candidateId = null;
+      const token = localStorage.getItem('jwToken');
+      if (token) {
+        try {
+          const decoded = JSON.parse(atob(token.split('.')[1]));
+          candidateId = decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || decoded.uid || decoded.sub || null;
+        } catch (_) { /* ignore decode errors */ }
+      }
+
       const payload = {
         jobPostingId: id,
+        candidateId: candidateId,
         fullName: formData.fullName,
         email: formData.email,
         phone: formData.phone,

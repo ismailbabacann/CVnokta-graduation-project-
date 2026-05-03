@@ -70,6 +70,7 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
         private readonly IGenericRepositoryAsync<CandidateExamAssignment>  _assignmentRepo;
         private readonly IGenericRepositoryAsync<AiInterviewSummary>       _interviewSummaryRepo;
         private readonly IGenericRepositoryAsync<StageFeedback>            _feedbackRepo;
+        private readonly IGenericRepositoryAsync<User>                     _userRepo;
 
         public GetMyApplicationsQueryHandler(
             IGenericRepositoryAsync<JobApplication>           applicationRepo,
@@ -77,7 +78,8 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
             IGenericRepositoryAsync<CandidateProfile> candidateRepo,
             IGenericRepositoryAsync<CandidateExamAssignment>  assignmentRepo,
             IGenericRepositoryAsync<AiInterviewSummary>       interviewSummaryRepo,
-            IGenericRepositoryAsync<StageFeedback>            feedbackRepo)
+            IGenericRepositoryAsync<StageFeedback>            feedbackRepo,
+            IGenericRepositoryAsync<User>                     userRepo)
         {
             _applicationRepo = applicationRepo;
             _jobPostingRepo  = jobPostingRepo;
@@ -85,6 +87,7 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
             _assignmentRepo  = assignmentRepo;
             _interviewSummaryRepo = interviewSummaryRepo;
             _feedbackRepo = feedbackRepo;
+            _userRepo = userRepo;
         }
 
         public async Task<IEnumerable<MyApplicationDto>> Handle(
@@ -94,7 +97,28 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetMyApplications
             var jobPostings   = await _jobPostingRepo.GetAllAsync();
             var allCandidates = await _candidateRepo.GetAllAsync();
 
-            var candidate        = allCandidates.FirstOrDefault(c => c.Id == request.CandidateId || c.UserId == request.CandidateId);
+            // Primary lookup: by CandidateProfile.Id or CandidateProfile.UserId
+            var candidate = allCandidates.FirstOrDefault(c => c.Id == request.CandidateId || c.UserId == request.CandidateId);
+
+            // Fallback: If not found, look up User's email and find CandidateProfile by email
+            if (candidate == null)
+            {
+                var user = await _userRepo.GetByIdAsync(request.CandidateId);
+                if (user != null && !string.IsNullOrWhiteSpace(user.Email))
+                {
+                    candidate = allCandidates.FirstOrDefault(c =>
+                        !string.IsNullOrWhiteSpace(c.Email) &&
+                        c.Email.ToLower() == user.Email.ToLower());
+
+                    // Fix the broken link: set UserId so future queries work directly
+                    if (candidate != null && candidate.UserId == null)
+                    {
+                        candidate.UserId = request.CandidateId;
+                        await _candidateRepo.UpdateAsync(candidate);
+                    }
+                }
+            }
+
             var actualCandidateId = candidate?.Id ?? request.CandidateId;
 
             var allAssignments = await _assignmentRepo.GetAllAsync();
