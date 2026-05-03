@@ -107,9 +107,53 @@ class RealtimeInterviewEngine:
     Audio flows bidirectionally; transcript and control events are intercepted.
     """
 
+    # TTL for completed/failed sessions before eviction (seconds)
+    _SESSION_TTL_COMPLETED = 300  # 5 minutes after completion
+    _SESSION_TTL_ABANDONED = 1800  # 30 minutes if never completed (stuck sessions)
+
     def __init__(self) -> None:
         self._settings = get_settings()
         self._sessions: Dict[str, _RealtimeSessionEntry] = {}
+
+    def evict_expired_sessions(self) -> None:
+        """Remove sessions that have exceeded their TTL. Called from background task."""
+        now = time.monotonic()
+        to_remove: List[str] = []
+
+        for sid, entry in self._sessions.items():
+            status = entry.session.status
+
+            if status in (RealtimeSessionStatus.COMPLETED, RealtimeSessionStatus.FAILED):
+                # Completed/failed sessions: evict after short TTL
+                ended_at = entry.ended_at_monotonic or entry.last_activity
+                if now - ended_at > self._SESSION_TTL_COMPLETED:
+                    to_remove.append(sid)
+            elif status == RealtimeSessionStatus.CONNECTING:
+                # Stuck in connecting: evict after abandoned TTL
+                if now - entry.created_at > self._SESSION_TTL_ABANDONED:
+                    to_remove.append(sid)
+            else:
+                # Active/ending/interrupted: evict if no activity for abandoned TTL
+                if now - entry.last_activity > self._SESSION_TTL_ABANDONED:
+                    to_remove.append(sid)
+
+        for sid in to_remove:
+            entry = self._sessions.pop(sid, None)
+            if entry and entry.openai_ws:
+                try:
+                    asyncio.get_event_loop().create_task(entry.openai_ws.close())
+                except Exception:
+                    pass
+            logger.info(
+                "Evicted expired session: %s (status=%s)",
+                sid, entry.session.status.value if entry else "?",
+            )
+
+        if to_remove:
+            logger.info(
+                "Session cleanup: evicted %d sessions, %d remaining",
+                len(to_remove), len(self._sessions),
+            )
 
     # ── Session lifecycle ─────────────────────────────────────────
 
@@ -403,6 +447,8 @@ class RealtimeInterviewEngine:
         if fn_name == "log_question":
             question_text = args.get("question_text", "").strip()
             category = args.get("category", "unknown")
+            is_follow_up = args.get("is_follow_up", False)
+            difficulty_level = args.get("difficulty_level", "medium")
 
             # Reject empty or duplicate questions — don't inflate count
             if not question_text:
@@ -440,6 +486,8 @@ class RealtimeInterviewEngine:
             entry.session.questions_asked.append({
                 "text": question_text,
                 "category": category,
+                "is_follow_up": is_follow_up,
+                "difficulty_level": difficulty_level,
                 "timestamp": datetime.utcnow().isoformat(),
                 "sequence": entry.question_count,
             })
@@ -465,6 +513,7 @@ class RealtimeInterviewEngine:
         if fn_name == "end_interview":
             reason = args.get("reason", "sufficient_signal")
             summary_notes = args.get("summary_notes", "")
+            categories_covered = args.get("categories_covered", "")
 
             # Count actual questions from transcript instead of relying on log_question
             actual_question_count = len([t for t in entry.session.transcript if t["role"] == "assistant"])
@@ -810,19 +859,23 @@ class RealtimeInterviewEngine:
                 entry.session.session_id,
             )
             raw = {
-                "average_confidence_score": 0.0,
+                "technical_knowledge_score": 0.0,
+                "communication_score": 0.0,
+                "problem_solving_score": 0.0,
                 "job_match_score": 0.0,
                 "experience_alignment_score": 0.0,
-                "communication_score": 0.0,
-                "technical_knowledge_score": 0.0,
+                "motivation_score": 0.0,
+                "adaptability_score": 0.0,
                 "overall_interview_score": 0.0,
+                "recommendation_level": "strongly_not_recommend",
                 "summary_text": (
-                    f"The candidate did not answer any of the {len(qa_pairs)} questions asked. "
-                    "No evaluation could be performed."
+                    f"Aday sorulan {len(qa_pairs)} sorunun hiçbirine cevap vermedi. "
+                    "Değerlendirme yapılamadı."
                 ),
-                "strengths": "None identified — no answers provided",
-                "weaknesses": "No responses to any interview questions",
-                "recommendations": "Candidate should reattempt the interview and provide verbal responses to questions.",
+                "strengths": [],
+                "weaknesses": ["Hiçbir soruya cevap verilmedi"],
+                "recommendations": "Adayın mülakatı tekrar denemesi veya manuel değerlendirme yapılması önerilir.",
+                "score_justifications": {},
             }
             return self._build_summary(entry, qa_pairs, raw)
 
@@ -880,19 +933,23 @@ class RealtimeInterviewEngine:
         base_score = round(answer_ratio * 70, 1)
 
         return {
-            "average_confidence_score": base_score,
+            "technical_knowledge_score": base_score,
+            "communication_score": base_score,
+            "problem_solving_score": base_score,
             "job_match_score": base_score,
             "experience_alignment_score": base_score,
-            "communication_score": base_score,
-            "technical_knowledge_score": base_score,
+            "motivation_score": base_score,
+            "adaptability_score": base_score,
             "overall_interview_score": base_score,
+            "recommendation_level": "neutral",
             "summary_text": (
                 f"Fallback evaluation: candidate answered {answered}/{total} questions. "
                 f"LLM evaluation was unavailable."
             ),
-            "strengths": "Completed interview session",
-            "weaknesses": "Unable to perform AI evaluation",
+            "strengths": ["Completed interview session"],
+            "weaknesses": ["Unable to perform AI evaluation"],
             "recommendations": "Manual review recommended",
+            "score_justifications": {},
         }
 
     def _build_summary(
@@ -901,7 +958,12 @@ class RealtimeInterviewEngine:
         qa_pairs: List[InterviewQA],
         raw: Dict[str, Any],
     ) -> InterviewSummary:
-        """Build InterviewSummary from evaluation output."""
+        """Build InterviewSummary from evaluation output.
+
+        Maps the enhanced evaluation format (with new dimensions like
+        problem_solving, motivation, adaptability) to the existing
+        Backend-compatible InterviewSummary model.
+        """
 
         def _score(key: str) -> Optional[float]:
             v = raw.get(key)
@@ -915,6 +977,56 @@ class RealtimeInterviewEngine:
         answered = len([qa for qa in qa_pairs if qa.candidate_answer_text])
         overall = _score("overall_interview_score")
 
+        # Map recommendation_level to is_passed
+        rec_level = raw.get("recommendation_level", "")
+        if rec_level in ("strongly_recommend", "recommend"):
+            is_passed = True
+        elif rec_level in ("not_recommend", "strongly_not_recommend"):
+            is_passed = False
+        elif overall is not None:
+            is_passed = overall >= 60.0
+        else:
+            is_passed = None
+
+        # Build rich summary text that includes new dimensions
+        summary_text = str(raw.get("summary_text") or "")
+        recommendation = raw.get("recommendation_level", "")
+        if recommendation:
+            summary_text += f"\n\n[Tavsiye: {recommendation}]"
+
+        # Include score justifications in summary if available
+        justifications = raw.get("score_justifications", {})
+        if justifications:
+            just_parts = []
+            for dim, justification in justifications.items():
+                if justification:
+                    just_parts.append(f"- {dim}: {justification}")
+            if just_parts:
+                summary_text += "\n\n[Skor Gerekçeleri]\n" + "\n".join(just_parts)
+
+        # Handle strengths/weaknesses as list or string
+        strengths_raw = raw.get("strengths") or []
+        if isinstance(strengths_raw, list):
+            strengths = "\n".join(strengths_raw)
+        else:
+            strengths = str(strengths_raw)
+
+        weaknesses_raw = raw.get("weaknesses") or []
+        if isinstance(weaknesses_raw, list):
+            weaknesses = "\n".join(weaknesses_raw)
+        else:
+            weaknesses = str(weaknesses_raw)
+
+        # Compute average_confidence_score from new dimensions that don't map
+        # directly to Backend fields (problem_solving, motivation, adaptability)
+        extra_scores = [
+            _score("problem_solving_score"),
+            _score("motivation_score"),
+            _score("adaptability_score"),
+        ]
+        valid_extras = [s for s in extra_scores if s is not None]
+        avg_confidence = round(sum(valid_extras) / len(valid_extras), 1) if valid_extras else _score("overall_interview_score")
+
         session = entry.session
         try:
             app_id = UUID(session.application_id)
@@ -926,17 +1038,17 @@ class RealtimeInterviewEngine:
             application_id=app_id,
             total_questions_asked=len(qa_pairs),
             total_questions_answered=answered,
-            average_confidence_score=_score("average_confidence_score"),
+            average_confidence_score=avg_confidence,
             job_match_score=_score("job_match_score"),
             experience_alignment_score=_score("experience_alignment_score"),
             communication_score=_score("communication_score"),
             technical_knowledge_score=_score("technical_knowledge_score"),
             overall_interview_score=overall,
-            summary_text=str(raw.get("summary_text") or ""),
-            strengths=str(raw.get("strengths") or ""),
-            weaknesses=str(raw.get("weaknesses") or ""),
+            summary_text=summary_text,
+            strengths=strengths,
+            weaknesses=weaknesses,
             recommendations=str(raw.get("recommendations") or ""),
-            is_passed=overall >= 60.0 if overall is not None else None,
+            is_passed=is_passed,
         )
 
     # ── Q&A retrieval ────────────────────────────────────────────
