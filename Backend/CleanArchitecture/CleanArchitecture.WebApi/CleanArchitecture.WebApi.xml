@@ -358,6 +358,25 @@
             HR, adayın sınavdaki tüm sorularını, verdiği cevapları ve doğru/yanlış durumunu, soru materyalleri (görsel/dinleme) ile birlikte görür.
             </summary>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.FeedbackController.GetFeedback(System.Guid,System.String)">
+            <summary>
+            Belirtilen başvurunun tüm aşamalarındaki geri bildirimlerini döner.
+            </summary>
+            <param name="applicationId">Başvuru Id'si (GUID)</param>
+            <param name="perspective">Opsiyonel: "hr" veya "candidate" filtresi. Boş bırakılırsa her iki perspektif döner.</param>
+            <returns>Aşama bazlı geri bildirimler (güçlü yönler, zayıf yönler, genel değerlendirme)</returns>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.FeedbackController.SaveFeedback(CleanArchitecture.WebApi.Controllers.v1.SaveFeedbackRequest)">
+            <summary>
+            AI-NLP servisinden gelen geri bildirimi kaydeder.
+            Her aşama için IK ve Aday perspektifli geri bildirim içerir.
+            </summary>
+        </member>
+        <member name="T:CleanArchitecture.WebApi.Controllers.v1.SaveFeedbackRequest">
+            <summary>
+            DTO for save-feedback endpoint — matches camelCase JSON from AI-NLP.
+            </summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.InterviewsController.Start(CleanArchitecture.Core.Features.Interviews.Commands.StartAiInterview.StartAiInterviewCommand)">
              <summary>
              Belirtilen başvuru için yapay zeka mülakat oturumu başlatır.
