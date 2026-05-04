@@ -35,7 +35,7 @@ function CompanyChatbot() {
         setIsLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:8888/api/v1/chatbot/company', {
+            const response = await axios.post('http://localhost:8000/api/v1/chatbot/company', {
                 message: userText,
                 history: messages.slice(-6)
             });
