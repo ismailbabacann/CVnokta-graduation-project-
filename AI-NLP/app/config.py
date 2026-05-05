@@ -88,10 +88,10 @@ class Settings(BaseSettings):
     # ── Realtime Interview ──────────────────────────────────
     realtime_model: str = "gpt-4o-mini-realtime-preview"
     realtime_voice: str = "alloy"
-    realtime_vad_threshold: float = 0.5
+    realtime_vad_threshold: float = 0.7
     realtime_turn_detection: str = "server_vad"
     realtime_max_questions: int = 12
-    realtime_min_questions: int = 5
+    realtime_min_questions: int = 7
     realtime_input_audio_format: str = "pcm16"
     realtime_output_audio_format: str = "pcm16"
     realtime_max_session_duration_seconds: int = 900

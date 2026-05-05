@@ -23,7 +23,8 @@ _MAX_CANDIDATE_NAME_LEN = 200
 _MAX_CV_SUMMARY_LEN = 5000
 _MAX_JOB_POSTING_FIELD_LEN = 3000
 _MAX_JOB_POSTING_FIELDS = {"job_title", "department", "required_skills",
-                            "required_qualifications", "responsibilities"}
+                            "required_qualifications", "responsibilities",
+                            "has_english_exam", "language_level"}
 
 
 def _validate_init_payload(msg: dict) -> str | None:
@@ -181,6 +182,8 @@ async def start_interview_with_token(payload: dict):
         "job_posting": {
             "job_title": job_title,
             "required_skills": required_skills,
+            "has_english_exam": token_data.get("hasEnglishExam", ""),
+            "language_level": token_data.get("languageLevel", ""),
         },
         "cv_summary": cv_summary,
         "token": token,

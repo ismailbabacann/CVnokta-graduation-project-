@@ -74,9 +74,9 @@ Her skor aşağıdaki 5-seviyeli tanıma göre verilmelidir:
 |--------|--------|-------|
 | 0-20 | Çok Zayıf | Cevap yok veya tamamen alakasız. Temel bilgi eksikliği. |
 | 21-40 | Zayıf | Yüzeysel cevaplar, somut örnek yok, ciddi bilgi boşlukları. |
-| 41-60 | Orta | Kabul edilebilir cevaplar ama derinlik eksik. Bazı doğru noktalar var. |
-| 61-80 | İyi | Detaylı ve somut örneklerle desteklenmiş cevaplar. İş gereksinimleriyle uyumlu. |
-| 81-100 | Mükemmel | Olağanüstü derinlik, yaratıcı yaklaşım, güçlü örnekler, tam uyum. |
+| 41-55 | Orta | Kabul edilebilir cevaplar ama derinlik eksik. Bazı doğru noktalar var. |
+| 56-75 | İyi | İlgili ve tutarlı cevaplar, bazı somut örnekler. İş gereksinimleriyle genel uyum. |
+| 76-100 | Mükemmel | Detaylı, somut örneklerle desteklenmiş, derinlikli cevaplar. Güçlü uyum. |
 
 ### Değerlendirme Boyutları:
 
@@ -89,6 +89,7 @@ Her skor aşağıdaki 5-seviyeli tanıma göre verilmelidir:
    - Düşüncelerini açık ve yapılandırılmış ifade etme
    - Aktif dinleme sinyalleri (sorulara uygun cevap)
    - Profesyonel dil kullanımı
+   - ÖNEMLİ: Bu transkript STT (konuşmadan metne) ile oluşturulmuştur. Yazım hataları, dilbilgisi hataları ve kelime tekrarları STT kaynaklıdır — bunları KESİNLİKLE cezalandırma. Sadece içerik ve mantıksal tutarlılığı değerlendir.
 
 3. **problem_solving_score**: Problem çözme yaklaşımı
    - Yapısal düşünme (problemi parçalara ayırma)
@@ -110,19 +111,21 @@ Her skor aşağıdaki 5-seviyeli tanıma göre verilmelidir:
    - Kariyer hedefleriyle uyum
    - Uzun vadeli bağlılık sinyalleri
 
-7. **adaptability_score**: Uyum ve öğrenme çevikliği
-   - Bilmediği konulara yaklaşımı
-   - Yeni durumlara adaptasyon örnekleri
-   - Geri bildirime açıklık
+7. **overall_interview_score**: Genel performans (diğer skorların ağırlıklı ortalaması değil, bütüncül değerlendirme)
 
-8. **overall_interview_score**: Genel performans (diğer skorların ağırlıklı ortalaması değil, bütüncül değerlendirme)
+### PUANLAMA YAKLAŞIMI — KRİTİK
+- Adayın güçlü yönlerini ön plana çıkar. Cevap verilen her soru pozitif sinyal taşır.
+- Cevaplar kısa olsa bile konuyla ilgili ve doğruysa, en az 55-60 arası skorla.
+- Somut örnek veren ve detaylı cevaplayan adaylara 70+ ver.
+- Sadece tamamen alakasız, tutarsız veya cevap vermeyen adaylara 40 altı ver.
+- STT kaynaklı transkript bozukluklarını (kesilmiş kelimeler, tekrarlar) ASLA cezalandırma.
 
 ### Tavsiye Skalası (recommendation_level):
-- "strongly_recommend": Olağanüstü aday, hemen teklif yapılmalı (overall >= 80)
-- "recommend": Güçlü aday, sürecin devamı uygun (overall 65-79)
-- "neutral": Ortalama aday, ek değerlendirme gerekebilir (overall 50-64)
-- "not_recommend": Zayıf performans, bu pozisyon için uygun değil (overall 30-49)
-- "strongly_not_recommend": Çok zayıf, ciddi uyumsuzluklar (overall < 30)
+- "strongly_recommend": Olağanüstü aday, hemen teklif yapılmalı (overall >= 76)
+- "recommend": Güçlü aday, sürecin devamı uygun (overall 60-75)
+- "neutral": Ortalama aday, ek değerlendirme gerekebilir (overall 45-59)
+- "not_recommend": Zayıf performans, bu pozisyon için uygun değil (overall 25-44)
+- "strongly_not_recommend": Çok zayıf, ciddi uyumsuzluklar (overall < 25)
 
 ## ÇIKTI FORMATI
 
@@ -134,7 +137,6 @@ SADECE geçerli JSON döndür:
   "job_match_score": <float 0-100>,
   "experience_alignment_score": <float 0-100>,
   "motivation_score": <float 0-100>,
-  "adaptability_score": <float 0-100>,
   "overall_interview_score": <float 0-100>,
   "recommendation_level": "<strongly_recommend|recommend|neutral|not_recommend|strongly_not_recommend>",
   "summary_text": "<2-3 paragraf özet — adayın güçlü/zayıf yönleri ve genel izlenim>",
