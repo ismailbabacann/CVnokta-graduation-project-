@@ -288,6 +288,7 @@ const ExamTake = () => {
   if (!questions.length) return <div className="exam-loading"><p>Sorular yüklenemedi.</p></div>;
 
   const q            = questions[currentIdx];
+  if (!q) return <div className="exam-loading"><p>Soru yükleniyor...</p></div>;
   const options      = parseOptions(q.optionsJson);
   const selectedOpt  = answers[q.questionId];
   const isFlagged    = flagged.includes(q.questionId);

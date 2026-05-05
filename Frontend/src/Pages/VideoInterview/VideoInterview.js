@@ -8,6 +8,9 @@ const AI_NLP_WS_URL = 'ws://localhost:8000/api/v1/interview/realtime/ws';
 const BACKEND_URL = 'https://localhost:9001/api/v1';
 const SAMPLE_RATE = 24000;
 
+// Toggle: set to true to show the live transcript panel
+const SHOW_LIVE_TRANSCRIPT = false;
+
 function VideoInterview() {
   // ── State ──────────────────────────────────────────────────
   const [status, setStatus] = useState('loading');
@@ -646,10 +649,12 @@ function VideoInterview() {
           {jobTitle && <div className="vi-avatar-job">{jobTitle}</div>}
         </div>
 
-        <div className="vi-question-bubble">
-          <div className="vi-question-label">Live Transcript</div>
-          <div className="vi-question-text">{liveText}</div>
-        </div>
+        {SHOW_LIVE_TRANSCRIPT && (
+          <div className="vi-question-bubble">
+            <div className="vi-question-label">Live Transcript</div>
+            <div className="vi-question-text">{liveText}</div>
+          </div>
+        )}
 
         <div className="vi-controls">
           {status === 'idle' && (
