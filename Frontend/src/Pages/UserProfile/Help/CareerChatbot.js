@@ -12,8 +12,8 @@ const QUICK_QUESTIONS = [
 
 const BOT_INTRO = 'Merhaba! 👋 Ben CVnokta Kariyer Asistanıyım. Başvuru süreci, CV hazırlama, mülakat ipuçları veya platform kullanımı hakkında her türlü sorunuzu yanıtlayabilirim. Size nasıl yardımcı olabilirim?';
 
-// AI-NLP backend URL (port 8000 - running uvicorn)
-const CHATBOT_API_URL = 'http://localhost:8000/api/v1/chatbot/chat';
+const AI_BASE_URL = process.env.REACT_APP_AI_NLP_BASE_URL || 'https://ozger0202-cvnokta-ai.hf.space';
+const CHATBOT_API_URL = `${AI_BASE_URL}/api/v1/chatbot/chat`;
 
 function CareerChatbot() {
     const [isOpen, setIsOpen] = useState(true);
