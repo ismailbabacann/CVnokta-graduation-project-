@@ -258,6 +258,13 @@ class RealtimeInterviewEngine:
     def _build_session_config(self, entry: _RealtimeSessionEntry) -> dict:
         """Build the session.update event for OpenAI."""
         jp = entry.session.job_posting
+
+        # Determine if English section should be included
+        # Default to True unless explicitly disabled (most positions require some English)
+        has_english_flag = jp.get("has_english_exam") or jp.get("hasEnglishExam") or jp.get("language_level") or jp.get("languageLevel")
+        # If the flag is present and truthy, or if no flag is set (default=True)
+        include_english = has_english_flag not in (False, "false", "False", "none", "None", "0", 0)
+
         instructions = build_realtime_system_instructions(
             job_title=jp.get("job_title", ""),
             responsibilities=jp.get("responsibilities", ""),
@@ -266,6 +273,7 @@ class RealtimeInterviewEngine:
             candidate_name=entry.session.candidate_name,
             min_questions=self._settings.realtime_min_questions,
             max_questions=self._settings.realtime_max_questions,
+            include_english_section=include_english,
         )
 
         return {
@@ -282,6 +290,8 @@ class RealtimeInterviewEngine:
                 "turn_detection": {
                     "type": self._settings.realtime_turn_detection,
                     "threshold": self._settings.realtime_vad_threshold,
+                    "prefix_padding_ms": 500,
+                    "silence_duration_ms": 700,
                 },
                 "tools": REALTIME_TOOL_DEFINITIONS,
             },
@@ -338,9 +348,15 @@ class RealtimeInterviewEngine:
 
         event_type = event.get("type", "")
 
-        # Session created — mark active
+        # Session created — mark active and trigger AI greeting
         if event_type == "session.created":
             self._transition(session_id, RealtimeSessionStatus.ACTIVE)
+            # Trigger AI to start speaking (greeting/introduction)
+            if entry.openai_ws:
+                try:
+                    await entry.openai_ws.send(json.dumps({"type": "response.create"}))
+                except Exception as exc:
+                    logger.warning("Failed to trigger initial response (session=%s): %s", session_id, exc)
             return {"type": "ready"}
 
         # Session updated — config acknowledged
@@ -865,7 +881,6 @@ class RealtimeInterviewEngine:
                 "job_match_score": 0.0,
                 "experience_alignment_score": 0.0,
                 "motivation_score": 0.0,
-                "adaptability_score": 0.0,
                 "overall_interview_score": 0.0,
                 "recommendation_level": "strongly_not_recommend",
                 "summary_text": (
@@ -939,7 +954,6 @@ class RealtimeInterviewEngine:
             "job_match_score": base_score,
             "experience_alignment_score": base_score,
             "motivation_score": base_score,
-            "adaptability_score": base_score,
             "overall_interview_score": base_score,
             "recommendation_level": "neutral",
             "summary_text": (
@@ -1018,11 +1032,10 @@ class RealtimeInterviewEngine:
             weaknesses = str(weaknesses_raw)
 
         # Compute average_confidence_score from new dimensions that don't map
-        # directly to Backend fields (problem_solving, motivation, adaptability)
+        # directly to Backend fields (problem_solving, motivation)
         extra_scores = [
             _score("problem_solving_score"),
             _score("motivation_score"),
-            _score("adaptability_score"),
         ]
         valid_extras = [s for s in extra_scores if s is not None]
         avg_confidence = round(sum(valid_extras) / len(valid_extras), 1) if valid_extras else _score("overall_interview_score")
