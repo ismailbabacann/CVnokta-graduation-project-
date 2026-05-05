@@ -35,7 +35,8 @@ function CompanyChatbot() {
         setIsLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:8000/api/v1/chatbot/company', {
+            const AI_BASE_URL = process.env.REACT_APP_AI_NLP_BASE_URL || 'https://ozger0202-cvnokta-ai.hf.space';
+            const response = await axios.post(`${AI_BASE_URL}/api/v1/chatbot/company`, {
                 message: userText,
                 history: messages.slice(-6)
             });
