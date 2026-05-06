@@ -11,19 +11,19 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePoolS
     public class GetCandidatePoolStatsQueryHandler : IRequestHandler<GetCandidatePoolStatsQuery, CandidatePoolStatsDto>
     {
         private readonly IGenericRepositoryAsync<JobApplication> _applicationRepository;
-        private readonly IGenericRepositoryAsync<CandidateRankingView> _rankingRepository;
         private readonly IGenericRepositoryAsync<JobPosting> _jobPostingRepository;
+        private readonly IGenericRepositoryAsync<CvAnalysisResult> _cvAnalysisRepository;
         private readonly IAuthenticatedUserService _authenticatedUserService;
 
         public GetCandidatePoolStatsQueryHandler(
             IGenericRepositoryAsync<JobApplication> applicationRepository,
-            IGenericRepositoryAsync<CandidateRankingView> rankingRepository,
             IGenericRepositoryAsync<JobPosting> jobPostingRepository,
+            IGenericRepositoryAsync<CvAnalysisResult> cvAnalysisRepository,
             IAuthenticatedUserService authenticatedUserService)
         {
             _applicationRepository = applicationRepository;
-            _rankingRepository = rankingRepository;
             _jobPostingRepository = jobPostingRepository;
+            _cvAnalysisRepository = cvAnalysisRepository;
             _authenticatedUserService = authenticatedUserService;
         }
 
@@ -32,8 +32,8 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePoolS
             try 
             {
                 var allApps = await _applicationRepository.GetAllAsync();
-                var allRankings = await _rankingRepository.GetAllAsync();
                 var allJobs = await _jobPostingRepository.GetAllAsync();
+                var allCvAnalysis = await _cvAnalysisRepository.GetAllAsync();
 
                 var currentUserId = Guid.Parse(_authenticatedUserService.UserId);
 
@@ -41,14 +41,17 @@ namespace CleanArchitecture.Core.Features.Applications.Queries.GetCandidatePoolS
                 var myJobIds = allJobs.Where(j => j.HiringManagerId == currentUserId).Select(j => j.Id).ToHashSet();
 
                 var apps = allApps.Where(a => myJobIds.Contains(a.JobPostingId)).ToList();
-                var rankings = allRankings.Where(r => myJobIds.Contains(r.JobPostingId)).ToList();
+                var myAppIds = apps.Select(a => a.Id).ToHashSet();
 
                 var totalCandidates = apps.Select(a => a.CandidateId).Distinct().Count();
                 
                 var today = DateTime.UtcNow.Date;
                 var newApplicationsToday = apps.Count(a => a.AppliedAt.Date == today);
 
-                var validScores = rankings.Where(r => r.CvAnalysisScore.HasValue).Select(r => r.CvAnalysisScore.Value).ToList();
+                var validScores = allCvAnalysis
+                    .Where(c => myAppIds.Contains(c.ApplicationId) && c.AnalysisScore.HasValue)
+                    .Select(c => c.AnalysisScore.Value)
+                    .ToList();
                 var averageNlpScore = validScores.Any() ? validScores.Average() : 0m;
 
                 return new CandidatePoolStatsDto

@@ -18,6 +18,11 @@ namespace CleanArchitecture.Core.Entities
         public decimal? FinalWeightedScore { get; set; }
         public int? RankPosition { get; set; }
         public string ApplicationStatus { get; set; }
+        public string CurrentPipelineStage { get; set; }
         public DateTime? LastUpdated { get; set; }
+        public DateTime? ApplicationDate { get; set; }
+        public string Location { get; set; }
+        public string LinkedInProfile { get; set; }
+        public string CoverLetter { get; set; }
     }
 }

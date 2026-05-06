@@ -113,24 +113,24 @@ function CandidateDetailModal({ candidate, onClose }) {
     const finalScore = scorecard?.finalEvaluationScore?.weightedFinalScore  ?? candidate.finalWeightedScore;
 
     const pipelineStages = [
-        { key: 'NLP_REVIEW',           label: 'CV Analizi',      icon: '🔍', color: '#667eea' },
-        { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',    icon: '📝', color: '#ed8936' },
-        { key: 'ENGLISH_TEST_PENDING', label: 'İngilizce',       icon: '🇬🇧', color: '#00b4db' },
-        { key: 'AI_INTERVIEW_PENDING', label: 'AI Mülakat',      icon: '🤖', color: '#f5576c' },
-        { key: 'COMPLETED',            label: 'Tamamlandı',      icon: '🎉', color: '#48bb78' },
+        { key: 'NLP_REVIEW',           label: 'CV Analizi',      color: '#667eea' },
+        { key: 'ENGLISH_TEST_PENDING', label: 'İngilizce',       color: '#00b4db' },
+        { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',    color: '#ed8936' },
+        { key: 'AI_INTERVIEW_PENDING', label: 'AI Mülakat',      color: '#f5576c' },
+        { key: 'COMPLETED',            label: 'Tamamlandı',      color: '#48bb78' },
     ];
-    const stageOrder = { NLP_REVIEW: 0, SKILLS_TEST_PENDING: 1, ENGLISH_TEST_PENDING: 2, AI_INTERVIEW_PENDING: 3, COMPLETED: 4 };
+    const stageOrder = { NLP_REVIEW: 0, ENGLISH_TEST_PENDING: 1, SKILLS_TEST_PENDING: 2, AI_INTERVIEW_PENDING: 3, COMPLETED: 4 };
     const currentStage = candidate.currentPipelineStage || 'NLP_REVIEW';
     const currentIdx   = stageOrder[currentStage] ?? 0;
     const isRejected   = currentStage?.startsWith('REJECTED_');
     const isCompleted  = currentStage === 'COMPLETED';
 
     const TABS = [
-        { id: 'overview',  label: '📊 Genel Bakış' },
-        { id: 'scores',    label: '🏆 Puanlar' },
-        { id: 'feedback',  label: '🤖 AI Geri Bildirim' },
-        { id: 'contact',   label: '📱 İletişim & CV' },
-        { id: 'pipeline',  label: '📈 Süreç Durumu' },
+        { id: 'overview',   label: 'Genel Bakış' },
+        { id: 'cvanalysis', label: 'CV Analizi' },
+        { id: 'feedback',   label: 'AI Geri Bildirim' },
+        { id: 'contact',    label: 'İletişim & CV' },
+        { id: 'pipeline',   label: 'Süreç Durumu' },
     ];
 
     return (
@@ -206,28 +206,62 @@ function CandidateDetailModal({ candidate, onClose }) {
                             {/* ═══ TAB: Overview ═══ */}
                             {activeTab === 'overview' && (
                                 <div>
-                                    <h3 style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: 16 }}>📊 Puan Özeti</h3>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }}>
+                                    <h3 style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>Puan Özeti</h3>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 24 }}>
                                         {[
-                                            { label: 'NLP CV Analizi', val: cvScore, icon: '🧠', color: '#667eea' },
-                                            { label: 'Beceri Testi',   val: skillScore, icon: '⚙️', color: '#ed8936' },
-                                            { label: 'İngilizce Testi',val: engScore, icon: '🇬🇧', color: '#00b4db' },
-                                            { label: 'AI Mülakat',     val: aiScore, icon: '🤖', color: '#f5576c' },
-                                            { label: 'Final Skoru',    val: finalScore, icon: '🏆', color: '#764ba2' },
-                                        ].map(({ label, val, icon, color }) => (
-                                            <div key={label} style={{ background: '#f8fafc', borderRadius: 12, padding: '16px 18px', borderLeft: `4px solid ${color}` }}>
-                                                <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>{icon} {label}</div>
-                                                <div style={{ fontSize: 26, fontWeight: 800, color }}>
-                                                    {val !== null && val !== undefined ? Number(val).toFixed(1) : <span style={{ fontSize: 14, color: '#94a3b8' }}>Bekleniyor</span>}
+                                            { label: 'CV Analizi', val: cvScore, color: '#667eea' },
+                                            { label: 'Beceri Testi', val: skillScore, color: '#ed8936' },
+                                            { label: 'İngilizce Testi', val: engScore, color: '#00b4db' },
+                                            { label: 'AI Mülakat', val: aiScore, color: '#f5576c' },
+                                            { label: 'Final Skoru', val: finalScore, color: '#764ba2' },
+                                        ].map(({ label, val, color }) => (
+                                            <div key={label} style={{ background: '#fafafa', borderRadius: 10, padding: '14px 16px', borderLeft: `3px solid ${color}`, border: `1px solid #f0f0f0`, borderLeftWidth: 3, borderLeftColor: color }}>
+                                                <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>{label}</div>
+                                                <div style={{ fontSize: 24, fontWeight: 800, color }}>
+                                                    {val !== null && val !== undefined ? Number(val).toFixed(1) : <span style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 500 }}>Bekleniyor</span>}
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
 
+                                    {/* HR Feedback from CV stage */}
+                                    {(() => {
+                                        const cvFb = scorecard?.stageFeedbacks?.find(f => f.stageType === 'CV_ANALYSIS')?.hrFeedback;
+                                        if (!cvFb || (!cvFb.strengths?.length && !cvFb.weaknesses?.length && !cvFb.overall)) return null;
+                                        return (
+                                            <div style={{ marginTop: 4 }}>
+                                                <h3 style={{ margin: '0 0 12px 0', color: '#1e293b', fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>IK Geri Bildirimi</h3>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                                                    {cvFb.strengths?.length > 0 && (
+                                                        <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '14px', border: '1px solid #bbf7d0' }}>
+                                                            <div style={{ fontSize: 11, color: '#15803d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Güçlü Yönler</div>
+                                                            <ul style={{ margin: 0, paddingLeft: 16 }}>{cvFb.strengths.map((s, i) => <li key={i} style={{ color: '#166534', fontSize: 13, lineHeight: 1.6 }}>{s}</li>)}</ul>
+                                                        </div>
+                                                    )}
+                                                    {cvFb.weaknesses?.length > 0 && (
+                                                        <div style={{ background: '#fff1f2', borderRadius: 10, padding: '14px', border: '1px solid #fecdd3' }}>
+                                                            <div style={{ fontSize: 11, color: '#be123c', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Gelişim Alanları</div>
+                                                            <ul style={{ margin: 0, paddingLeft: 16 }}>{cvFb.weaknesses.map((s, i) => <li key={i} style={{ color: '#9f1239', fontSize: 13, lineHeight: 1.6 }}>{s}</li>)}</ul>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {cvFb.overall && <div style={{ background: '#f8fafc', borderRadius: 10, padding: '12px 14px', border: '1px solid #e2e8f0', color: '#475569', fontSize: 13, lineHeight: 1.6 }}>{cvFb.overall}</div>}
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            )}
+
+                            {/* ═══ TAB: CV Analizi ═══ */}
+                            {activeTab === 'cvanalysis' && (
+                                <div>
+                                    <h3 style={{ margin: '0 0 20px 0', color: '#1e293b', fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>CV Analizi Detayı</h3>
+
+
                                     {/* Matched Skills */}
                                     {scorecard?.cvAnalysisResult?.matchedSkills?.length > 0 && (
-                                        <div style={{ marginBottom: 20 }}>
-                                            <h4 style={{ margin: '0 0 10px 0', color: '#1e293b', fontSize: 14 }}>✅ Eşleşen Yetenekler</h4>
+                                        <div style={{ marginBottom: 16 }}>
+                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Eşleşen Yetenekler</div>
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                                                 {scorecard.cvAnalysisResult.matchedSkills.map((s, i) => (
                                                     <span key={i} style={{ background: '#d1fae5', color: '#065f46', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600 }}>{s}</span>
@@ -239,7 +273,7 @@ function CandidateDetailModal({ candidate, onClose }) {
                                     {/* Missing Skills */}
                                     {scorecard?.cvAnalysisResult?.missingSkills?.length > 0 && (
                                         <div style={{ marginBottom: 20 }}>
-                                            <h4 style={{ margin: '0 0 10px 0', color: '#1e293b', fontSize: 14 }}>⚠️ Eksik Yetenekler</h4>
+                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Eksik Yetenekler</div>
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                                                 {scorecard.cvAnalysisResult.missingSkills.map((s, i) => (
                                                     <span key={i} style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600 }}>{s}</span>
@@ -250,57 +284,20 @@ function CandidateDetailModal({ candidate, onClose }) {
 
                                     {/* CV Summary */}
                                     {scorecard?.cvAnalysisResult?.summary && (
-                                        <div style={{ background: '#f0f9ff', borderRadius: 12, padding: '16px', border: '1px solid #bae6fd' }}>
-                                            <h4 style={{ margin: '0 0 8px 0', color: '#0369a1', fontSize: 13 }}>📝 CV Analizi Özeti</h4>
-                                            <p style={{ margin: 0, color: '#0c4a6e', fontSize: 13, lineHeight: 1.6 }}>{scorecard.cvAnalysisResult.summary}</p>
+                                        <div style={{ background: '#f8fafc', borderRadius: 10, padding: '16px', border: '1px solid #e2e8f0' }}>
+                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>CV Analizi Özeti</div>
+                                            <p style={{ margin: 0, color: '#334155', fontSize: 13, lineHeight: 1.7 }}>{scorecard.cvAnalysisResult.summary}</p>
+                                        </div>
+                                    )}
+
+                                    {!scorecard?.cvAnalysisResult && (
+                                        <div style={{ textAlign: 'center', padding: '60px 0', color: '#94a3b8' }}>
+                                            <p>Henüz CV analizi tamamlanmamış.</p>
                                         </div>
                                     )}
                                 </div>
                             )}
 
-                            {/* ═══ TAB: Scores ═══ */}
-                            {activeTab === 'scores' && (
-                                <div>
-                                    <h3 style={{ margin: '0 0 20px 0', color: '#1e293b', fontSize: 16 }}>🏆 Detaylı Puan Kartı</h3>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                                        <ScoreBar score={cvScore}    label="NLP CV Analizi"  icon="🧠" />
-                                        <ScoreBar score={skillScore} label="Beceri Testi"     icon="⚙️" />
-                                        <ScoreBar score={engScore}   label="İngilizce Testi" icon="🇬🇧" />
-                                        <ScoreBar score={aiScore}    label="AI Mülakat"       icon="🤖" />
-                                        <div style={{ height: 1, background: '#e2e8f0', margin: '8px 0' }} />
-                                        <ScoreBar score={finalScore} label="Ağırlıklı Final Skoru" icon="🏆" />
-                                    </div>
-
-                                    {/* General Test Details */}
-                                    {scorecard?.generalTestResult && (
-                                        <div style={{ marginTop: 24, background: '#fff7ed', borderRadius: 12, padding: '16px', border: '1px solid #fed7aa' }}>
-                                            <h4 style={{ margin: '0 0 12px 0', color: '#9a3412', fontSize: 13 }}>⚙️ Beceri Testi Detayı</h4>
-                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
-                                                <div style={{ textAlign: 'center', background: '#fff', borderRadius: 8, padding: '12px' }}>
-                                                    <div style={{ fontSize: 20, fontWeight: 800, color: '#ea580c' }}>{scorecard.generalTestResult.totalQuestions}</div>
-                                                    <div style={{ fontSize: 11, color: '#64748b' }}>Toplam Soru</div>
-                                                </div>
-                                                <div style={{ textAlign: 'center', background: '#fff', borderRadius: 8, padding: '12px' }}>
-                                                    <div style={{ fontSize: 20, fontWeight: 800, color: '#16a34a' }}>{scorecard.generalTestResult.correctAnswers}</div>
-                                                    <div style={{ fontSize: 11, color: '#64748b' }}>Doğru</div>
-                                                </div>
-                                                <div style={{ textAlign: 'center', background: '#fff', borderRadius: 8, padding: '12px' }}>
-                                                    <div style={{ fontSize: 20, fontWeight: 800, color: '#dc2626' }}>{scorecard.generalTestResult.wrongAnswers}</div>
-                                                    <div style={{ fontSize: 11, color: '#64748b' }}>Yanlış</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* English Test Detail */}
-                                    {scorecard?.englishTestScore !== null && scorecard?.englishTestScore !== undefined && (
-                                        <div style={{ marginTop: 16, background: '#f0f9ff', borderRadius: 12, padding: '16px', border: '1px solid #bae6fd' }}>
-                                            <h4 style={{ margin: '0 0 8px 0', color: '#0369a1', fontSize: 13 }}>🇬🇧 İngilizce Testi Sonucu</h4>
-                                            <div style={{ fontSize: 32, fontWeight: 800, color: '#0369a1' }}>{Number(scorecard.englishTestScore).toFixed(1)}<span style={{ fontSize: 14, color: '#64748b' }}> / 100</span></div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
 
                             {/* ═══ TAB: AI Feedback ═══ */}
                             {activeTab === 'feedback' && (
@@ -309,25 +306,25 @@ function CandidateDetailModal({ candidate, onClose }) {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                                                 <div style={{ background: '#f0fdf4', borderRadius: 12, padding: '16px', border: '1px solid #bbf7d0' }}>
-                                                    <h4 style={{ margin: '0 0 10px 0', color: '#166534', fontSize: 13 }}>💪 Güçlü Yönler</h4>
+                                                    <div style={{ fontSize: 11, color: '#15803d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Güçlü Yönler</div>
                                                     <p style={{ margin: 0, color: '#15803d', fontSize: 13, lineHeight: 1.7 }}>{scorecard.aiInterviewSummary.strengths || '—'}</p>
                                                 </div>
                                                 <div style={{ background: '#fff1f2', borderRadius: 12, padding: '16px', border: '1px solid #fecdd3' }}>
-                                                    <h4 style={{ margin: '0 0 10px 0', color: '#9f1239', fontSize: 13 }}>🔻 Gelişim Alanları</h4>
+                                                    <div style={{ fontSize: 11, color: '#be123c', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Gelişim Alanları</div>
                                                     <p style={{ margin: 0, color: '#be123c', fontSize: 13, lineHeight: 1.7 }}>{scorecard.aiInterviewSummary.weaknesses || '—'}</p>
                                                 </div>
                                             </div>
 
                                             {scorecard.aiInterviewSummary.overallFeedback && (
                                                 <div style={{ background: '#faf5ff', borderRadius: 12, padding: '16px', border: '1px solid #e9d5ff' }}>
-                                                    <h4 style={{ margin: '0 0 10px 0', color: '#6b21a8', fontSize: 13 }}>🤖 Genel AI Değerlendirmesi</h4>
+                                                    <div style={{ fontSize: 11, color: '#6b21a8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Genel AI Değerlendirmesi</div>
                                                     <p style={{ margin: 0, color: '#7c3aed', fontSize: 13, lineHeight: 1.7 }}>{scorecard.aiInterviewSummary.overallFeedback}</p>
                                                 </div>
                                             )}
 
                                             {scorecard.aiInterviewSummary.recommendation && (
                                                 <div style={{ background: '#fffbeb', borderRadius: 12, padding: '16px', border: '1px solid #fde68a' }}>
-                                                    <h4 style={{ margin: '0 0 10px 0', color: '#92400e', fontSize: 13 }}>💡 AI Tavsiyesi</h4>
+                                                    <div style={{ fontSize: 11, color: '#92400e', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>AI Tavsiyesi</div>
                                                     <p style={{ margin: 0, color: '#78350f', fontSize: 13, lineHeight: 1.7 }}>{scorecard.aiInterviewSummary.recommendation}</p>
                                                 </div>
                                             )}
@@ -365,28 +362,23 @@ function CandidateDetailModal({ candidate, onClose }) {
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                                         {/* Contact */}
                                         <div style={{ background: '#f8fafc', borderRadius: 12, padding: '18px', border: '1px solid #e2e8f0' }}>
-                                            <h4 style={{ margin: '0 0 14px 0', color: '#334155', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>📱 İletişim Bilgileri</h4>
+                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>İletişim Bilgileri</div>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: '#475569', lineHeight: 1.8 }}>
-                                                <div>✉️ <strong>Email:</strong>{' '}
+                                                <div><strong>Email:</strong>{' '}
                                                     {candidate.email ? <a href={`mailto:${candidate.email}`} style={{ color: '#4f46e5' }}>{candidate.email}</a> : '—'}
                                                 </div>
-                                                <div>📞 <strong>Telefon:</strong> {candidate.phone || '—'}</div>
-                                                <div>📍 <strong>Konum:</strong> {candidate.location || '—'}</div>
-                                                <div>🔗 <strong>LinkedIn:</strong>{' '}
+                                                <div><strong>Konum:</strong> {candidate.location || '—'}</div>
+                                                <div><strong>LinkedIn:</strong>{' '}
                                                     {candidate.linkedInProfile
                                                         ? <a href={candidate.linkedInProfile} target="_blank" rel="noopener noreferrer" style={{ color: '#4f46e5' }}>Profili Görüntüle</a>
                                                         : '—'}
                                                 </div>
-                                                <div>🗂️ <strong>Başvuru Tarihi:</strong>{' '}
-                                                    {candidate.applicationDate ? new Date(candidate.applicationDate).toLocaleDateString('tr-TR') : '—'}
-                                                </div>
-                                                <div>💼 <strong>Pozisyon:</strong> {candidate.jobTitle || '—'}</div>
                                             </div>
                                         </div>
 
                                         {/* Cover Letter */}
                                         <div style={{ background: '#f8fafc', borderRadius: 12, padding: '18px', border: '1px solid #e2e8f0' }}>
-                                            <h4 style={{ margin: '0 0 14px 0', color: '#334155', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>✍️ Ön Yazı</h4>
+                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Ön Yazı</div>
                                             <div style={{ background: '#fff', borderRadius: 8, padding: '14px', minHeight: 120, fontSize: 13, color: '#475569', fontStyle: 'italic', lineHeight: 1.7, border: '1px solid #e2e8f0' }}>
                                                 "{candidate.coverLetter || 'Aday bu başvuru için ön yazı eklemeyi tercih etmemiş.'}"
                                             </div>
@@ -423,7 +415,7 @@ function CandidateDetailModal({ candidate, onClose }) {
                                                 if (idx < currentIdx) { bg = '#48bb78'; textCol = '#fff'; borderCol = '#48bb78'; }
                                                 else if (idx === currentIdx) { bg = s.color + '22'; textCol = s.color; borderCol = s.color; }
                                             }
-                                            const mark = isCompleted ? '✓' : (isRejected && idx === currentIdx) ? '✕' : (idx < currentIdx ? '✓' : s.icon);
+                                            const mark = isCompleted ? '✓' : (isRejected && idx === currentIdx) ? '✕' : (idx < currentIdx ? '✓' : String(idx + 1));
                                             return (
                                                 <div key={s.key} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '0 0 auto', minWidth: 64 }}>
@@ -439,20 +431,10 @@ function CandidateDetailModal({ candidate, onClose }) {
                                     </div>
 
                                     {isRejected && candidate.rejectionReason && (
-                                        <div style={{ background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 10, padding: '14px 18px', color: '#c53030', fontSize: 13, marginBottom: 16 }}>
+                                        <div style={{ background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 10, padding: '14px 18px', color: '#c53030', fontSize: 13 }}>
                                             <strong>Elenme Sebebi:</strong> {candidate.rejectionReason}
                                         </div>
                                     )}
-
-                                    <div style={{ background: '#f8fafc', borderRadius: 12, padding: '16px', border: '1px solid #e2e8f0' }}>
-                                        <h4 style={{ margin: '0 0 12px 0', color: '#334155', fontSize: 13 }}>📋 Başvuru Bilgileri</h4>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 13, color: '#475569' }}>
-                                            <div><strong>Başvuru ID:</strong> {candidate.applicationId?.substring(0, 8).toUpperCase() || '—'}</div>
-                                            <div><strong>Mevcut Aşama:</strong> {currentStage?.replace(/_/g, ' ') || '—'}</div>
-                                            <div><strong>Başvuru Tarihi:</strong> {candidate.applicationDate ? new Date(candidate.applicationDate).toLocaleDateString('tr-TR') : '—'}</div>
-                                            <div><strong>NLP Uyum Skoru:</strong> %{Math.round(candidate.cvAnalysisScore ?? 0)}</div>
-                                        </div>
-                                    </div>
                                 </div>
                             )}
                         </>

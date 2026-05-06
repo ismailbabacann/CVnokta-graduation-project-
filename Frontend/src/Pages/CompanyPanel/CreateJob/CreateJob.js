@@ -109,6 +109,15 @@ function CreateJob() {
             });
 
             if (response.data) {
+                const cleanHtml = (text) => {
+                    if (!text) return '';
+                    return text.replace(/<li>/gi, '• ')
+                               .replace(/<\/li>/gi, '\n')
+                               .replace(/<\/?(ul|ol|p|strong|b|em|i)[^>]*>/gi, '')
+                               .replace(/\n\s*\n/g, '\n\n')
+                               .trim();
+                };
+
                 const aiData = response.data;
                 setFormData(prev => ({
                     ...prev,
@@ -117,11 +126,11 @@ function CreateJob() {
                     location: aiData.location || prev.location,
                     workType: aiData.workType || prev.workType,
                     workModel: aiData.workModel || prev.workModel,
-                    aboutCompany: aiData.aboutCompany || prev.aboutCompany,
-                    aboutRole: aiData.aboutRole || prev.aboutRole,
-                    responsibilities: aiData.responsibilities || prev.responsibilities,
-                    requiredQualifications: aiData.requiredQualifications || prev.requiredQualifications,
-                    benefits: Array.isArray(aiData.benefits) ? aiData.benefits.join(', ') : (aiData.benefits || prev.benefits)
+                    aboutCompany: cleanHtml(aiData.aboutCompany) || prev.aboutCompany,
+                    aboutRole: cleanHtml(aiData.aboutRole) || prev.aboutRole,
+                    responsibilities: cleanHtml(aiData.responsibilities) || prev.responsibilities,
+                    requiredQualifications: cleanHtml(aiData.requiredQualifications) || prev.requiredQualifications,
+                    benefits: Array.isArray(aiData.benefits) ? aiData.benefits.join(', ') : cleanHtml(aiData.benefits) || prev.benefits
                 }));
             }
         } catch (err) {

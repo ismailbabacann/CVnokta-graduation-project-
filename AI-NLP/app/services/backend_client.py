@@ -30,6 +30,7 @@ def _get_client() -> httpx.AsyncClient:
         _client = httpx.AsyncClient(
             timeout=httpx.Timeout(10.0, connect=5.0),
             verify=False,  # dev: backend uses self-signed cert on localhost
+            follow_redirects=True,
         )
     return _client
 

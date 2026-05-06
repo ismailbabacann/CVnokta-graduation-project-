@@ -135,7 +135,12 @@ namespace CleanArchitecture.Core.Features.Evaluations.Queries.GetCandidateRankin
                         AiInterviewScore = aiScore,
                         FinalWeightedScore = weighted,
                         ApplicationStatus = a.ApplicationStatus,
-                        LastUpdated = a.LastModified
+                        CurrentPipelineStage = a.CurrentPipelineStage,
+                        LastUpdated = a.LastModified,
+                        ApplicationDate = a.Created,
+                        Location = profile?.Location,
+                        LinkedInProfile = profile?.LinkedInProfile,
+                        CoverLetter = a.CoverLetter,
                     };
                 })
                 .OrderByDescending(r => r.FinalWeightedScore ?? 0)
