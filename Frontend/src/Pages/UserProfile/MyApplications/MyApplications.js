@@ -25,16 +25,16 @@ const STAGE_ORDER = {
 };
 
 const STAGE_MESSAGES = {
-    ENGLISH_TEST_PENDING:  { text: '📧 English assessment test information has been sent to your e-mail.', color: '#00b4db' },
-    SKILLS_TEST_PENDING:   { text: '📧 Skills test has been sent to your e-mail. Please complete the test.', color: '#ed8936' },
-    AI_INTERVIEW_PENDING:  { text: '🤖 You have moved to the AI Interview stage! Your interview link has been sent to your e-mail or you can access it by clicking the button below.', color: '#f5576c' },
-    NLP_REVIEW:            { text: 'Your application is under CV analysis and expert review.', color: '#667eea' },
-    COMPLETED:             { text: '🎉 Congratulations! You have successfully completed all stages. Necessary evaluations are being made.', color: '#48bb78' },
-    REJECTED_ENGLISH:      { text: 'Your evaluation concluded at the English test stage.', color: '#e53e3e' },
-    REJECTED_SKILLS:       { text: 'Your evaluation concluded at the general skills test stage.', color: '#e53e3e' },
-    REJECTED_AI:           { text: 'Your evaluation concluded at the AI interview stage.', color: '#e53e3e' },
-    REJECTED_NLP:          { text: 'Your evaluation concluded at the CV analysis stage.', color: '#e53e3e' },
-    REJECTED_MANUAL:       { text: 'Your evaluation has been completed by the HR team. Thank you for your application.', color: '#e53e3e' },
+    ENGLISH_TEST_PENDING:  { text: '📧 İngilizce değerlendirme sınavı bilgileriniz e-postanıza gönderilmiştir.', color: '#00b4db' },
+    SKILLS_TEST_PENDING:   { text: '📧 Beceri testi e-postanıza gönderildi. Lütfen sınavı tamamlayın.', color: '#ed8936' },
+    AI_INTERVIEW_PENDING:  { text: '🤖 AI Mülakat aşamasına geçtiniz! Mülakat linkiniz e-postanıza gönderildi veya aşağıdaki butona tıklayarak erişebilirsiniz.', color: '#f5576c' },
+    NLP_REVIEW:            { text: 'Başvurunuz CV analizi ve uzman incelemesindedir.', color: '#667eea' },
+    COMPLETED:             { text: '🎉 Tebrikler! Tüm aşamaları başarıyla tamamladınız. Gerekli değerlendirmeler yapılmaktadır.', color: '#48bb78' },
+    REJECTED_ENGLISH:      { text: 'İngilizce testi aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
+    REJECTED_SKILLS:       { text: 'Genel beceri testi aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
+    REJECTED_AI:           { text: 'AI mülakat aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
+    REJECTED_NLP:          { text: 'CV analiz aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
+    REJECTED_MANUAL:       { text: 'İK ekibi tarafından değerlendirmeniz tamamlandı. Başvurunuz için teşekkür ederiz.', color: '#e53e3e' },
 };
 
 function isRejected(stage) {
@@ -49,7 +49,7 @@ function PipelineStepper({ stage, rejectionReason }) {
     const currentIdx  = STAGE_ORDER[stage] ?? 0;
     const rejected    = isRejected(stage);
     const completed   = stage === 'COMPLETED';
-    const msgInfo     = STAGE_MESSAGES[stage] || { text: 'Your application is being processed.', color: '#667eea' };
+    const msgInfo     = STAGE_MESSAGES[stage] || { text: 'Başvurunuz işleme alındı.', color: '#667eea' };
 
     return (
         <div className={styles.pipelineWrapper}>
@@ -139,10 +139,12 @@ function MyApplications() {
                         interviewUrl: a.interviewToken
                             ? `/interview/${a.interviewToken}`
                             : null,
-                        // AI Interview feedback
+                        // AI Interview feedback (Legacy)
                         aiInterviewStrengths:  a.aiInterviewStrengths,
                         aiInterviewWeaknesses: a.aiInterviewWeaknesses,
                         aiInterviewSummary:    a.aiInterviewSummary,
+                        // Stage feedbacks from backend
+                        candidateFeedbacks:    a.candidateFeedbacks,
                     }));
 
                     setApplications(allData.filter(a => !isResult(a.stage)));
@@ -225,31 +227,77 @@ function MyApplications() {
                             </div>
                         )}
 
-                        {/* ── AI Interview Feedback (visible for COMPLETED / REJECTED_AI) ── */}
-                        {(completed || app.stage === 'REJECTED_AI') && (app.aiInterviewStrengths || app.aiInterviewWeaknesses || app.aiInterviewSummary) && (
-                            <div style={{ marginTop: 16 }}>
-                                <h4 style={{ margin: '0 0 12px 0', fontSize: 14, color: '#1e293b' }}>🤖 AI Interview Evaluation</h4>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                                    {app.aiInterviewStrengths && (
-                                        <div style={{ background: '#f0fdf4', borderRadius: 10, padding: 14, border: '1px solid #bbf7d0' }}>
-                                            <div style={{ fontWeight: 700, color: '#166534', fontSize: 12, marginBottom: 6 }}>💪 Your Strengths</div>
-                                            <p style={{ margin: 0, color: '#15803d', fontSize: 13, lineHeight: 1.6 }}>{app.aiInterviewStrengths}</p>
-                                        </div>
-                                    )}
-                                    {app.aiInterviewWeaknesses && (
-                                        <div style={{ background: '#fff1f2', borderRadius: 10, padding: 14, border: '1px solid #fecdd3' }}>
-                                            <div style={{ fontWeight: 700, color: '#9f1239', fontSize: 12, marginBottom: 6 }}>🔻 Areas for Development</div>
-                                            <p style={{ margin: 0, color: '#be123c', fontSize: 13, lineHeight: 1.6 }}>{app.aiInterviewWeaknesses}</p>
-                                        </div>
-                                    )}
+                        {/* ── Per-Stage Feedbacks (visible for COMPLETED / REJECTED_*) ── */}
+                        {(completed || rejected) && (
+                            app.candidateFeedbacks && app.candidateFeedbacks.length > 0 ? (
+                                <div style={{ marginTop: 16 }}>
+                                    {app.candidateFeedbacks.map((fb, idx) => {
+                                        const title = fb.stageType === 'CV_ANALYSIS' ? 'CV Analizi Değerlendirmesi'
+                                                    : fb.stageType === 'ENGLISH_TEST' ? 'İngilizce Testi Değerlendirmesi'
+                                                    : fb.stageType === 'SKILLS_TEST' ? 'Beceri Testi Değerlendirmesi'
+                                                    : fb.stageType === 'AI_INTERVIEW' ? 'AI Mülakat Değerlendirmesi'
+                                                    : fb.stageType === 'FINAL_SUMMARY' ? 'Genel Değerlendirme'
+                                                    : 'Değerlendirme';
+                                        
+                                        return (
+                                            <div key={idx} style={{ marginBottom: 16 }}>
+                                                <h4 style={{ margin: '0 0 12px 0', fontSize: 14, color: '#1e293b' }}>{title}</h4>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                                    {fb.candidateFeedback?.strengths?.length > 0 && (
+                                                        <div style={{ background: '#f0fdf4', borderRadius: 10, padding: 14, border: '1px solid #bbf7d0' }}>
+                                                            <div style={{ fontWeight: 700, color: '#166534', fontSize: 12, marginBottom: 6 }}>💪 Güçlü Yönleriniz</div>
+                                                            <ul style={{ margin: 0, paddingLeft: 20, color: '#15803d', fontSize: 13, lineHeight: 1.6 }}>
+                                                                {fb.candidateFeedback.strengths.map((str, i) => <li key={i}>{str}</li>)}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                    {fb.candidateFeedback?.weaknesses?.length > 0 && (
+                                                        <div style={{ background: '#fff1f2', borderRadius: 10, padding: 14, border: '1px solid #fecdd3' }}>
+                                                            <div style={{ fontWeight: 700, color: '#9f1239', fontSize: 12, marginBottom: 6 }}>🔻 Gelişim Alanlarınız</div>
+                                                            <ul style={{ margin: 0, paddingLeft: 20, color: '#be123c', fontSize: 13, lineHeight: 1.6 }}>
+                                                                {fb.candidateFeedback.weaknesses.map((wk, i) => <li key={i}>{wk}</li>)}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {fb.candidateFeedback?.overall && (
+                                                    <div style={{ marginTop: 10, background: '#f8fafc', borderRadius: 10, padding: 14, border: '1px solid #e2e8f0' }}>
+                                                        <div style={{ fontWeight: 700, color: '#475569', fontSize: 12, marginBottom: 6 }}>📋 Özet</div>
+                                                        <p style={{ margin: 0, color: '#334155', fontSize: 13, lineHeight: 1.6 }}>{fb.candidateFeedback.overall}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
-                                {app.aiInterviewSummary && (
-                                    <div style={{ marginTop: 10, background: '#f8fafc', borderRadius: 10, padding: 14, border: '1px solid #e2e8f0' }}>
-                                        <div style={{ fontWeight: 700, color: '#475569', fontSize: 12, marginBottom: 6 }}>📋 General Evaluation</div>
-                                        <p style={{ margin: 0, color: '#334155', fontSize: 13, lineHeight: 1.6 }}>{app.aiInterviewSummary}</p>
+                            ) : (
+                                /* Fallback if no stage feedbacks exist but we have legacy AI feedback */
+                                (app.aiInterviewStrengths || app.aiInterviewWeaknesses || app.aiInterviewSummary) && (
+                                    <div style={{ marginTop: 16 }}>
+                                        <h4 style={{ margin: '0 0 12px 0', fontSize: 14, color: '#1e293b' }}>🤖 AI Mülakat Değerlendirmesi</h4>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                            {app.aiInterviewStrengths && (
+                                                <div style={{ background: '#f0fdf4', borderRadius: 10, padding: 14, border: '1px solid #bbf7d0' }}>
+                                                    <div style={{ fontWeight: 700, color: '#166534', fontSize: 12, marginBottom: 6 }}>💪 Güçlü Yönleriniz</div>
+                                                    <p style={{ margin: 0, color: '#15803d', fontSize: 13, lineHeight: 1.6 }}>{app.aiInterviewStrengths}</p>
+                                                </div>
+                                            )}
+                                            {app.aiInterviewWeaknesses && (
+                                                <div style={{ background: '#fff1f2', borderRadius: 10, padding: 14, border: '1px solid #fecdd3' }}>
+                                                    <div style={{ fontWeight: 700, color: '#9f1239', fontSize: 12, marginBottom: 6 }}>🔻 Gelişim Alanlarınız</div>
+                                                    <p style={{ margin: 0, color: '#be123c', fontSize: 13, lineHeight: 1.6 }}>{app.aiInterviewWeaknesses}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {app.aiInterviewSummary && (
+                                            <div style={{ marginTop: 10, background: '#f8fafc', borderRadius: 10, padding: 14, border: '1px solid #e2e8f0' }}>
+                                                <div style={{ fontWeight: 700, color: '#475569', fontSize: 12, marginBottom: 6 }}>📋 Özet Değerlendirme</div>
+                                                <p style={{ margin: 0, color: '#334155', fontSize: 13, lineHeight: 1.6 }}>{app.aiInterviewSummary}</p>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
+                                )
+                            )
                         )}
                     </div>
                 )}
