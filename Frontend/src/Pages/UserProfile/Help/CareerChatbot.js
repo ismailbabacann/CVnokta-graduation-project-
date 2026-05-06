@@ -1,16 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './CareerChatbot.module.css';
 
-// Örnek hızlı sorular
+// Quick question examples
 const QUICK_QUESTIONS = [
-    'HR AI nedir?',
-    'Mülakat maili ne zaman gelir?',
-    'İyi CV nasıl olur?',
-    'Elenmemek için ne yapmalıyım?',
-    'Başvuru sürecim nasıl ilerliyor?',
+    'What is HR AI?',
+    'When will the interview email arrive?',
+    'How to write a good CV?',
+    'What should I do to avoid being eliminated?',
+    'How is my application process going?',
 ];
 
-const BOT_INTRO = 'Merhaba! 👋 Ben CVnokta Kariyer Asistanıyım. Başvuru süreci, CV hazırlama, mülakat ipuçları veya platform kullanımı hakkında her türlü sorunuzu yanıtlayabilirim. Size nasıl yardımcı olabilirim?';
+const BOT_INTRO = 'Hello! 👋 I am the HR AI Career Assistant. I can answer any questions about the application process, CV preparation, interview tips, or platform usage. How can I help you?';
 
 const AI_BASE_URL = process.env.REACT_APP_AI_NLP_BASE_URL || 'https://ozger0202-cvnokta-ai.hf.space';
 const CHATBOT_API_URL = `${AI_BASE_URL}/api/v1/chatbot/chat`;
@@ -27,7 +27,7 @@ function CareerChatbot() {
 
     const scrollToBottom = () => {
         if (messagesAreaRef.current) {
-            // Animasyonlu scroll için requestAnimationFrame veya setTimeout da eklenebilir ama basitçe:
+            // Simple smooth scroll to bottom:
             messagesAreaRef.current.scrollTo({
                 top: messagesAreaRef.current.scrollHeight,
                 behavior: 'smooth'
@@ -75,13 +75,13 @@ function CareerChatbot() {
             setMessages(prev => [...prev, {
                 role: 'assistant',
                 content: isRateLimit
-                    ? '⏳ Şu anda çok fazla istek var. Lütfen birkaç saniye bekleyip tekrar deneyin.'
-                    : '❌ Bağlantı hatası oluştu. Lütfen sayfayı yenileyip tekrar deneyin.',
+                    ? '⏳ Too many requests right now. Please wait a few seconds and try again.'
+                    : '❌ A connection error occurred. Please refresh the page and try again.',
                 isError: true,
             }]);
         } finally {
             setIsLoading(false);
-            // Input'a focuslanırken sayfanın yukarı kaymasını engeller
+            // Prevent page from scrolling up when focusing input
             inputRef.current?.focus({ preventScroll: true });
         }
     };
@@ -104,8 +104,8 @@ function CareerChatbot() {
             >
                 <span className={styles.toggleIcon}>🤖</span>
                 <div className={styles.toggleText}>
-                    <span className={styles.toggleTitle}>CV Kariyer Asistanı</span>
-                    <span className={styles.toggleSubtitle}>Sorularınızı yanıtlıyorum</span>
+                    <span className={styles.toggleTitle}>AI Career Assistant</span>
+                    <span className={styles.toggleSubtitle}>Answering your questions</span>
                 </div>
                 <span className={`${styles.toggleArrow} ${isOpen ? styles.arrowUp : ''}`}>▾</span>
             </button>
@@ -160,7 +160,7 @@ function CareerChatbot() {
                             ref={inputRef}
                             type="text"
                             className={styles.chatInput}
-                            placeholder="Sorunuzu yazın..."
+                            placeholder="Type your question..."
                             value={inputValue}
                             onChange={e => setInputValue(e.target.value)}
                             onKeyDown={handleKeyDown}
@@ -173,7 +173,7 @@ function CareerChatbot() {
                             onClick={() => sendMessage()}
                             disabled={isLoading || !inputValue.trim()}
                             id="chatbot-send-btn"
-                            aria-label="Gönder"
+                            aria-label="Send"
                         >
                             ➤
                         </button>

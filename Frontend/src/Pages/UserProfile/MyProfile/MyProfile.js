@@ -19,7 +19,7 @@ function MyProfile() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
-    // Cloudinary widget script'ini yükle
+    // Load Cloudinary widget script
     useEffect(() => {
         if (!document.getElementById('cloudinary-widget-script')) {
             const script = document.createElement('script');
@@ -69,12 +69,12 @@ function MyProfile() {
                     });
                     
                     if (p && p.cvUrl) {
-                        setCvInfo(p.cvUrl.split('/').pop() || 'Mevcut CV');
+                        setCvInfo(p.cvUrl.split('/').pop() || 'Current CV');
                         setCvUrl(p.cvUrl);
                     }
                 }
             } catch (err) {
-                console.error('Profil yükleme hatası:', err);
+                console.error('Profile loading error:', err);
             } finally {
                 setIsLoading(false);
             }
@@ -91,7 +91,7 @@ function MyProfile() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!candidateId) { alert("Lütfen giriş yapın."); return; }
+        if (!candidateId) { alert("Please log in."); return; }
         
         setIsSaving(true);
         try {
@@ -108,40 +108,40 @@ function MyProfile() {
             await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Candidates/${candidateId}`, updatePayload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Profil bilgileriniz başarıyla güncellendi!');
+            alert('Profile information updated successfully!');
         } catch (err) {
-            console.error('Güncelleme hatası:', err);
-            alert('Güncelleme sırasında bir hata oluştu.');
+            console.error('Update error:', err);
+            alert('An error occurred during the update.');
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleCvUpload = () => {
-        if (!candidateId) { alert('Lütfen giriş yapın.'); return; }
+        if (!candidateId) { alert('Please log in.'); return; }
 
         // Cloudinary Upload Widget
         if (!window.cloudinary) {
-            alert('Cloudinary yüklenemedi. Sayfayı yenileyip tekrar deneyin.');
+            alert('Cloudinary failed to load. Please refresh the page and try again.');
             return;
         }
 
         const widget = window.cloudinary.createUploadWidget(
             {
-                cloudName: 'dizjdaqgr',        // Cloudinary cloud adın
-                uploadPreset: 'cv_uploads', // Cloudinary unsigned preset adın
+                cloudName: 'dizjdaqgr',        // Your Cloudinary cloud name
+                uploadPreset: 'cv_uploads', // Your Cloudinary unsigned preset name
                 sources: ['local', 'url'],
-                resourceType: 'raw',            // PDF dosyası için raw
+                resourceType: 'raw',            // raw for PDF files
                 clientAllowedFormats: ['pdf', 'doc', 'docx'],
                 maxFileSize: 5000000,           // 5MB
                 multiple: false,
-                language: 'tr',
-                text: { tr: { or: 'veya', menu: { files: 'Dosya Seç', url: 'URL Gir' } } }
+                language: 'en',
+                text: { en: { or: 'or', menu: { files: 'Choose File', url: 'Enter URL' } } }
             },
             async (error, result) => {
                 if (error) {
-                    console.error('Cloudinary widget hatası:', error);
-                    alert('CV yüklenirken bir hata oluştu.');
+                    console.error('Cloudinary widget error:', error);
+                    alert('An error occurred while uploading the CV.');
                     return;
                 }
                 if (result && result.event === 'success') {
@@ -159,12 +159,12 @@ function MyProfile() {
                             headers: { Authorization: `Bearer ${token}` }
                         });
 
-                        alert('CV başarıyla yüklendi!');
+                        alert('CV uploaded successfully!');
                         setCvInfo(fileName);
                         setCvUrl(cloudinaryUrl);
                     } catch (err) {
-                        console.error('CV kaydetme hatası:', err);
-                        alert('CV Cloudinary\'e yüklendi fakat sisteme kaydedilemedi.');
+                        console.error('CV save error:', err);
+                        alert('CV uploaded to Cloudinary but could not be saved to the system.');
                     }
                 }
             }
@@ -173,80 +173,79 @@ function MyProfile() {
     };
 
 
-    if (isLoading) return <div style={{padding:'2rem'}}>Profil Yükleniyor...</div>;
+    if (isLoading) return <div style={{padding:'2rem'}}>Loading Profile...</div>;
 
     return (
         <div className={styles.profileContainer}>
             <div className={styles.header}>
-                <h2>Kişisel Bilgiler & Özgeçmiş</h2>
-                <p>İş başvurularınızda kullanılacak temel bilgilerinizi ve özgeçmişinizi buradan güncelleyebilirsiniz.</p>
+                <h2>Personal Information & CV</h2>
+                <p>You can update your basic information and CV to be used in job applications here.</p>
             </div>
 
             <form className={styles.formContainer} onSubmit={handleSubmit}>
                 <div className={styles.formSection}>
-                    <h3 className={styles.sectionTitle}>İletişim Bilgileri</h3>
+                    <h3 className={styles.sectionTitle}>Contact Information</h3>
                     <div className={styles.inputGrid}>
                         <div className={styles.inputGroup}>
-                            <label>Ad</label>
+                            <label>First Name</label>
                             <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} required />
                         </div>
                         <div className={styles.inputGroup}>
-                            <label>Soyad</label>
+                            <label>Last Name</label>
                             <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} required />
                         </div>
                         <div className={styles.inputGroup}>
-                            <label>E-posta</label>
+                            <label>Email</label>
                             <input type="email" name="email" value={formData.email} onChange={handleChange} required />
                         </div>
                         <div className={styles.inputGroup}>
-                            <label>Telefon</label>
+                            <label>Phone</label>
                             <input type="tel" name="phone" value={formData.phone} onChange={handleChange} />
                         </div>
                         <div className={styles.inputGroup}>
-                            <label>Lokasyon</label>
-                            <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="Örn: İstanbul" />
+                            <label>Location</label>
+                            <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="Ex: Istanbul" />
                         </div>
                         <div className={styles.inputGroup}>
-                            <label>LinkedIn Profil URL</label>
+                            <label>LinkedIn Profile URL</label>
                             <input type="url" name="linkedin" value={formData.linkedin} onChange={handleChange} placeholder="https://linkedin.com/in/..." />
                         </div>
                     </div>
                 </div>
 
                 <div className={styles.formSection}>
-                    <h3 className={styles.sectionTitle}>Dokümanlar & Önyazı</h3>
+                    <h3 className={styles.sectionTitle}>Documents & Cover Letter</h3>
                     
                     <div className={styles.inputGroup}>
-                        <label>Önyazı</label>
+                        <label>Cover Letter</label>
                         <textarea 
                             name="coverLetter" 
                             value={formData.coverLetter} 
                             onChange={handleChange}
                             rows="5"
-                            placeholder="Kendinizi kısaca tanıtın..."
+                            placeholder="Briefly introduce yourself..."
                         />
                     </div>
-
                     <div className={styles.inputGroup}>
-                        <label>Özgeçmiş (CV)</label>
+                        <label>Resume (CV)</label>
                         <div className={styles.fileUploadBox}>
                             <div className={styles.fileIcon}>📄</div>
                             <div className={styles.fileDetails}>
                                 {cvInfo ? (
                                     <>
-                                        <span className={styles.fileName}>Mevcut Yüklü CV: <strong>{cvInfo}</strong></span>
+                                        <span className={styles.fileName}>Currently Uploaded CV: <strong>{cvInfo}</strong></span>
                                         <div style={{ display: 'flex', gap: '10px' }}>
-                                            <a href={cvUrl} target="_blank" rel="noopener noreferrer" className={styles.viewBtn}>CV Görüntüle</a>
+                                            <a href={cvUrl} target="_blank" rel="noopener noreferrer" className={styles.viewBtn}>View CV</a>
                                             <button type="button" className={styles.uploadBtn} onClick={handleCvUpload}>
-                                                CV Güncelle
+                                                Update CV
                                             </button>
                                         </div>
                                     </>
                                 ) : (
                                     <>
-                                        <span className={styles.fileName}>Sisteminizde yüklenmiş bir CV bulunamadı. Lütfen ilanlara başvurmadan önce CV yükleyiniz.</span>
+                                        <span className={styles.fileName}>No CV found in your system. Please upload a CV before applying for jobs.</span>
                                         <button type="button" className={styles.uploadBtn} onClick={handleCvUpload}>
-                                            CV Yükle
+                                            Upload CV
                                         </button>
                                     </>
                                 )}
@@ -257,7 +256,7 @@ function MyProfile() {
 
                 <div className={styles.formActions}>
                     <button type="submit" className={styles.saveBtn} disabled={isSaving}>
-                        {isSaving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+                        {isSaving ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>
             </form>

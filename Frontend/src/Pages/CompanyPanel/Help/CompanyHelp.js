@@ -6,24 +6,24 @@ function CompanyHelp() {
 
     const questions = [
         {
-            q: "Yeni ilan nasıl oluşturulur?",
-            a: 'Panel sayfasında veya İş İlanları sekmesinde bulunan "+ Yeni İlan Oluştur" butonuna tıklayarak pozisyon detaylarını girip ilanı hızlıca aktif edebilirsiniz.'
+            q: "How do I create a new job posting?",
+            a: 'Click the "+ Create New Posting" button on the panel page or in the Job Postings tab. Enter the position details and quickly activate the posting.'
         },
         {
-            q: "Adayları ve ilanları nasıl takip ederim?",
-            a: 'İlgili ilana "İş İlanları" modülünden detaylarına basarak ("İlanı İncele") veya tüm platformdaki genel başvuruları görmek için "Aday Havuzu" menüsünden ulaşabilirsiniz. Gelen başvuruları farklı statülere (Reddedildi, Mülakata Davet vs.) taşıyabilirsiniz.'
+            q: "How do I track candidates and job postings?",
+            a: 'You can access the relevant posting from the "Job Postings" module by clicking its details ("Review Posting"), or view all platform applications from the "Candidate Pool" menu. You can move incoming applications to different statuses (Rejected, Interview Invite, etc.).'
         },
         {
-            q: "AI Test nasıl oluşturulur ve gönderilir?",
-            a: 'İş İlanları sayfasından İlanı İncele diyerek adayları listeleyin. Adayların başındaki kutucukları işaretleyip "Yetenek/AI Testi Ata" butonuna tıklayarak onlara konu belirterek (örneğin: C# Backend Mülakatı) AI tarafından sınav gönderilmesini sağlayabilirsiniz.'
+            q: "How do I create and send an AI Test?",
+            a: 'From the Job Postings page, click "Review Posting" to list candidates. Check the boxes next to candidates and click the "Assign Skills/AI Test" button to send AI-generated exams by specifying a topic (e.g., C# Backend Interview).'
         },
         {
-            q: "NLP Skoru ve Eşleşme Yüzdesi ne anlama gelir?",
-            a: 'Yapay Zeka (NLP) Skoru, ilandaki aranan nitelikler ile adayın sisteme yüklediği CV içerisindeki yetenek ve tecrübelerin anlamsal (semantic) eşleşme skorudur. %80 ve üzeri adaylar "Yüksek Uyum" olarak nitelendirilir ve daha verimli mülakatlar geçirmenize yardımcı olur.'
+            q: "What does the NLP Score and Match Percentage mean?",
+            a: 'The AI (NLP) Score is the semantic match score between the qualifications sought in the posting and the skills and experiences in the candidate\'s uploaded CV. Candidates with 80% and above are classified as "High Match" and help you conduct more efficient interviews.'
         },
         {
-            q: "Adayı nasıl elerim veya reddederim?",
-            a: 'Aday Havuzunda ilgili adayın detaylarını açtığınızda ekranda yer alan "Adayı Ele (Reddet)" butonu üzerinden adaylığı sonlandırabilirsiniz. Bu işlem, adayın başvuru durumunu REJECTED olarak güncelleyecektir.'
+            q: "How do I reject or eliminate a candidate?",
+            a: 'When you open the details of the relevant candidate in the Candidate Pool, you can terminate the candidacy via the "Reject Candidate" button on the screen. This action will update the candidate\'s application status to REJECTED.'
         }
     ];
 
@@ -33,13 +33,13 @@ function CompanyHelp() {
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-            <h1 style={{ color: '#2c3e50', marginBottom: '10px' }}>İşveren Asistanı ve Yardım</h1>
-            <p style={{ color: '#7f8c8d', marginBottom: '30px' }}>hr.ai işveren panelinde işlemlerinizi nasıl yapabileceğiniz hakkında sıkça sorulan sorular ve yapay zeka asistanı.</p>
+            <h1 style={{ color: '#2c3e50', marginBottom: '10px' }}>Employer Assistant & Help</h1>
+            <p style={{ color: '#7f8c8d', marginBottom: '30px' }}>FAQs about how to manage your operations in the hr.ai employer panel, along with the AI assistant.</p>
             
             {/* AI Chatbot Component */}
             <CompanyChatbot />
             
-            <h2 style={{ color: '#2c3e50', marginTop: '40px', marginBottom: '20px' }}>Sıkça Sorulan Sorular</h2>
+            <h2 style={{ color: '#2c3e50', marginTop: '40px', marginBottom: '20px' }}>Frequently Asked Questions</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 {questions.map((item, idx) => (
                     <div key={idx} style={{ background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
@@ -60,8 +60,8 @@ function CompanyHelp() {
             </div>
 
             <div style={{ marginTop: '40px', padding: '20px', background: '#eff6ff', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
-                <h3 style={{ margin: '0 0 10px 0', color: '#1d4ed8' }}>Hala Sorun Mu Yaşıyorsunuz?</h3>
-                <p style={{ margin: 0, color: '#3b82f6' }}>Lütfen sistem yöneticilerimizle <a href="mailto:support@hr.ai" style={{fontWeight: 'bold', color: '#1e40af'}}>support@hr.ai</a> üzerinden iletişime geçin.</p>
+                <h3 style={{ margin: '0 0 10px 0', color: '#1d4ed8' }}>Still Having Issues?</h3>
+                <p style={{ margin: 0, color: '#3b82f6' }}>Please contact our system administrators at <a href="mailto:support@hr.ai" style={{fontWeight: 'bold', color: '#1e40af'}}>support@hr.ai</a>.</p>
             </div>
         </div>
     );

@@ -62,7 +62,7 @@ function Header({ user }) {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           >
-            Ana Sayfa
+            Home
           </button>
 
           <button
@@ -72,7 +72,7 @@ function Header({ user }) {
               setTimeout(() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }), 100);
             }}
           >
-            Hakkımızda
+            About Us
           </button>
           
           <button
@@ -82,21 +82,21 @@ function Header({ user }) {
               setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100);
             }}
           >
-            S.S.S.
+            FAQ
           </button>
 
           <button
             className={`${styles.navLink} ${location.pathname === '/insights' ? styles.active : ''}`}
             onClick={() => navigate('/insights')}
           >
-            İstatistikler
+            Statistics
           </button>
           
           <button
             className={`${styles.navLink} ${location.pathname === '/jobs' ? styles.active : ''}`}
             onClick={() => navigate('/jobs')}
           >
-            Tüm İlanlar
+            All Jobs
           </button>
         </nav>
 
@@ -104,15 +104,15 @@ function Header({ user }) {
           {user ? (
             <button className={styles.accountBtn} onClick={() => navigate('/profile')}>
               <span className={styles.btnIcon}>👤</span>
-              <span className={styles.btnText}>Hesabım</span>
+              <span className={styles.btnText}>My Account</span>
             </button>
           ) : (
             <>
               <button className={styles.loginBtn} onClick={() => navigate('/login')}>
-                Giriş Yap
+                Log In
               </button>
               <button className={styles.signupBtn} onClick={() => navigate('/signup')}>
-                Kayıt Ol
+                Sign Up
               </button>
             </>
           )}

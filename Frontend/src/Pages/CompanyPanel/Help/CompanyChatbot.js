@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import styles from './CompanyChatbot.module.css';
 
-const BOT_INTRO = 'Merhaba! 👋 Ben hr.ai İşveren Asistanıyım. İlan oluşturma, aday değerlendirme, raporlama veya platform süreçleri hakkında her türlü sorunuzu yanıtlayabilirim.';
+const BOT_INTRO = 'Hello! 👋 I am the hr.ai Employer Assistant. I can answer any questions about posting jobs, evaluating candidates, reporting, or platform processes.';
 
 function CompanyChatbot() {
     const [messages, setMessages] = useState([
@@ -45,10 +45,10 @@ function CompanyChatbot() {
                 setMessages(prev => [...prev, { role: 'assistant', content: response.data.reply }]);
             }
         } catch (error) {
-            console.error('Chatbot hatası:', error);
+            console.error('Chatbot error:', error);
             setMessages(prev => [...prev, { 
                 role: 'assistant', 
-                content: 'Şu anda sistemde bir yoğunluk var, lütfen daha sonra tekrar deneyin.' 
+                content: 'The system is currently busy, please try again later.' 
             }]);
         } finally {
             setIsLoading(false);
@@ -101,10 +101,10 @@ function CompanyChatbot() {
                 {/* Quick question chips */}
                 {messages.length < 3 && (
                     <div className={styles.quickQuestions}>
-                        <button onClick={() => sendQuickQuestion('İlan nasıl verilir?')} className={styles.chip}>İlan Nasıl Verilir?</button>
-                        <button onClick={() => sendQuickQuestion('Adayları nasıl değerlendiriyorsunuz?')} className={styles.chip}>Değerlendirme Süreci</button>
-                        <button onClick={() => sendQuickQuestion('NLP nedir?')} className={styles.chip}>NLP Teknolojisi</button>
-                        <button onClick={() => sendQuickQuestion('Mülakatları sistem mi yapıyor?')} className={styles.chip}>AI Mülakat</button>
+                        <button onClick={() => sendQuickQuestion('How do I post a job?')} className={styles.chip}>How to Post a Job?</button>
+                        <button onClick={() => sendQuickQuestion('How do you evaluate candidates?')} className={styles.chip}>Evaluation Process</button>
+                        <button onClick={() => sendQuickQuestion('What is NLP?')} className={styles.chip}>NLP Technology</button>
+                        <button onClick={() => sendQuickQuestion('Does the system conduct interviews?')} className={styles.chip}>AI Interview</button>
                     </div>
                 )}
 
@@ -116,7 +116,7 @@ function CompanyChatbot() {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="İşveren asistanına soru sorun..."
+                        placeholder="Ask the employer assistant a question..."
                         rows={1}
                         disabled={isLoading}
                     />

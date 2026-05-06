@@ -27,7 +27,7 @@ function CompanyJobs() {
     const [selectedCandIds, setSelectedCandIds] = useState([]);
     const [isTestPromptOpen, setIsTestPromptOpen] = useState(false);
     const [testContext, setTestContext] = useState('');
-    const [testType, setTestType] = useState('AI Özel Test');
+    const [testType, setTestType] = useState('AI Custom Test');
     const [bulkLoading, setBulkLoading] = useState(false);
 
     // Pipeline tab states
@@ -77,10 +77,10 @@ function CompanyJobs() {
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            alert('Eşik değerleri kaydedildi.');
+            alert('Threshold values saved.');
             loadPipelineSummary(jobId);
         } catch (e) {
-            alert('Kayıt hatası: ' + (e.response?.data?.message || 'Bilinmeyen hata'));
+            alert('Save error: ' + (e.response?.data?.message || 'Unknown error'));
         } finally {
             setThresholdSaving(false);
         }
@@ -88,7 +88,7 @@ function CompanyJobs() {
 
     const handleAiBulkReject = async () => {
         if (!selectedJob) return;
-        if (!window.confirm(`NLP skoru %${aiRejectThreshold} altındaki adaylar elenecek. Devam edilsin mi?`)) return;
+        if (!window.confirm(`Candidates below NLP score ${aiRejectThreshold}% will be eliminated. Continue?`)) return;
         setAiRejectLoading(true);
         try {
             const token = localStorage.getItem('jwToken');
@@ -98,7 +98,7 @@ function CompanyJobs() {
                 .filter(c => (c.nlpMatchScore || 0) < aiRejectThreshold)
                 .map(c => c.applicationId);
             if (toReject.length === 0) {
-                alert('Bu eşiğin altında elenecek aday bulunamadı.');
+                alert('No candidates found below this threshold.');
                 setAiRejectLoading(false);
                 return;
             }
@@ -106,9 +106,9 @@ function CompanyJobs() {
                 { applicationIds: toReject, newStatus: 'Rejected' },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            alert(`${toReject.length} aday elendi ve bildirim mailleri gönderildi.`);
+            alert(`${toReject.length} candidates eliminated and notification emails sent.`);
             setAiRejectResults(toReject.length);
-            // Aday listesini ve pipeline özetini yenile
+            // Refresh candidate list and pipeline summary
             loadPipelineSummary(jobId);
             setModalLoading(true);
             try {
@@ -121,7 +121,7 @@ function CompanyJobs() {
                 setModalLoading(false);
             }
         } catch (e) {
-            alert('AI eleme hatası: ' + (e.response?.data?.message || 'Bilinmeyen hata'));
+            alert('AI elimination error: ' + (e.response?.data?.message || 'Unknown error'));
         } finally {
             setAiRejectLoading(false);
         }
@@ -177,7 +177,7 @@ function CompanyJobs() {
 
     const handleBulkStatusUpdate = async (newStatus) => {
         if (selectedCandIds.length === 0) {
-            alert("Lütfen işlem yapmak için en az bir aday seçiniz.");
+            alert("Please select at least one candidate to perform this action.");
             return;
         }
         try {
@@ -189,10 +189,10 @@ function CompanyJobs() {
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert("Seçili adayların durumu güncellendi ve otomatik bilgilendirme e-postaları gönderildi.");
+            alert("Selected candidates' status updated and automatic notification emails sent.");
             // Reset selection
             setSelectedCandIds([]);
-            // Aday listesini ve pipeline özetini yenile
+            // Refresh candidate list and pipeline summary
             const jobId = selectedJob?.jobId || selectedJob?.id;
             if (jobId) {
                 setModalLoading(true);
@@ -208,8 +208,8 @@ function CompanyJobs() {
                 loadPipelineSummary(jobId);
             }
         } catch (err) {
-            console.error("Toplu işlem hatası:", err);
-            alert("Toplu işlem veritabanına işlenirken bir hata oluştu.");
+            console.error("Bulk action error:", err);
+            alert("An error occurred while processing the bulk action.");
         } finally {
             setBulkLoading(false);
         }
@@ -217,11 +217,11 @@ function CompanyJobs() {
 
     const handleBulkGenerateTest = async () => {
         if (selectedCandIds.length === 0) {
-            alert("Lütfen test göndermek için en az bir aday seçiniz.");
+            alert("Please select at least one candidate to send the test.");
             return;
         }
-        if (testType === 'AI Özel Test' && !testContext.trim()) {
-            alert("Lütfen test bağlamını textarea içerisine yazın.");
+        if (testType === 'AI Custom Test' && !testContext.trim()) {
+            alert("Please write the test context in the textarea.");
             return;
         }
 
@@ -230,8 +230,8 @@ function CompanyJobs() {
             const token = localStorage.getItem('jwToken');
             
             let assignedContext = testContext;
-            if (testType === 'Genel Yetenek Testi') assignedContext = 'Adayların analitik sorgulama ve problem çözme becerilerini ölçen sorular.';
-            else if (testType === 'İngilizce Testi') assignedContext = 'Adayların iş ingilizcesi bilgilerini ölçen çoktan seçmeli sorular.';
+            if (testType === 'General Aptitude Test') assignedContext = 'Questions measuring candidates\' analytical reasoning and problem-solving skills.';
+            else if (testType === 'English Test') assignedContext = 'Multiple choice questions measuring candidates\' business English proficiency.';
 
             const testPayload = {
                 candidateApplicationIds: selectedCandIds,
@@ -241,14 +241,14 @@ function CompanyJobs() {
                  headers: { Authorization: `Bearer ${token}` }
             });
             
-            alert(`${selectedCandIds.length} adaya otomatik sınav maili gönderildi ve bağlam atandı.`);
+            alert(`Automatic exam email sent to ${selectedCandIds.length} candidates and context assigned.`);
             setIsTestPromptOpen(false);
             setTestContext('');
-            setTestType('AI Özel Test');
+            setTestType('AI Custom Test');
             setSelectedCandIds([]);
         } catch (err) {
-            console.error("Toplu test gönderme hatası:", err);
-            alert("Sınav oluşturulurken veya atanırken hata oluştu.");
+            console.error("Bulk test sending error:", err);
+            alert("An error occurred while creating or assigning the exam.");
         } finally {
             setBulkLoading(false);
         }
@@ -272,15 +272,15 @@ function CompanyJobs() {
             if (selectedJob && (selectedJob.jobId || selectedJob.id) === id) {
                 setSelectedJob(prev => ({ ...prev, status: makeActive ? 'Active' : 'Closed' }));
             }
-            alert(`İlan başarıyla ${makeActive ? 'aktif edildi' : 'pasife alındı'}.`);
+            alert(`Job posting successfully ${makeActive ? 'activated' : 'deactivated'}.`);
         } catch (err) {
             console.error(err);
-            alert('Durum güncellenirken bir hata oluştu.');
+            alert('An error occurred while updating status.');
         }
     };
 
     const handleDeleteJob = async () => {
-        if(window.confirm("Bu ilanı sistemden kaldırmak istediğinize emin misiniz?")) {
+        if(window.confirm("Are you sure you want to remove this posting from the system?")) {
             try {
                 const token = localStorage.getItem('jwToken');
                 const jobId = selectedJob.jobId || selectedJob.id;
@@ -291,10 +291,10 @@ function CompanyJobs() {
                 // Optimistically remove from list
                 setJobs(prevJobs => prevJobs.filter(j => (j.jobId || j.id) !== jobId));
                 closeModal();
-                alert("İlan başarıyla silindi.");
+                alert("Job posting successfully deleted.");
             } catch (err) {
                 console.error("Delete error:", err);
-                alert("İlan silinirken bir hata oluştu.");
+                alert("An error occurred while deleting the posting.");
             }
         }
     };
@@ -304,7 +304,7 @@ function CompanyJobs() {
             try {
                 const token = localStorage.getItem('jwToken');
                 if (!token) {
-                    setError('Oturum bulunamadı. Lütfen tekrar giriş yapın.');
+                    setError('Session not found. Please log in again.');
                     setLoading(false);
                     return;
                 }
@@ -330,9 +330,9 @@ function CompanyJobs() {
             } catch (err) {
                 console.error('Error fetching company jobs:', err);
                 if (err.response && err.response.status === 401) {
-                    setError("Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.");
+                    setError("Your session has expired. Please log in again.");
                 } else {
-                    setError("İlanlar yüklenirken bir hata oluştu.");
+                    setError("An error occurred while loading job postings.");
                 }
             } finally {
                 setLoading(false);
@@ -358,7 +358,7 @@ function CompanyJobs() {
     const departments = ['All', ...new Set(jobs.map(j => j.department).filter(Boolean))];
 
     const filteredJobs = jobs.filter(job => {
-        // İlan silindiyse veya "Beklemede/Pending" durumundaysa gösterme (Kullanıcı Talebi: silindiğinde ve beklemede gözükmesin)
+        // Don't show deleted or "Pending" postings (User requirement: hidden when deleted or pending)
         if (job.status === 'Deleted' || job.status === 'Pending' || job.isDeleted) return false;
 
         const matchesSearch = (job.jobTitle || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -390,11 +390,11 @@ function CompanyJobs() {
             {/* Header Area */}
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.title}>Aktif İş İlanları</h1>
-                    <p className={styles.subtitle}>Aday başvurularını yönetin ve yapay zeka destekli eşleşmeleri inceleyin.</p>
+                    <h1 className={styles.title}>Active Job Postings</h1>
+                    <p className={styles.subtitle}>Manage candidate applications and review AI-powered matches.</p>
                 </div>
                 <button className={styles.createBtn} onClick={() => navigate('/company/create-job')}>
-                    + Yeni İlan Oluştur
+                    + Create New Posting
                 </button>
             </div>
 
@@ -403,21 +403,21 @@ function CompanyJobs() {
                 <div className={styles.statCard}>
                     <div className={`${styles.iconBg} ${styles.blueBg}`}>👥</div>
                     <div className={styles.statInfo}>
-                        <span className={styles.statLabel}>Toplam Başvuru</span>
+                        <span className={styles.statLabel}>Total Applications</span>
                         <span className={styles.statValue}>{loading ? '...' : totalApps}</span>
                     </div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.iconBg} ${styles.purpleBg}`}>🧠</div>
                     <div className={styles.statInfo}>
-                        <span className={styles.statLabel}>Yüksek Eşleşme (NLP)</span>
+                        <span className={styles.statLabel}>High Match (NLP)</span>
                         <span className={styles.statValue}>{loading ? '...' : totalHighMatch}</span>
                     </div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.iconBg} ${styles.greenBg}`}>📢</div>
                     <div className={styles.statInfo}>
-                        <span className={styles.statLabel}>Aktif İlanlar</span>
+                        <span className={styles.statLabel}>Active Postings</span>
                         <span className={styles.statValue}>{loading ? '...' : activeCount}</span>
                     </div>
                 </div>
@@ -428,7 +428,7 @@ function CompanyJobs() {
                 <div className={styles.tableControls}>
                     <input
                         type="text"
-                        placeholder="İlan başlığı veya ID ile ara..."
+                        placeholder="Search by job title or ID..."
                         className={styles.searchInput}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -440,7 +440,7 @@ function CompanyJobs() {
                             onChange={(e) => setFilterDept(e.target.value)}
                         >
                             {departments.map(dept => (
-                                <option key={dept} value={dept}>{dept === 'All' ? 'Tüm Departmanlar' : dept}</option>
+                                <option key={dept} value={dept}>{dept === 'All' ? 'All Departments' : dept}</option>
                             ))}
                         </select>
                         <select
@@ -448,29 +448,29 @@ function CompanyJobs() {
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
                         >
-                            <option value="All">Durum: Tümü</option>
-                            <option value="Active">Aktif</option>
-                            <option value="Draft">Taslak</option>
+                            <option value="All">Status: All</option>
+                            <option value="Active">Active</option>
+                            <option value="Draft">Draft</option>
                         </select>
                     </div>
                 </div>
 
                 {loading ? (
-                    <div style={{ padding: '40px', textAlign: 'center' }}>İlanlar yükleniyor...</div>
+                    <div style={{ padding: '40px', textAlign: 'center' }}>Loading postings...</div>
                 ) : error ? (
                     <div style={{ padding: '40px', textAlign: 'center', color: 'red' }}>{error}</div>
                 ) : jobs.length === 0 ? (
-                    <div style={{ padding: '40px', textAlign: 'center' }}>Henüz ilan oluşturmadınız.</div>
+                    <div style={{ padding: '40px', textAlign: 'center' }}>You haven't created any postings yet.</div>
                 ) : (
                     <table className={styles.table}>
                         <thead>
                             <tr>
-                                <th>POZİSYON BAŞLIĞI</th>
-                                <th>DEPARTMAN & KONUM</th>
-                                <th>ADAY İSTATİSTİKLERİ</th>
-                                <th>NLP SKORU</th>
-                                <th>DURUM</th>
-                                <th>İNCELENDİ</th>
+                                <th>POSITION TITLE</th>
+                                <th>DEPARTMENT & LOCATION</th>
+                                <th>CANDIDATE STATS</th>
+                                <th>NLP SCORE</th>
+                                <th>STATUS</th>
+                                <th>REVIEW</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -486,29 +486,29 @@ function CompanyJobs() {
                                     </td>
                                     <td>
                                         <div className={styles.statsCol}>
-                                            <div className={styles.statGroup}><strong>{job.totalApplications || 0}</strong><span>Başvuru</span></div>
+                                            <div className={styles.statGroup}><strong>{job.totalApplications || 0}</strong><span>Applications</span></div>
                                         </div>
                                     </td>
                                     <td>
                                         {job.isDraft || job.status === 'Draft' ? (
-                                            <span style={{ color: '#f39c12', fontWeight: 'bold' }}>Hesaplanıyor...</span>
+                                            <span style={{ color: '#f39c12', fontWeight: 'bold' }}>Calculating...</span>
                                         ) : job.status === 'Deleted' ? (
                                             <span></span>
                                         ) : (
                                             <div className={styles.nlpWrapper}>
                                                 <span className={styles.nlpText} style={{fontWeight: '500'}}>
-                                                    %70 Üzeri Eşleşme: <span style={{color: '#20B2AA', fontWeight: 'bold'}}>{job.nlpHighMatchCount || 0} Aday</span>
+                                                    70%+ Match: <span style={{color: '#20B2AA', fontWeight: 'bold'}}>{job.nlpHighMatchCount || 0} Candidates</span>
                                                 </span>
                                             </div>
                                         )}
                                     </td>
                                     <td>
                                         <span className={`${styles.statusBadge} ${styles[job.status === 'Active' ? 'active' : job.status === 'Draft' ? 'draft' : 'pending']}`}>
-                                            {job.status === 'Active' && !job.isDraft ? 'Aktif' : job.status === 'Closed' ? 'Pasif' : 'Taslak'}
+                                            {job.status === 'Active' && !job.isDraft ? 'Active' : job.status === 'Closed' ? 'Closed' : 'Draft'}
                                         </span>
                                     </td>
                                     <td>
-                                        <span className={styles.actionLink} onClick={() => openJobModal(job)}>İlanı İncele</span>
+                                        <span className={styles.actionLink} onClick={() => openJobModal(job)}>Review Posting</span>
                                     </td>
                                 </tr>
                             ))}
@@ -516,7 +516,7 @@ function CompanyJobs() {
                     </table>
                 )}
                 <div className={styles.pagination}>
-                    <span>Toplam {filteredJobs.length} ilandan {(currentPage - 1) * ITEMS_PER_PAGE + 1} ile {Math.min(currentPage * ITEMS_PER_PAGE, filteredJobs.length)} arası gösteriliyor</span>
+                    <span>Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredJobs.length)} of {filteredJobs.length} postings</span>
                     {totalPages > 1 && (
                         <div className={styles.pageButtons}>
                             <button
@@ -546,7 +546,7 @@ function CompanyJobs() {
                 <div style={modalOverlayStyle}>
                     <div style={modalContentStyle}>
                         <div style={modalHeaderStyle}>
-                            <h2 style={{ margin: 0 }}>İlan Detayları: {selectedJob.jobTitle}</h2>
+                            <h2 style={{ margin: 0 }}>Posting Details: {selectedJob.jobTitle}</h2>
                             <button onClick={closeModal} style={closeBtnStyle}>X</button>
                         </div>
                         <div style={modalBodyStyle}>
@@ -555,7 +555,7 @@ function CompanyJobs() {
                                     <h3 style={{ margin: '0 0 5px 0' }}>{selectedJob.department} - {selectedJob.location}</h3>
                                     <p style={{ margin: 0, color: '#666' }}>ID: {formatDisplayId(selectedJob)}</p>
                                     <p style={{ margin: '5px 0 0 0', fontWeight: 'bold' }}>
-                                        Mevcut Durum: {selectedJob.status === 'Active' ? <span style={{color: 'green'}}>Aktif</span> : <span style={{color: 'orange'}}>{selectedJob.status}</span>}
+                                        Current Status: {selectedJob.status === 'Active' ? <span style={{color: 'green'}}>Active</span> : <span style={{color: 'orange'}}>{selectedJob.status}</span>}
                                     </p>
                                 </div>
                                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '500px' }}>
@@ -563,32 +563,32 @@ function CompanyJobs() {
                                         onClick={() => {
                                             const link = `${window.location.origin}/jobs/${selectedJob.jobId || selectedJob.id}`;
                                             navigator.clipboard.writeText(link);
-                                            alert("İlan linki kopyalandı!");
+                                            alert("Posting link copied!");
                                         }}
                                         style={{ ...actionBtnStyle, backgroundColor: '#f1c40f', color: '#333' }}
                                     >
-                                        🔗 Linki Kopyala
+                                        🔗 Copy Link
                                     </button>
                                     <button 
                                         onClick={() => navigate('/company/create-job', { state: { jobToCopy: selectedJob } })}
                                         style={{ ...actionBtnStyle, backgroundColor: '#3498db' }}
                                     >
-                                        📄 Şablonu Kullan
+                                        📄 Use as Template
                                     </button>
                                     <button 
                                         onClick={() => navigate('/company/create-job', { state: { jobToEdit: selectedJob } })}
                                         style={{ ...actionBtnStyle, backgroundColor: '#9b59b6' }}
                                     >
-                                        ✏️ İlanı Düzenle
+                                        ✏️ Edit Posting
                                     </button>
                                     <button 
                                         onClick={() => handleToggleStatus(selectedJob.jobId || selectedJob.id, selectedJob.status !== 'Active')}
                                         style={{ ...actionBtnStyle, backgroundColor: selectedJob.status === 'Active' ? '#f39c12' : '#2ecc71' }}
                                     >
-                                        {selectedJob.status === 'Active' ? '⏸ Pasife Al' : '▶️ Aktif Et'}
+                                        {selectedJob.status === 'Active' ? '⏸ Deactivate' : '▶️ Activate'}
                                     </button>
                                     <button onClick={handleDeleteJob} style={{ ...actionBtnStyle, backgroundColor: '#e74c3c' }}>
-                                        🗑️ İlanı Sil
+                                        🗑️ Delete Posting
                                     </button>
                                 </div>
                             </div>
@@ -605,7 +605,7 @@ function CompanyJobs() {
                                         borderBottom: modalTab === 'candidates' ? '3px solid #764ba2' : '3px solid transparent',
                                         fontSize: '14px'
                                     }}
-                                >👥 Adaylar ({jobCandidates.length})</button>
+                                >👥 Candidates ({jobCandidates.length})</button>
                                 <button
                                     onClick={() => setModalTab('pipeline')}
                                     style={{
@@ -614,25 +614,25 @@ function CompanyJobs() {
                                         borderBottom: modalTab === 'pipeline' ? '3px solid #764ba2' : '3px solid transparent',
                                         fontSize: '14px'
                                     }}
-                                >📊 Pipeline Durumu</button>
+                                >📊 Pipeline Status</button>
                             </div>
 
                             {/* Pipeline Tab */}
                             {modalTab === 'pipeline' && (
                                 <div>
                                     {pipelineLoading ? (
-                                        <p style={{ textAlign: 'center', color: '#666' }}>Pipeline verisi yükleniyor...</p>
+                                        <p style={{ textAlign: 'center', color: '#666' }}>Loading pipeline data...</p>
                                     ) : pipelineSummary ? (
                                         <div>
                                             {/* Stage counts */}
                                             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' }}>
                                                 {[
-                                                    { label: 'NLP İnceleme',    count: pipelineSummary.nlpReview,          color: '#667eea' },
-                                                    { label: 'Beceri Testi',    count: pipelineSummary.skillsTestPending,   color: '#ed8936' },
-                                                    { label: 'İngilizce Testi', count: pipelineSummary.englishTestPending,  color: '#00b4db' },
-                                                    { label: 'AI Mülakat',      count: pipelineSummary.aiInterviewPending,  color: '#f5576c' },
-                                                    { label: 'Tamamlanan',      count: pipelineSummary.completed,           color: '#48bb78' },
-                                                    { label: 'Elenen',          count: pipelineSummary.rejected,            color: '#e53e3e' },
+                                                    { label: 'NLP Review',      count: pipelineSummary.nlpReview,          color: '#667eea' },
+                                                    { label: 'Skills Test',     count: pipelineSummary.skillsTestPending,   color: '#ed8936' },
+                                                    { label: 'English Test',    count: pipelineSummary.englishTestPending,  color: '#00b4db' },
+                                                    { label: 'AI Interview',    count: pipelineSummary.aiInterviewPending,  color: '#f5576c' },
+                                                    { label: 'Completed',       count: pipelineSummary.completed,           color: '#48bb78' },
+                                                    { label: 'Rejected',        count: pipelineSummary.rejected,            color: '#e53e3e' },
                                                 ].map(({ label, count, color }) => (
                                                     <div key={label} style={{ flex: '1', minWidth: '100px', background: '#f8f9fa', borderRadius: '10px', padding: '14px 10px', textAlign: 'center', borderTop: `4px solid ${color}` }}>
                                                         <div style={{ fontSize: '22px', fontWeight: '700', color }}>{count ?? 0}</div>
@@ -644,20 +644,20 @@ function CompanyJobs() {
                                             {/* Threshold setting */}
                                             <div style={{ background: '#f8f9fa', borderRadius: '12px', padding: '18px', marginBottom: '20px' }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                                                    <h4 style={{ margin: 0, fontSize: '14px', color: '#333' }}>⚙️ Geçiş Eşiği</h4>
+                                                    <h4 style={{ margin: 0, fontSize: '14px', color: '#333' }}>⚙️ Pass Threshold</h4>
                                                     <button
                                                         onClick={handleSaveThreshold}
                                                         disabled={thresholdSaving}
                                                         style={{ padding: '7px 18px', background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}
-                                                    >{thresholdSaving ? 'Kaydediliyor...' : '💾 Kaydet'}</button>
+                                                    >{thresholdSaving ? 'Saving...' : '💾 Save'}</button>
                                                 </div>
-                                                <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#888' }}>Her aşama için ayrı geçiş eşiği belirleyin. Bu değere ulaşan adaylar otomatik olarak ileri alınır.</p>
+                                                <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#888' }}>Set a separate pass threshold for each stage. Candidates reaching this score are automatically advanced.</p>
                                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                                                     {[
-                                                        { key: 'cv',          label: '📄 CV Analizi',      color: '#667eea', default: 60 },
-                                                        { key: 'english',     label: '🇬🇧 İngilizce Testi', color: '#00b4db', default: 70 },
-                                                        { key: 'technical',   label: '🛠️ Teknik Test',     color: '#ed8936', default: 70 },
-                                                        { key: 'aiInterview', label: '🤖 AI Mülakat',      color: '#f5576c', default: 60 },
+                                                        { key: 'cv',          label: '📄 CV Analysis',       color: '#667eea', default: 60 },
+                                                        { key: 'english',     label: '🇱🇧 English Test',     color: '#00b4db', default: 70 },
+                                                        { key: 'technical',   label: '🛠️ Technical Test',   color: '#ed8936', default: 70 },
+                                                        { key: 'aiInterview', label: '🤖 AI Interview',     color: '#f5576c', default: 60 },
                                                     ].map(({ key, label, color, default: def }) => (
                                                         <div key={key} style={{ background: '#fff', borderRadius: '10px', padding: '14px', border: `2px solid ${color}20`, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                                             <span style={{ fontSize: '12px', fontWeight: '700', color }}>{label}</span>
@@ -669,7 +669,7 @@ function CompanyJobs() {
                                                                     style={{ width: '70px', padding: '6px', borderRadius: '8px', border: `2px solid ${color}`, fontSize: '18px', fontWeight: '700', textAlign: 'center', color }}
                                                                 />
                                                                 <span style={{ color: '#888', fontSize: '13px', fontWeight: '600' }}>%</span>
-                                                                <span style={{ fontSize: '11px', color: '#bbb' }}>Varsayılan: %{def}</span>
+                                                                <span style={{ fontSize: '11px', color: '#bbb' }}>Default: %{def}</span>
                                                             </div>
                                                         </div>
                                                     ))}
@@ -678,8 +678,8 @@ function CompanyJobs() {
 
                                             {/* Bulk actions */}
                                             <div style={{ background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: '10px', padding: '18px' }}>
-                                                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#c53030' }}>🤖 AI ile Ele</h4>
-                                                <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#666' }}>Belirttiğiniz NLP eşiğinin altındaki tüm adayları otomatik olarak eler ve bildirim maili gönderir.</p>
+                                                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#c53030' }}>🤖 AI Bulk Reject</h4>
+                                                <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#666' }}>Automatically eliminates all candidates below your specified NLP threshold and sends notification emails.</p>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                                                     <label style={{ fontSize: '13px', color: '#555', fontWeight: '600' }}>NLP &lt;</label>
                                                     <input
@@ -688,34 +688,34 @@ function CompanyJobs() {
                                                         onChange={e => setAiRejectThreshold(Number(e.target.value))}
                                                         style={{ width: '70px', padding: '8px', borderRadius: '8px', border: '2px solid #e53e3e', fontSize: '15px', fontWeight: '700', textAlign: 'center' }}
                                                     />
-                                                    <span style={{ color: '#555' }}>% olanları ele</span>
+                                                    <span style={{ color: '#555' }}>% reject those below</span>
                                                     <button
                                                         onClick={handleAiBulkReject}
                                                         disabled={aiRejectLoading}
                                                         style={{ padding: '8px 20px', background: 'linear-gradient(135deg,#e53e3e,#c53030)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
-                                                    >{aiRejectLoading ? 'İşleniyor...' : '🚫 AI ile Ele'}</button>
-                                                    {aiRejectResults !== null && <span style={{ color: '#48bb78', fontWeight: '600', fontSize: '13px' }}>✓ {aiRejectResults} aday elendi</span>}
+                                                    >{aiRejectLoading ? 'Processing...' : '🚫 AI Bulk Reject'}</button>
+                                                    {aiRejectResults !== null && <span style={{ color: '#48bb78', fontWeight: '600', fontSize: '13px' }}>✓ {aiRejectResults} candidates rejected</span>}
                                                 </div>
                                             </div>
                                         </div>
                                     ) : (
-                                        <p style={{ textAlign: 'center', color: '#aaa' }}>Pipeline verisi yok.</p>
+                                        <p style={{ textAlign: 'center', color: '#aaa' }}>No pipeline data available.</p>
                                     )}
                                 </div>
                             )}
 
                             {/* Candidates Tab */}
-                            {modalTab === 'candidates' && <h3 style={{marginBottom: '10px'}}>Bu İlana Başvuran Adaylar</h3>}
+                            {modalTab === 'candidates' && <h3 style={{marginBottom: '10px'}}>Candidates Who Applied to This Posting</h3>}
                             {modalLoading ? (
-                                <p style={{textAlign: 'center', color: '#666'}}>Adaylar yükleniyor...</p>
+                                <p style={{textAlign: 'center', color: '#666'}}>Loading candidates...</p>
                             ) : jobCandidates.length === 0 ? (
-                                <p style={{textAlign: 'center', color: '#666'}}>Bu ilana henüz başvuru yapılmamış.</p>
+                                <p style={{textAlign: 'center', color: '#666'}}>No applications have been made for this posting yet.</p>
                             ) : (
                                 <div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', alignItems: 'center' }}>
                                         <input 
                                             type="text" 
-                                            placeholder="Aday Ara..." 
+                                            placeholder="Search Candidate..." 
                                             value={candSearchTerm}
                                             onChange={(e) => setCandSearchTerm(e.target.value)}
                                             style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc', width: '250px' }}
@@ -723,14 +723,14 @@ function CompanyJobs() {
                                         <div style={{ display: 'flex', gap: '10px' }}>
                                             <button 
                                                 onClick={() => {
-                                                    if(window.confirm("Seçili adayları elemek istediğinize emin misiniz? Adaylara otomatik olarak Ret Maili gönderilecektir.")) {
+                                                    if(window.confirm("Are you sure you want to reject the selected candidates? Automatic rejection emails will be sent.")) {
                                                         handleBulkStatusUpdate('Rejected');
                                                     }
                                                 }}
                                                 style={{...actionBtnStyle, backgroundColor: '#e74c3c'}}
                                                 disabled={selectedCandIds.length === 0}
                                             >
-                                                🚫 Toplu Eleme ({selectedCandIds.length})
+                                                🚫 Bulk Reject ({selectedCandIds.length})
                                             </button>
                                         </div>
                                     </div>
@@ -739,39 +739,39 @@ function CompanyJobs() {
                                         <div style={{...modalOverlayStyle, zIndex: 1050, backdropFilter: 'blur(4px)'}}>
                                             <div style={{...modalContentStyle, width: '600px', borderRadius: '12px', overflow: 'hidden'}}>
                                                 <div style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)', padding: '20px', color: 'white' }}>
-                                                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>🤖 Sınav / Test Seçimi</h3>
+                                                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>🤖 Exam / Test Selection</h3>
                                                 </div>
                                                 <div style={{ padding: '25px', backgroundColor: '#f8fafc' }}>
                                                     <p style={{ marginBottom: '15px', color: '#475569' }}>
-                                                        Seçilen <strong>{selectedCandIds.length} aday</strong> için atanacak test tipini belirleyin. Standart testler veya AI destekli özel bağlam oluşturabilirsiniz.
+                                                        Select the <strong>{selectedCandIds.length} candidates</strong> test type to assign. You can create standard tests or AI-powered custom contexts.
                                                     </p>
-                                                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#334155' }}>Sınav Türü Seçin:</label>
+                                                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#334155' }}>Select Test Type:</label>
                                                     <select 
                                                         value={testType} 
                                                         onChange={(e) => setTestType(e.target.value)} 
                                                         style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '20px' }}
                                                     >
-                                                        <option value="Genel Yetenek Testi">Genel Yetenek Testi</option>
-                                                        <option value="İngilizce Testi">İngilizce Testi</option>
-                                                        <option value="AI Özel Test">🤖 AI İle Özel Test Oluştur</option>
+                                                        <option value="General Aptitude Test">General Aptitude Test</option>
+                                                        <option value="English Test">English Test</option>
+                                                        <option value="AI Custom Test">🤖 Create Custom AI Test</option>
                                                     </select>
 
-                                                    {testType === 'AI Özel Test' && (
+                                                    {testType === 'AI Custom Test' && (
                                                         <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-                                                            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#334155' }}>Bağlam ve Sorularınız:</label>
+                                                            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#334155' }}>Context and Questions:</label>
                                                             <textarea 
                                                                 value={testContext}
                                                                 onChange={e => setTestContext(e.target.value)}
-                                                                placeholder="AI'ın baz alacağı mülakat bağlamını veya spesifik soruları buraya yazın..."
+                                                                placeholder="Write the interview context or specific questions for the AI to use as a base..."
                                                                 style={{ width: '100%', minHeight: '100px', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '10px', resize: 'vertical' }}
                                                             />
                                                         </div>
                                                     )}
 
                                                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
-                                                        <button onClick={() => setIsTestPromptOpen(false)} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 'bold' }}>İptal</button>
+                                                        <button onClick={() => setIsTestPromptOpen(false)} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 'bold' }}>Cancel</button>
                                                         <button onClick={handleBulkGenerateTest} disabled={bulkLoading} style={{ padding: '10px 20px', backgroundColor: '#8b5cf6', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                            {bulkLoading ? 'Gönderiliyor...' : '🚀 Testleri Gönder'}
+                                                            {bulkLoading ? 'Sending...' : '🚀 Send Tests'}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -789,9 +789,9 @@ function CompanyJobs() {
                                                         onChange={() => handleSelectAll(jobCandidates.filter(c => (c.firstName + ' ' + c.lastName).toLowerCase().includes(candSearchTerm.toLowerCase())))}
                                                     />
                                                 </th>
-                                                <th>ADAY</th>
-                                                <th>NLP SKORU</th>
-                                                <th>AKSİYON</th>
+                                                <th>CANDIDATE</th>
+                                                <th>NLP SCORE</th>
+                                                <th>ACTION</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -806,7 +806,7 @@ function CompanyJobs() {
                                                     </td>
                                                     <td>
                                                         <strong>{cand.firstName} {cand.lastName}</strong><br/>
-                                                        <span style={{fontSize: '12px', color: '#666'}}>{cand.email || 'Email yok'}</span>
+                                                        <span style={{fontSize: '12px', color: '#666'}}>{cand.email || 'No email'}</span>
                                                     </td>
                                                     <td>
                                                         <span style={{fontWeight: 'bold', color: cand.nlpMatchScore >= 75 ? '#20B2AA' : '#f39c12'}}>
@@ -814,7 +814,7 @@ function CompanyJobs() {
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <span className={styles.actionLink} onClick={() => navigate('/company/candidates')}>Havuzda Gör</span>
+                                                        <span className={styles.actionLink} onClick={() => navigate('/company/candidates')}>View in Pool</span>
                                                     </td>
                                                 </tr>
                                             ))}

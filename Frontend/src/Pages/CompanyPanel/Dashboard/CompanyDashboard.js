@@ -8,37 +8,36 @@ function CompanyDashboard() {
                 <div className={styles.welcomeContent}>
                     <div className={styles.badge}>
                         <span className={styles.sparkleIcon}>✨</span> 
-                        İşveren Portalı
+                        Employer Portal
                     </div>
                     <h1 className={styles.welcomeTitle}>
-                        İşe Alım Süreçlerinizi<br/>
-                        <span className={styles.textHighlight}>Yapay Zeka ile Hızlandırın</span>
+                        Accelerate Your Recruitment<br/>
+                        <span className={styles.textHighlight}>Processes with AI</span>
                     </h1>
                     <p className={styles.welcomeText}>
-                        <b>hr.ai</b> platformuna hoş geldiniz. Akıllı algoritmalarımız sayesinde 
-                        aday filtreleme, yetkinlik analizi ve mülakat organizasyonlarını tek tıkla yönetin.
+                        Welcome to the <b>hr.ai</b> platform. Manage candidate filtering, competency analysis, and interview organizations with a single click thanks to our smart algorithms.
                     </p>
                     
                     <div className={styles.statsContainer}>
                         <div className={styles.statBox}>
                             <div className={styles.statIcon}>📝</div>
                             <div className={styles.statInfo}>
-                                <h3>Otomatik Analiz</h3>
-                                <p>Saniyeler içinde CV taraması</p>
+                                <h3>Automated Analysis</h3>
+                                <p>CV scanning in seconds</p>
                             </div>
                         </div>
                         <div className={styles.statBox}>
                             <div className={styles.statIcon}>🎯</div>
                             <div className={styles.statInfo}>
-                                <h3>Doğru Eşleşme</h3>
-                                <p>İlana en uygun adaylar</p>
+                                <h3>Accurate Matching</h3>
+                                <p>Most suitable candidates for the job</p>
                             </div>
                         </div>
                         <div className={styles.statBox}>
                             <div className={styles.statIcon}>📊</div>
                             <div className={styles.statInfo}>
-                                <h3>Detaylı Raporlar</h3>
-                                <p>Veriye dayalı karar alma</p>
+                                <h3>Detailed Reports</h3>
+                                <p>Data-driven decision making</p>
                             </div>
                         </div>
                     </div>

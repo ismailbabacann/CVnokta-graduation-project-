@@ -34,7 +34,7 @@ function ProfileJobs() {
                 setError(null);
             } catch (err) {
                 console.error('Error fetching public jobs:', err);
-                setError('İş ilanları yüklenirken bir sorun oluştu.');
+                setError('There was a problem loading job postings.');
             } finally {
                 setLoading(false);
             }
@@ -81,16 +81,16 @@ function ProfileJobs() {
     return (
         <div className={styles.jobsContainer}>
             <div className={styles.header}>
-                <h2>Tüm İlanlar</h2>
-                <p>Kariyeriniz için en uygun ilanları keşfedin.</p>
+                <h2>All Jobs</h2>
+                <p>Discover the most suitable jobs for your career.</p>
             </div>
 
             <div className={styles.filtersPanel}>
                 <div className={styles.filterGroup}>
-                    <label>Pozisyon veya Şirket Ara</label>
+                    <label>Search Position or Company</label>
                     <input 
                         type="text" 
-                        placeholder="Örn: Frontend Developer..." 
+                        placeholder="Ex: Frontend Developer..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className={styles.filterInput}
@@ -98,13 +98,13 @@ function ProfileJobs() {
                 </div>
                 
                 <div className={styles.filterGroup}>
-                    <label>Lokasyon</label>
+                    <label>Location</label>
                     <select 
                         value={locationFilter} 
                         onChange={(e) => setLocationFilter(e.target.value)}
                         className={styles.filterSelect}
                     >
-                        <option value="">Tümü</option>
+                        <option value="">All</option>
                         {uniqueLocations.map(loc => (
                             <option key={loc} value={loc}>{loc}</option>
                         ))}
@@ -112,25 +112,25 @@ function ProfileJobs() {
                 </div>
 
                 <div className={styles.filterGroup}>
-                    <label>Sıralama</label>
+                    <label>Sort By</label>
                     <select 
                         value={sortOrder} 
                         onChange={(e) => setSortOrder(e.target.value)}
                         className={styles.filterSelect}
                     >
-                        <option value="newest">En Yeni İlanlar</option>
-                        <option value="oldest">En Eski İlanlar</option>
+                        <option value="newest">Newest Jobs</option>
+                        <option value="oldest">Oldest Jobs</option>
                     </select>
                 </div>
             </div>
 
             <div className={styles.jobList}>
                 {loading ? (
-                    <div className={styles.messageState}>İlanlar yükleniyor...</div>
+                    <div className={styles.messageState}>Loading jobs...</div>
                 ) : error ? (
                     <div className={`${styles.messageState} ${styles.error}`}>{error}</div>
                 ) : filteredJobs.length === 0 ? (
-                    <div className={styles.messageState}>Arama kriterlerinize uygun ilan bulunamadı.</div>
+                    <div className={styles.messageState}>No jobs found matching your search criteria.</div>
                 ) : (
                     filteredJobs.map((job) => (
                         <div key={job.id} className={styles.jobCard}>
@@ -142,25 +142,25 @@ function ProfileJobs() {
                                     <h3 className={styles.jobTitle}>{job.jobTitle}</h3>
                                     <span className={styles.workType}>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                                        {job.workType || 'Tam Zamanlı'}
+                                        {job.workType || 'Full Time'}
                                     </span>
                                 </div>
                             </div>
                             
                             <p className={styles.jobDesc}>
-                                {job.department ? `${job.department} Departmanı` : 'Detaylar için ilanı inceleyin.'}
+                                {job.department ? `${job.department} Department` : 'Review the posting for details.'}
                             </p>
                             
                             <div className={styles.cardFooter}>
                                 <div className={styles.location}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 15 4 10a8 8 0 0 1 16 0" /><circle cx="12" cy="10" r="3" /></svg>
-                                    {job.location || 'Belirtilmedi'}
+                                    {job.location || 'Not specified'}
                                 </div>
                                 <button
                                     className={styles.applyBtn}
                                     onClick={() => handleApplyClick(job.id)}
                                 >
-                                    İncele ve Başvur
+                                    Review & Apply
                                 </button>
                             </div>
                         </div>

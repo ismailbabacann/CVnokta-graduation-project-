@@ -39,7 +39,7 @@ function App() {
     const token = localStorage.getItem('jwToken');
     const userName = localStorage.getItem('userName');
     if (token) {
-      setUser({ userName: userName || 'Kullanıcı' });
+      setUser({ userName: userName || 'User' });
     }
   }, []);
 

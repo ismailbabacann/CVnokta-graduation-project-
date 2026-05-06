@@ -19,7 +19,7 @@ function JobView() {
         setError(null);
       } catch (err) {
         console.error('Error fetching job details:', err);
-        setError('İş ilanı bulunamadı veya bir hata oluştu.');
+        setError('Job posting not found or an error occurred.');
       } finally {
         setLoading(false);
       }
@@ -31,21 +31,21 @@ function JobView() {
   const handleApplyClick = () => {
     const token = localStorage.getItem('jwToken');
     if (token) {
-      // Eğer kullanıcı giriş yapmışsa, profilindeki iş ilanı detayına (oradan hızlı başvuruya) yönlendir
+      // If user is logged in, redirect to job detail in profile (for quick apply)
       navigate(`/profile/jobs/${id}`);
     } else {
-      // Giriş yapmamışsa herkese açık başvuru formuna yönlendir
+      // If not logged in, redirect to public application form
       navigate(`/apply/${id}`);
     }
     window.scrollTo(0, 0);
   };
 
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: '100px' }}>Yükleniyor...</div>;
+    return <div style={{ textAlign: 'center', padding: '100px' }}>Loading...</div>;
   }
 
   if (error || !job) {
-    return <div style={{ textAlign: 'center', padding: '100px', color: 'red' }}>{error || 'İlan bulunamadı.'}</div>;
+    return <div style={{ textAlign: 'center', padding: '100px', color: 'red' }}>{error || 'Posting not found.'}</div>;
   }
 
   return (
@@ -99,7 +99,7 @@ function JobView() {
         </button>
       ) : (
         <button className="apply-button" style={{backgroundColor: '#ccc', cursor: 'not-allowed', color: '#666'}} disabled>
-          İlan Kapalıdır (Closed)
+          Closed
         </button>
       )}
     </div>

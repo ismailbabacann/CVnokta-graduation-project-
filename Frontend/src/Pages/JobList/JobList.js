@@ -27,7 +27,7 @@ function JobList() {
                 setError(null);
             } catch (err) {
                 console.error('Error fetching public jobs:', err);
-                setError('İş ilanları yüklenirken bir sorun oluştu.');
+                setError('There was a problem loading job postings.');
             } finally {
                 setLoading(false);
             }
@@ -45,7 +45,7 @@ function JobList() {
             <div className="job-list">
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '50px', width: '100%', color: '#666' }}>
-                        İlanlar yükleniyor...
+                        Loading jobs...
                     </div>
                 ) : error ? (
                     <div style={{ textAlign: 'center', padding: '50px', width: '100%', color: 'red' }}>
@@ -53,7 +53,7 @@ function JobList() {
                     </div>
                 ) : jobs.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '50px', width: '100%', color: '#666' }}>
-                        Şu anda aktif bir iş ilanı bulunmamaktadır.
+                        There are currently no active job postings.
                     </div>
                 ) : (
                     jobs.map((job) => (
@@ -73,13 +73,13 @@ function JobList() {
 
                             <p className="job-description">
                                 {/* The backend might not send a full description in the summary view, fallback to department */}
-                                {job.department ? `${job.department} Departmanı` : 'Detaylar için ilanı inceleyin.'}
+                                {job.department ? `${job.department} Department` : 'Review the posting for details.'}
                             </p>
 
                             <div className="job-card-footer">
                                 <div className="job-location">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 15 4 10a8 8 0 0 1 16 0" /><circle cx="12" cy="10" r="3" /></svg>
-                                    {job.location || 'Belirtilmedi'}
+                                    {job.location || 'Not specified'}
                                 </div>
                                 <button
                                     className="apply-now-btn"
