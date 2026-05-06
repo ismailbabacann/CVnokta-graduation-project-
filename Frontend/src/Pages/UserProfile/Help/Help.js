@@ -7,63 +7,63 @@ function Help() {
 
     const faqs = [
         {
-            title: 'Başvuru süreci nasıl ilerler?',
+            title: 'How does the application process work?',
             content: (
                 <>
-                    <p>İş başvuru sürecimiz adil, şeffaf ve yetenek bazlı bir değerlendirme üzerine kuruludur. Bir ilana başvurduktan sonraki aşamalar genellikle şu şekildedir:</p>
+                    <p>Our job application process is based on a fair, transparent, and talent-based evaluation. After applying for a job, the stages are generally as follows:</p>
                     <ul>
-                        <li><strong>Özgeçmiş İncelemesi:</strong> Başvurunuz sisteme ulaştığı anda doğrudan İnsan Kaynakları (İK) departmanımıza veya ilgili pozisyon yöneticisine iletilir. İK uzmanlarımız başvurunuzu ilanın gerekliliklerine göre detaylı bir şekilde değerlendirir.</li>
-                        <li><strong>Ön Görüşme (Telefon / Online):</strong> Özgeçmişi olumlu bulunan adaylar, kısa bir ön görüşme için aranır. Bu aşamada yetkinlikleriniz, kariyer hedefleriniz ve beklentileriniz üzerine odaklanılır.</li>
-                        <li><strong>Teknik / Yetkinlik Bazlı Mülakatlar:</strong> İlgili departman yöneticileriyle yapılan daha kapsamlı bir görüşmedir. Bu aşamada teknik bilginiz veya role uygun yetkinlikleriniz değerlendirilir. Bazı teknik pozisyonlar için bir vaka çalışması (case study) veya test gönderilebilir.</li>
-                        <li><strong>Teklif Aşaması:</strong> Tüm aşamaları başarıyla tamamlayan adaylara resmi bir iş teklifi sunulur. Onayınız ile birlikte işe alım süreciniz başlatılır.</li>
+                        <li><strong>Resume Review:</strong> As soon as your application reaches the system, it is forwarded to our Human Resources (HR) department or the relevant position manager. Our HR specialists evaluate your application in detail according to the job requirements.</li>
+                        <li><strong>Pre-Interview (Phone / Online):</strong> Candidates whose resumes are found favorable are contacted for a brief pre-interview. This stage focuses on your competencies, career goals, and expectations.</li>
+                        <li><strong>Technical / Competency-Based Interviews:</strong> A more comprehensive interview conducted with relevant department managers. At this stage, your technical knowledge or role-specific competencies are evaluated. For some technical positions, a case study or test may be sent.</li>
+                        <li><strong>Offer Stage:</strong> Candidates who successfully complete all stages receive an official job offer. Your hiring process begins with your approval.</li>
                     </ul>
-                    <p>Tüm süreç boyunca her aşamada sizi bilgilendiriyor olacağız. Başvuru durumunuzu "Sonuçlarım" sekmesinden anlık olarak takip edebilirsiniz.</p>
+                    <p>We will keep you informed at every stage throughout the process. You can track your application status in real-time from the "My Results" tab.</p>
                 </>
             )
         },
         {
-            title: 'Nasıl CV hazırlamalısın?',
+            title: 'How should you prepare your CV?',
             content: (
                 <>
-                    <p>Etkili bir CV, kariyer hedefinize giden yolda ilk izleniminizdir. Başarılı bir CV hazırlarken şunlara dikkat etmeniz önerilir:</p>
+                    <p>An effective CV is your first impression on the path to your career goal. When preparing a successful CV, the following is recommended:</p>
                     <ul>
-                        <li><strong>Kısa ve Öz Olun:</strong> İdeal bir CV, genellikle bir veya maksimum iki sayfadan oluşmalıdır. Gereksiz veya başvurduğunuz pozisyonla ilgisiz detaylardan kaçının.</li>
-                        <li><strong>Başarı Odaklı Olun:</strong> Yalnızca günlük görevlerinizi yazmak yerine, elde ettiğiniz somut başarıları (metriklerle destekleyerek) vurgulayın. Örn: "Satışları %20 artırdım".</li>
-                        <li><strong>Güncel İletişim Bilgileri:</strong> Telefon numaranız, profesyonel bir e-posta adresiniz ve LinkedIn profil bağlantınızın doğru olduğundan emin olun.</li>
-                        <li><strong>Okunabilirlik:</strong> Görsel karmaşadan uzak durun. Bilgilerinizi ters kronolojik sıra (en son deneyimden eskiye doğru) ile listeleyin. Okunması kolay yazı tipleri kullanın.</li>
-                        <li><strong>Anahtar Kelimeler:</strong> İş ilanında yer alan önemli kelimeleri ve yetkinlikleri CV'nizde (özellikle yetenekler veya profil özeti bölümünde) barındırın.</li>
+                        <li><strong>Be Brief and Concise:</strong> An ideal CV should generally consist of one or a maximum of two pages. Avoid unnecessary details or information unrelated to the position you are applying for.</li>
+                        <li><strong>Be Achievement-Oriented:</strong> Instead of just writing about your daily tasks, highlight concrete achievements (supported by metrics). E.g.: "Increased sales by 20%".</li>
+                        <li><strong>Up-to-date Contact Information:</strong> Make sure your phone number, professional email address, and LinkedIn profile link are correct.</li>
+                        <li><strong>Readability:</strong> Stay away from visual clutter. List your information in reverse chronological order (from most recent experience to oldest). Use easy-to-read fonts.</li>
+                        <li><strong>Keywords:</strong> Include important keywords and competencies from the job listing in your CV (especially in the skills or profile summary section).</li>
                     </ul>
-                    <p>Sistemimizdeki <strong>Profilim</strong> sayfasında yer alan zorunlu alanları eksiksiz bir şekilde doldurmanız, başvuru yaptığınız ilanlarda otomatik olarak CV'nizin doğru bir taslağını oluşturmamıza yardımcı olacaktır.</p>
+                    <p>Filling in all required fields on the <strong>My Profile</strong> page in our system will help us automatically create an accurate draft of your CV for the jobs you apply for.</p>
                 </>
             )
         },
         {
-            title: 'Başvuru dönüşleri nasıl yapılır?',
+            title: 'How are application responses handled?',
             content: (
                 <>
-                    <p>Adaylarımıza geri bildirim vermek, bizim için sürecin en önemli parçalarından biridir.</p>
-                    <p>Başvurunuzla ilgili bir gelişme olduğunda şu yollarla bilgilendirilirsiniz:</p>
+                    <p>Providing feedback to our candidates is one of the most important parts of the process for us.</p>
+                    <p>When there is a development regarding your application, you will be notified through the following methods:</p>
                     <ul>
-                        <li><strong>Sistem İçi Bildirimler:</strong> Aday havuzunda durumunuz güncellendiğinde (Örn: "Değerlendirmede", "İncelendi", veya "Kabul Edildi") bu durumu <strong>Başvurduğum İlanlar > Sonuçlarım</strong> sayfasından görebilirsiniz.</li>
-                        <li><strong>E-posta:</strong> Olumlu ya da olumsuz tüm sonuçlar kayıtlı e-posta adresinize gönderilir. Mülakat davetleri de yine e-posta yoluyla takvim daveti olarak iletilmektedir.</li>
-                        <li><strong>Telefon:</strong> Özellikle ilerleyen aşamalara geçen (Mülakat vb.) adaylar, İK uzmanlarımız tarafından telefonla doğrudan aranarak bilgilendirilir.</li>
+                        <li><strong>In-System Notifications:</strong> When your status in the candidate pool is updated (e.g., "Under Review", "Reviewed", or "Accepted"), you can see this status from the <strong>My Applications &gt; My Results</strong> page.</li>
+                        <li><strong>Email:</strong> All results, whether positive or negative, are sent to your registered email address. Interview invitations are also delivered via email as calendar invites.</li>
+                        <li><strong>Phone:</strong> Especially candidates who advance to further stages (Interview, etc.) are directly contacted by phone by our HR specialists.</li>
                     </ul>
-                    <p>Genellikle bir ilana yapılan başvurunun ilk değerlendirme süreci 1-2 hafta sürebilmektedir.</p>
+                    <p>Generally, the initial evaluation of an application may take 1-2 weeks.</p>
                 </>
             )
         },
         {
-            title: 'Önyazı eklemek zorunlu mu?',
+            title: 'Is adding a cover letter mandatory?',
             content: (
                 <>
-                    <p>Önyazı, platformumuzda başvuruların büyük bir bölümü için <strong>zorunlu tutulmamaktadır</strong>, ancak şiddetle tavsiye edilir.</p>
-                    <p>Doğru yazılmış kısa bir önyazı:</p>
+                    <p>A cover letter is <strong>not mandatory</strong> for most applications on our platform, but it is strongly recommended.</p>
+                    <p>A well-written short cover letter:</p>
                     <ul>
-                        <li>Motivasyonunuzu vurgular. CV'nizde yer almayan, o pozisyonu neden bu kadar çok istediğinize dair ipuçları verir.</li>
-                        <li>Gelecek vizyonunuzdan bahsetme şansı tanır.</li>
-                        <li>Şirket kültürümüze olan uygunluğunuzu daha hızlı anlamamıza yardımcı olur.</li>
+                        <li>Highlights your motivation. It provides clues about why you want this position so much that are not in your CV.</li>
+                        <li>Gives you the opportunity to talk about your future vision.</li>
+                        <li>Helps us understand your fit with our company culture more quickly.</li>
                     </ul>
-                    <p>Önyazınızı "Profilim" sekmesi altından genel bir metin olarak kaydedebilir ya da her başvuruya özel olarak güncelleyebilirsiniz.</p>
+                    <p>You can save your cover letter as a general text under the "My Profile" tab or update it specifically for each application.</p>
                 </>
             )
         }
@@ -78,12 +78,12 @@ function Help() {
             <div className={styles.header}>
                 <div className={styles.headerIcon}>❓</div>
                 <div className={styles.headerText}>
-                    <h2>Kariyer Yardım Merkezi</h2>
-                    <p>İş başvuru süreci, CV hazırlama ve platform kullanımı ile ilgili aklınıza takılan tüm soruların cevaplarını burada bulabilirsiniz.</p>
+                    <h2>Career Help Center</h2>
+                    <p>Find answers to all your questions about the job application process, CV preparation, and platform usage here.</p>
                 </div>
             </div>
 
-            {/* AI Kariyer Asistanı */}
+            {/* AI Career Assistant */}
             <CareerChatbot />
 
             <div className={styles.faqList}>
@@ -115,9 +115,9 @@ function Help() {
             </div>
 
             <div className={styles.contactSupport}>
-                <h3>Daha fazla yardıma mı ihtiyacınız var?</h3>
-                <p>Aradığınız cevabı bulamadıysanız, destek ekibimizle doğrudan iletişime geçebilirsiniz.</p>
-                <a href="mailto:support@hrai.com" className={styles.contactBtn}>Destek Ekibine Ulaş</a>
+                <h3>Need more help?</h3>
+                <p>If you couldn't find the answer you were looking for, you can contact our support team directly.</p>
+                <a href="mailto:support@hrai.com" className={styles.contactBtn}>Contact Support Team</a>
             </div>
         </div>
     );

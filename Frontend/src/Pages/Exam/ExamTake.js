@@ -7,30 +7,30 @@ const API_BASE = process.env.REACT_APP_API_BASE_URL + '/api/v1';
 // ─── Fallback mock by exam type ───────────────────────────────────────────────
 const MOCK_EXAMS = {
   english: {
-    title: 'İngilizce Dil Değerlendirmesi — Aşama 1',
+    title: 'English Language Assessment — Stage 1',
     timeLimitMinutes: 30,
-    sequenceInfo: 'Aşama 1/2 — İngilizce Değerlendirmesi',
+    sequenceInfo: 'Stage 1/2 — English Assessment',
     questions: [
       { questionId: 'en-1', questionText: 'Which sentence is grammatically correct?', questionType: 'multiple_choice', points: 10, orderIndex: 1, optionsJson: '[{"key":"A","text":"He don\'t like coffee."},{"key":"B","text":"She doesn\'t likes coffee."},{"key":"C","text":"They don\'t like coffee."},{"key":"D","text":"We doesn\'t like coffee."}]' },
       { questionId: 'en-2', questionText: "Choose the correct form: 'If I _____ rich, I would travel the world.'", questionType: 'multiple_choice', points: 10, orderIndex: 2, optionsJson: '[{"key":"A","text":"am"},{"key":"B","text":"were"},{"key":"C","text":"being"},{"key":"D","text":"be"}]' },
       { questionId: 'en-3', questionText: "What is the synonym of 'eloquent'?", questionType: 'multiple_choice', points: 10, orderIndex: 3, optionsJson: '[{"key":"A","text":"Quiet"},{"key":"B","text":"Aggressive"},{"key":"C","text":"Articulate"},{"key":"D","text":"Confused"}]' },
-      { questionId: 'en-4', questionText: "'Much' is used with countable nouns.", questionType: 'true_false', points: 10, orderIndex: 4, optionsJson: '[{"key":"A","text":"Doğru"},{"key":"B","text":"Yanlış"}]' },
+      { questionId: 'en-4', questionText: "'Much' is used with countable nouns.", questionType: 'true_false', points: 10, orderIndex: 4, optionsJson: '[{"key":"A","text":"True"},{"key":"B","text":"False"}]' },
       { questionId: 'en-5', questionText: "Which word best completes: 'Her performance was _____ than expected.'", questionType: 'multiple_choice', points: 10, orderIndex: 5, optionsJson: '[{"key":"A","text":"good"},{"key":"B","text":"better"},{"key":"C","text":"best"},{"key":"D","text":"well"}]' },
       { questionId: 'en-6', questionText: 'Describe your professional strengths and how they would contribute to this role. (Write 3-5 sentences in English.)', questionType: 'open_ended', points: 20, orderIndex: 6, optionsJson: null },
     ]
   },
   technical: {
-    title: 'Teknik Değerlendirme Sınavı — Aşama 2',
+    title: 'Technical Assessment Exam — Stage 2',
     timeLimitMinutes: 45,
-    sequenceInfo: 'Aşama 2/2 — Teknik Değerlendirme',
+    sequenceInfo: 'Stage 2/2 — Technical Assessment',
     questions: [
-      { questionId: 'tc-1', questionText: 'REST API tasarımında idempotent olan HTTP metodları hangileridir?', questionType: 'multiple_choice', points: 10, orderIndex: 1, optionsJson: '[{"key":"A","text":"POST ve DELETE"},{"key":"B","text":"GET ve PUT"},{"key":"C","text":"POST ve PATCH"},{"key":"D","text":"GET ve POST"}]' },
-      { questionId: 'tc-2', questionText: "SQL'de tekrar eden kayıtları kaldırmak için hangi anahtar kelime?", questionType: 'multiple_choice', points: 10, orderIndex: 2, optionsJson: '[{"key":"A","text":"UNIQUE"},{"key":"B","text":"DISTINCT"},{"key":"C","text":"FILTER"},{"key":"D","text":"REMOVE"}]' },
-      { questionId: 'tc-3', questionText: "HTTP 404, sunucu taraflı hata kodudur.", questionType: 'true_false', points: 10, orderIndex: 3, optionsJson: '[{"key":"A","text":"Doğru"},{"key":"B","text":"Yanlış"}]' },
-      { questionId: 'tc-4', questionText: 'Nesne Yönelimli Programlamada encapsulation ne anlama gelir?', questionType: 'multiple_choice', points: 10, orderIndex: 4, optionsJson: '[{"key":"A","text":"Sınıfların miras alması"},{"key":"B","text":"Verinin ve metodların gizlenmesi"},{"key":"C","text":"Soyut sınıf tanımlama"},{"key":"D","text":"Aynı metodun farklı kullanımı"}]' },
-      { questionId: 'tc-5', questionText: "Bir web uygulamasında SQL Injection'ı önlemenin en etkili yolu?", questionType: 'multiple_choice', points: 10, orderIndex: 5, optionsJson: '[{"key":"A","text":"HTTPS kullanmak"},{"key":"B","text":"Parametreli sorgular"},{"key":"C","text":"Veritabanını şifrelemek"},{"key":"D","text":"Girişi büyük harfe çevirmek"}]' },
-      { questionId: 'tc-6', questionText: 'SOLID prensiplerinde S, Single Responsibility Principle\'ı temsil eder.', questionType: 'true_false', points: 10, orderIndex: 6, optionsJson: '[{"key":"A","text":"Doğru"},{"key":"B","text":"Yanlış"}]' },
-      { questionId: 'tc-7', questionText: 'Bir e-ticaret sisteminde ürün stoğunun yanlış azaltılması (race condition) sorununu nasıl çözerdiniz? Kullandığınız yaklaşımı açıklayın.', questionType: 'open_ended', points: 30, orderIndex: 7, optionsJson: null },
+      { questionId: 'tc-1', questionText: 'Which HTTP methods are idempotent in REST API design?', questionType: 'multiple_choice', points: 10, orderIndex: 1, optionsJson: '[{"key":"A","text":"POST and DELETE"},{"key":"B","text":"GET and PUT"},{"key":"C","text":"POST and PATCH"},{"key":"D","text":"GET and POST"}]' },
+      { questionId: 'tc-2', questionText: "Which keyword is used to remove duplicate records in SQL?", questionType: 'multiple_choice', points: 10, orderIndex: 2, optionsJson: '[{"key":"A","text":"UNIQUE"},{"key":"B","text":"DISTINCT"},{"key":"C","text":"FILTER"},{"key":"D","text":"REMOVE"}]' },
+      { questionId: 'tc-3', questionText: "HTTP 404 is a server-side error code.", questionType: 'true_false', points: 10, orderIndex: 3, optionsJson: '[{"key":"A","text":"True"},{"key":"B","text":"False"}]' },
+      { questionId: 'tc-4', questionText: 'What does encapsulation mean in Object-Oriented Programming?', questionType: 'multiple_choice', points: 10, orderIndex: 4, optionsJson: '[{"key":"A","text":"Class inheritance"},{"key":"B","text":"Hiding data and methods"},{"key":"C","text":"Defining abstract classes"},{"key":"D","text":"Same method different usage"}]' },
+      { questionId: 'tc-5', questionText: "What is the most effective way to prevent SQL Injection in a web application?", questionType: 'multiple_choice', points: 10, orderIndex: 5, optionsJson: '[{"key":"A","text":"Use HTTPS"},{"key":"B","text":"Parameterized queries"},{"key":"C","text":"Encrypt the database"},{"key":"D","text":"Convert input to uppercase"}]' },
+      { questionId: 'tc-6', questionText: 'In SOLID principles, S represents Single Responsibility Principle.', questionType: 'true_false', points: 10, orderIndex: 6, optionsJson: '[{"key":"A","text":"True"},{"key":"B","text":"False"}]' },
+      { questionId: 'tc-7', questionText: 'How would you solve the problem of incorrect stock decrement (race condition) in an e-commerce system? Explain your approach.', questionType: 'open_ended', points: 30, orderIndex: 7, optionsJson: null },
     ]
   }
 };
@@ -58,21 +58,21 @@ const AlreadyCompletedScreen = ({ examTitle, submittedAt, onGoHome }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 24 }}>
       <div className="already-completed-card">
         <div className="already-icon">📋</div>
-        <h2>Bu Sınavı Zaten Tamamladınız</h2>
+        <h2>You Have Already Completed This Exam</h2>
         <p style={{ color: '#64748b', margin: '8px 0 4px' }}>
           <strong>{examTitle}</strong>
         </p>
         {submittedAt && (
           <p style={{ color: '#94a3b8', fontSize: 14, margin: '4px 0 24px' }}>
-            Gönderilme: {new Date(submittedAt).toLocaleString('tr-TR')}
+            Submitted: {new Date(submittedAt).toLocaleString('en-US')}
           </p>
         )}
         <div className="already-info-box">
-          <p>Her sınav yalnızca <strong>bir kez</strong> çözülebilir. Bu sayfaya tekrar giriş yapılamaz.</p>
-          <p style={{ marginTop: 8 }}>Sonuçlarınız değerlendirildikten sonra e-posta ile bilgilendirileceksiniz.</p>
+          <p>Each exam can only be taken <strong>once</strong>. This page cannot be accessed again.</p>
+          <p style={{ marginTop: 8 }}>You will be notified by email after your results are evaluated.</p>
         </div>
         <button className="exam-btn primary" onClick={onGoHome} style={{ marginTop: 24, width: '100%' }}>
-          ← Ana Sayfaya Dön
+          ← Back to Home
         </button>
       </div>
     </div>
@@ -104,7 +104,7 @@ const ExamTake = () => {
   // ── Fetch ───────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!token) {
-      setState(s => ({ ...s, status: 'error', errorMsg: 'Geçersiz sınav linki.' }));
+      setState(s => ({ ...s, status: 'error', errorMsg: 'Invalid exam link.' }));
       return;
     }
 
@@ -228,7 +228,7 @@ const ExamTake = () => {
   if (status === 'loading') return (
     <div className="exam-loading">
       <div className="exam-loading-spinner" />
-      <p>Sınav yükleniyor...</p>
+      <p>Loading exam...</p>
     </div>
   );
 
@@ -246,10 +246,10 @@ const ExamTake = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
         <div className="already-completed-card">
           <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
-          <h2 style={{ color: '#e94560' }}>Erişim Hatası</h2>
+          <h2 style={{ color: '#e94560' }}>Access Error</h2>
           <p style={{ color: '#666' }}>{errorMsg}</p>
           <button className="exam-btn primary" onClick={() => navigate('/')} style={{ marginTop: 20, width: '100%' }}>
-            ← Ana Sayfaya Dön
+            ← Back to Home
           </button>
         </div>
       </div>
@@ -268,27 +268,27 @@ const ExamTake = () => {
               <path className="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
             </svg>
           </div>
-          <h2>Sınav Tamamlandı!</h2>
-          <p>Cevaplarınız <strong>hr.ai</strong> sistemine kaydedildi.</p>
-          {usedMock && <p style={{ color: '#f59e0b', fontSize: 13 }}>ℹ️ Simülasyon modunda çalıştı.</p>}
+          <h2>Exam Completed!</h2>
+          <p>Your answers have been saved to the <strong>hr.ai</strong> system.</p>
+          {usedMock && <p style={{ color: '#f59e0b', fontSize: 13 }}>ℹ️ Ran in simulation mode.</p>}
           <div className="finished-stats">
-            <div className="fstat"><span className="fstat-val">{answered}</span><span className="fstat-lbl">Yanıtlanan</span></div>
-            <div className="fstat"><span className="fstat-val">{questions.length - answered}</span><span className="fstat-lbl">Boş</span></div>
-            <div className="fstat"><span className="fstat-val">{flagged.length}</span><span className="fstat-lbl">İşaretlenen</span></div>
+            <div className="fstat"><span className="fstat-val">{answered}</span><span className="fstat-lbl">Answered</span></div>
+            <div className="fstat"><span className="fstat-val">{questions.length - answered}</span><span className="fstat-lbl">Empty</span></div>
+            <div className="fstat"><span className="fstat-val">{flagged.length}</span><span className="fstat-lbl">Flagged</span></div>
           </div>
-          <p className="finished-subtext">Sonuçlarınız değerlendirildikten sonra e-posta ile bilgilendirileceksiniz.</p>
+          <p className="finished-subtext">You will be notified by email after your results are evaluated.</p>
           <button className="exam-btn primary" onClick={() => navigate('/')} style={{ marginTop: 20, width: '100%' }}>
-            ← Ana Sayfaya Dön
+            ← Back to Home
           </button>
         </div>
       </div>
     );
   }
 
-  if (!questions.length) return <div className="exam-loading"><p>Sorular yüklenemedi.</p></div>;
+  if (!questions.length) return <div className="exam-loading"><p>Questions could not be loaded.</p></div>;
 
   const q            = questions[currentIdx];
-  if (!q) return <div className="exam-loading"><p>Soru yükleniyor...</p></div>;
+  if (!q) return <div className="exam-loading"><p>Loading question...</p></div>;
   const options      = parseOptions(q.optionsJson);
   const selectedOpt  = answers[q.questionId];
   const isFlagged    = flagged.includes(q.questionId);
@@ -303,7 +303,7 @@ const ExamTake = () => {
       {/* ── Topbar ───────────────────────────────────────── */}
       <div className="exam-topbar">
         <div className="topbar-left">
-          <span className="brand-text">CV<span className="brand-highlight">Nokta</span></span>
+          <span className="brand-text">HR<span className="brand-highlight">.AI</span></span>
         </div>
         <div className="topbar-center">
           <span className="exam-title">{examInfo?.title}</span>
@@ -323,7 +323,7 @@ const ExamTake = () => {
         {/* ── Sidebar ─────────────────────────────────────── */}
         <aside className={`exam-sidebar ${showNav ? 'sidebar-open' : ''}`}>
           <div className="sidebar-header">
-            <span>Soru Gezgini</span>
+            <span>Question Navigator</span>
             <span className="sidebar-progress">{answeredCount}/{questions.length}</span>
           </div>
           <div className="sidebar-grid">
@@ -341,34 +341,34 @@ const ExamTake = () => {
             })}
           </div>
           <div className="sidebar-legend">
-            <div className="legend-item"><span className="legend-dot answered" />&nbsp;Yanıtlandı</div>
-            <div className="legend-item"><span className="legend-dot flagged" />&nbsp;İşaretlendi</div>
-            <div className="legend-item"><span className="legend-dot current" />&nbsp;Mevcut</div>
-            <div className="legend-item"><span className="legend-dot empty" />&nbsp;Boş</div>
+            <div className="legend-item"><span className="legend-dot answered" />&nbsp;Answered</div>
+            <div className="legend-item"><span className="legend-dot flagged" />&nbsp;Flagged</div>
+            <div className="legend-item"><span className="legend-dot current" />&nbsp;Current</div>
+            <div className="legend-item"><span className="legend-dot empty" />&nbsp;Empty</div>
           </div>
         </aside>
 
         {/* ── Main ────────────────────────────────────────── */}
         <main className="exam-main">
           <button className="sidebar-toggle" onClick={() => setShowNav(!showNav)}>
-            {showNav ? '✕' : '☰ Sorular'}
+            {showNav ? '✕' : '☰ Questions'}
           </button>
 
           <div className="exam-card">
             <div className="exam-header">
               <div className="exam-header-top">
                 <div className="qmeta">
-                  <span className="qnumber">Soru {currentIdx + 1} / {questions.length}</span>
+                  <span className="qnumber">Question {currentIdx + 1} / {questions.length}</span>
                   <span style={{ fontSize: 12, color: '#64748b', marginLeft: 8 }}>
-                    {q.questionType === 'multiple_choice' ? '🔘 Çoktan Seçmeli' :
-                     q.questionType === 'true_false'      ? '✅ Doğru/Yanlış' :
-                                                            '✍️ Açık Uçlu'}
-                    &nbsp;· {q.points} puan
+                    {q.questionType === 'multiple_choice' ? '🔘 Multiple Choice' :
+                     q.questionType === 'true_false'      ? '✅ True/False' :
+                                                            '✍️ Open Ended'}
+                    &nbsp;· {q.points} pts
                   </span>
                 </div>
                 <button className={`flag-btn ${isFlagged ? 'flagged' : ''}`}
                   onClick={() => toggleFlag(q.questionId)}>
-                  {isFlagged ? '⚑ İşaretlendi' : '⚑ İşaretle'}
+                  {isFlagged ? '⚑ Flagged' : '⚑ Flag'}
                 </button>
               </div>
               <div className="progress-bar">
@@ -399,12 +399,12 @@ const ExamTake = () => {
                   <textarea
                     className="open-ended-textarea"
                     rows={8}
-                    placeholder="Cevabınızı buraya yazınız..."
+                    placeholder="Write your answer here..."
                     value={answers[q.questionId] ?? ''}
                     onChange={e => handleText(q.questionId, e.target.value)}
                   />
                   <div style={{ textAlign: 'right', fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
-                    {(answers[q.questionId] ?? '').length} karakter
+                    {(answers[q.questionId] ?? '').length} characters
                   </div>
                 </div>
               )}
@@ -412,18 +412,18 @@ const ExamTake = () => {
 
             <div className="exam-footer">
               <button className="exam-btn secondary" onClick={handlePrev} disabled={currentIdx === 0}>
-                ← Önceki
+                ← Previous
               </button>
               <div className="footer-center">
-                <span className="answered-count">{answeredCount}/{questions.length} yanıtlandı</span>
-                <button className="exam-btn skip" onClick={handleNext} disabled={isLast}>Atla →</button>
+                <span className="answered-count">{answeredCount}/{questions.length} answered</span>
+                <button className="exam-btn skip" onClick={handleNext} disabled={isLast}>Skip →</button>
               </div>
               {isLast ? (
                 <button className="exam-btn primary submit-btn" onClick={handleSubmit} disabled={isSubmitting}>
-                  {isSubmitting ? 'Gönderiliyor...' : '✓ Sınavı Bitir'}
+                  {isSubmitting ? 'Submitting...' : '✓ Finish Exam'}
                 </button>
               ) : (
-                <button className="exam-btn primary" onClick={handleNext}>Sonraki →</button>
+                <button className="exam-btn primary" onClick={handleNext}>Next →</button>
               )}
             </div>
           </div>

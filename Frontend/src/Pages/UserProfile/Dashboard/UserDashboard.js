@@ -19,7 +19,7 @@ function UserDashboard() {
         const fetchDashboardData = async () => {
             try {
                 const token = localStorage.getItem('jwToken');
-                const name = localStorage.getItem('userName') || 'Kullanıcı';
+                const name = localStorage.getItem('userName') || 'User';
                 setUserName(name);
 
                 if (!token) {
@@ -68,41 +68,41 @@ function UserDashboard() {
         fetchDashboardData();
     }, []);
 
-    if (isLoading) return <div style={{ padding: '2rem' }}>Dashboard Yükleniyor...</div>;
+    if (isLoading) return <div style={{ padding: '2rem' }}>Loading Dashboard...</div>;
 
     return (
         <div className={styles.dashboardContainer}>
             <div className={styles.welcomeSection}>
-                <h2>Merhaba, {userName} 👋</h2>
-                <p>Kariyer yolculuğunuzun güncel durumunu buradan takip edebilirsiniz.</p>
+                <h2>Hello, {userName} 👋</h2>
+                <p>You can track the current status of your career journey here.</p>
             </div>
 
             <div className={styles.statsGrid}>
                 <div className={styles.statCard}>
                     <div className={styles.statIcon} style={{ background: '#e0f2fe', color: '#0284c7' }}>📄</div>
                     <div className={styles.statInfo}>
-                        <div className={styles.statLabel}>Toplam Başvuru</div>
+                        <div className={styles.statLabel}>Total Applications</div>
                         <div className={styles.statValue}>{stats.totalApplications}</div>
                     </div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={styles.statIcon} style={{ background: '#fef9c3', color: '#ca8a04' }}>⏳</div>
                     <div className={styles.statInfo}>
-                        <div className={styles.statLabel}>Bekleyen Aşamalar</div>
+                        <div className={styles.statLabel}>Pending Stages</div>
                         <div className={styles.statValue}>{stats.pendingInterviews}</div>
                     </div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={styles.statIcon} style={{ background: '#dcfce7', color: '#16a34a' }}>🎉</div>
                     <div className={styles.statInfo}>
-                        <div className={styles.statLabel}>Kabul Edilen</div>
+                        <div className={styles.statLabel}>Accepted</div>
                         <div className={styles.statValue}>{stats.accepted}</div>
                     </div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={styles.statIcon} style={{ background: '#fee2e2', color: '#dc2626' }}>❌</div>
                     <div className={styles.statInfo}>
-                        <div className={styles.statLabel}>Reddedilen</div>
+                        <div className={styles.statLabel}>Rejected</div>
                         <div className={styles.statValue}>{stats.rejected}</div>
                     </div>
                 </div>
@@ -111,8 +111,8 @@ function UserDashboard() {
             <div className={styles.contentGrid}>
                 <div className={styles.recentAppsBox}>
                     <div className={styles.boxHeader}>
-                        <h3>Son Başvurularınız</h3>
-                        <button onClick={() => navigate('/profile/applications')} className={styles.viewAllBtn}>Tümünü Gör</button>
+                        <h3>Your Recent Applications</h3>
+                        <button onClick={() => navigate('/profile/applications')} className={styles.viewAllBtn}>View All</button>
                     </div>
                     
                     {recentApps.length > 0 ? (
@@ -120,8 +120,8 @@ function UserDashboard() {
                             {recentApps.map((app, index) => (
                                 <div key={index} className={styles.appItem}>
                                     <div className={styles.appInfo}>
-                                        <h4>{app.jobTitle || 'Bilinmeyen İlan'}</h4>
-                                        <p>{app.department || 'Sistem İlanı'}</p>
+                                        <h4>{app.jobTitle || 'Unknown Job'}</h4>
+                                        <p>{app.department || 'System Job'}</p>
                                     </div>
                                     <div className={styles.appStatus}>
                                         <span className={styles.statusBadge} data-status={app.applicationStatus}>
@@ -133,27 +133,27 @@ function UserDashboard() {
                         </div>
                     ) : (
                         <div className={styles.emptyState}>
-                            <p>Henüz bir ilana başvurmadınız.</p>
-                            <button onClick={() => navigate('/profile/jobs')} className={styles.exploreBtn}>İlanları Keşfet</button>
+                            <p>You haven't applied to any jobs yet.</p>
+                            <button onClick={() => navigate('/profile/jobs')} className={styles.exploreBtn}>Explore Jobs</button>
                         </div>
                     )}
                 </div>
 
                 <div className={styles.actionBox}>
-                    <h3>Hızlı İşlemler</h3>
+                    <h3>Quick Actions</h3>
                     <div className={styles.actionList}>
                         <button onClick={() => navigate('/profile/me')} className={styles.actionBtn}>
                             <span className={styles.actionIcon}>👤</span>
                             <div className={styles.actionText}>
-                                <strong>Profilini Güncelle</strong>
-                                <span>CV'ni ve bilgilerini güncel tut</span>
+                                <strong>Update Your Profile</strong>
+                                <span>Keep your CV and info up to date</span>
                             </div>
                         </button>
                         <button onClick={() => navigate('/profile/jobs')} className={styles.actionBtn}>
                             <span className={styles.actionIcon}>🔍</span>
                             <div className={styles.actionText}>
-                                <strong>Yeni İlanlar Bul</strong>
-                                <span>Yapay zeka ile eşleşen ilanlara bak</span>
+                                <strong>Find New Jobs</strong>
+                                <span>Check jobs matched by AI</span>
                             </div>
                         </button>
                     </div>

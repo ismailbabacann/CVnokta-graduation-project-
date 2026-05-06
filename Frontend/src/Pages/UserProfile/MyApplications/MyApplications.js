@@ -4,11 +4,11 @@ import styles from './MyApplications.module.css';
 
 // ── Pipeline stage config ────────────────────────────────────────────────────
 const PIPELINE_STAGES = [
-    { key: 'NLP_REVIEW',           label: 'CV Analizi',       icon: '🔍' },
-    { key: 'ENGLISH_TEST_PENDING', label: 'İngilizce Testi',  icon: '🇬🇧' },
-    { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',     icon: '📝' },
-    { key: 'AI_INTERVIEW_PENDING', label: 'AI Mülakat',       icon: '🤖' },
-    { key: 'COMPLETED',            label: 'Tamamlandı',       icon: '🎉' },
+    { key: 'NLP_REVIEW',           label: 'CV Analysis',      icon: '🔍' },
+    { key: 'ENGLISH_TEST_PENDING', label: 'English Test',     icon: '🇬🇧' },
+    { key: 'SKILLS_TEST_PENDING',  label: 'Skills Test',      icon: '📝' },
+    { key: 'AI_INTERVIEW_PENDING', label: 'AI Interview',     icon: '🤖' },
+    { key: 'COMPLETED',            label: 'Completed',        icon: '🎉' },
 ];
 
 const STAGE_ORDER = {
@@ -21,20 +21,20 @@ const STAGE_ORDER = {
     REJECTED_ENGLISH:      1,
     REJECTED_SKILLS:       2,
     REJECTED_AI:           3,
-    REJECTED_MANUAL:       0,  // HR tarafından manuel eleme
+    REJECTED_MANUAL:       0,  // Manual rejection by HR
 };
 
 const STAGE_MESSAGES = {
-    ENGLISH_TEST_PENDING:  { text: '📧 İngilizce değerlendirme sınavı bilgileriniz e-postanıza gönderilmiştir.', color: '#00b4db' },
-    SKILLS_TEST_PENDING:   { text: '📧 Beceri testi e-postanıza gönderildi. Sınavı tamamlayın.', color: '#ed8936' },
-    AI_INTERVIEW_PENDING:  { text: '🤖 AI Mülakat aşamasına geçtiniz! Mülakat linkiniz e-postanıza gönderildi veya aşağıdaki butona tıklayarak erişebilirsiniz.', color: '#f5576c' },
-    NLP_REVIEW:            { text: 'Başvurunuz CV analizi ve uzman incelemesinde.', color: '#667eea' },
-    COMPLETED:             { text: '🎉 Tebrikler! Tüm aşamaları başarıyla tamamladınız. Gerekli değerlendirmeler yapılmaktadır.', color: '#48bb78' },
-    REJECTED_ENGLISH:      { text: 'İngilizce testi aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
-    REJECTED_SKILLS:       { text: 'Genel beceri testi aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
-    REJECTED_AI:           { text: 'AI mülakat aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
-    REJECTED_NLP:          { text: 'CV analiz aşamasında değerlendirmeniz sonuçlandı.', color: '#e53e3e' },
-    REJECTED_MANUAL:       { text: 'İK ekibi tarafından değerlendirmeniz tamamlandı. Başvurunuz için teşekkür ederiz.', color: '#e53e3e' },
+    ENGLISH_TEST_PENDING:  { text: '📧 English assessment test information has been sent to your e-mail.', color: '#00b4db' },
+    SKILLS_TEST_PENDING:   { text: '📧 Skills test has been sent to your e-mail. Please complete the test.', color: '#ed8936' },
+    AI_INTERVIEW_PENDING:  { text: '🤖 You have moved to the AI Interview stage! Your interview link has been sent to your e-mail or you can access it by clicking the button below.', color: '#f5576c' },
+    NLP_REVIEW:            { text: 'Your application is under CV analysis and expert review.', color: '#667eea' },
+    COMPLETED:             { text: '🎉 Congratulations! You have successfully completed all stages. Necessary evaluations are being made.', color: '#48bb78' },
+    REJECTED_ENGLISH:      { text: 'Your evaluation concluded at the English test stage.', color: '#e53e3e' },
+    REJECTED_SKILLS:       { text: 'Your evaluation concluded at the general skills test stage.', color: '#e53e3e' },
+    REJECTED_AI:           { text: 'Your evaluation concluded at the AI interview stage.', color: '#e53e3e' },
+    REJECTED_NLP:          { text: 'Your evaluation concluded at the CV analysis stage.', color: '#e53e3e' },
+    REJECTED_MANUAL:       { text: 'Your evaluation has been completed by the HR team. Thank you for your application.', color: '#e53e3e' },
 };
 
 function isRejected(stage) {
@@ -49,7 +49,7 @@ function PipelineStepper({ stage, rejectionReason }) {
     const currentIdx  = STAGE_ORDER[stage] ?? 0;
     const rejected    = isRejected(stage);
     const completed   = stage === 'COMPLETED';
-    const msgInfo     = STAGE_MESSAGES[stage] || { text: 'Başvurunuz işleme alındı.', color: '#667eea' };
+    const msgInfo     = STAGE_MESSAGES[stage] || { text: 'Your application is being processed.', color: '#667eea' };
 
     return (
         <div className={styles.pipelineWrapper}>
@@ -94,7 +94,7 @@ function PipelineStepper({ stage, rejectionReason }) {
                 <p style={{ color: msgInfo.color }}>{msgInfo.text}</p>
                 {rejected && rejectionReason && (
                     <p className={styles.rejectionDetail}>
-                        <strong>Detay:</strong> {rejectionReason}
+                        <strong>Detail:</strong> {rejectionReason}
                     </p>
                 )}
             </div>
@@ -165,13 +165,13 @@ function MyApplications() {
         const completed  = app.stage === 'COMPLETED';
 
         let badgeClass = styles.statusPending;
-        let badgeLabel = 'İnceleniyor';
-        if (rejected)       { badgeClass = styles.statusDanger;  badgeLabel = 'Elendin'; }
-        else if (completed) { badgeClass = styles.statusSuccess; badgeLabel = 'Tamamlandı'; }
-        else if (app.stage === 'ENGLISH_TEST_PENDING')  { badgeLabel = 'İngilizce Testi'; }
-        else if (app.stage === 'SKILLS_TEST_PENDING')   { badgeLabel = 'Beceri Testi'; }
-        else if (app.stage === 'AI_INTERVIEW_PENDING')  { badgeLabel = 'AI Mülakat'; }
-        else if (app.stage === 'NLP_REVIEW')            { badgeLabel = 'CV Analizi'; }
+        let badgeLabel = 'Under Review';
+        if (rejected)       { badgeClass = styles.statusDanger;  badgeLabel = 'Eliminated'; }
+        else if (completed) { badgeClass = styles.statusSuccess; badgeLabel = 'Completed'; }
+        else if (app.stage === 'ENGLISH_TEST_PENDING')  { badgeLabel = 'English Test'; }
+        else if (app.stage === 'SKILLS_TEST_PENDING')   { badgeLabel = 'Skills Test'; }
+        else if (app.stage === 'AI_INTERVIEW_PENDING')  { badgeLabel = 'AI Interview'; }
+        else if (app.stage === 'NLP_REVIEW')            { badgeLabel = 'CV Analysis'; }
 
         return (
             <div key={app.id} className={`${styles.card} ${isExpanded ? styles.cardExpanded : ''}`} onClick={() => toggleCard(app.id)}>
@@ -195,7 +195,7 @@ function MyApplications() {
                 {isExpanded && (
                     <div className={styles.cardBody} onClick={e => e.stopPropagation()}>
                         <hr className={styles.divider} />
-                        <h4 className={styles.stepperHeader}>Süreç Detayı</h4>
+                        <h4 className={styles.stepperHeader}>Process Details</h4>
                         <PipelineStepper stage={app.stage} rejectionReason={app.rejectionReason} />
                         {app.stage === 'AI_INTERVIEW_PENDING' && app.interviewToken && (
                             <div style={{ marginTop: '16px', textAlign: 'center' }}>
@@ -206,7 +206,7 @@ function MyApplications() {
                                     className={styles.interviewBtn}
                                     onClick={e => e.stopPropagation()}
                                 >
-                                    🤖 AI Mülakata Git
+                                    🤖 Go to AI Interview
                                 </a>
                             </div>
                         )}
@@ -220,7 +220,7 @@ function MyApplications() {
                                     style={{ background: 'linear-gradient(135deg, #00b4db, #0083b0)' }}
                                     onClick={e => e.stopPropagation()}
                                 >
-                                    📝 Sınava Başla
+                                    📝 Start Exam
                                 </a>
                             </div>
                         )}
@@ -228,24 +228,24 @@ function MyApplications() {
                         {/* ── AI Interview Feedback (visible for COMPLETED / REJECTED_AI) ── */}
                         {(completed || app.stage === 'REJECTED_AI') && (app.aiInterviewStrengths || app.aiInterviewWeaknesses || app.aiInterviewSummary) && (
                             <div style={{ marginTop: 16 }}>
-                                <h4 style={{ margin: '0 0 12px 0', fontSize: 14, color: '#1e293b' }}>🤖 AI Mülakat Değerlendirmesi</h4>
+                                <h4 style={{ margin: '0 0 12px 0', fontSize: 14, color: '#1e293b' }}>🤖 AI Interview Evaluation</h4>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                                     {app.aiInterviewStrengths && (
                                         <div style={{ background: '#f0fdf4', borderRadius: 10, padding: 14, border: '1px solid #bbf7d0' }}>
-                                            <div style={{ fontWeight: 700, color: '#166534', fontSize: 12, marginBottom: 6 }}>💪 Güçlü Yönleriniz</div>
+                                            <div style={{ fontWeight: 700, color: '#166534', fontSize: 12, marginBottom: 6 }}>💪 Your Strengths</div>
                                             <p style={{ margin: 0, color: '#15803d', fontSize: 13, lineHeight: 1.6 }}>{app.aiInterviewStrengths}</p>
                                         </div>
                                     )}
                                     {app.aiInterviewWeaknesses && (
                                         <div style={{ background: '#fff1f2', borderRadius: 10, padding: 14, border: '1px solid #fecdd3' }}>
-                                            <div style={{ fontWeight: 700, color: '#9f1239', fontSize: 12, marginBottom: 6 }}>🔻 Gelişim Alanlarınız</div>
+                                            <div style={{ fontWeight: 700, color: '#9f1239', fontSize: 12, marginBottom: 6 }}>🔻 Areas for Development</div>
                                             <p style={{ margin: 0, color: '#be123c', fontSize: 13, lineHeight: 1.6 }}>{app.aiInterviewWeaknesses}</p>
                                         </div>
                                     )}
                                 </div>
                                 {app.aiInterviewSummary && (
                                     <div style={{ marginTop: 10, background: '#f8fafc', borderRadius: 10, padding: 14, border: '1px solid #e2e8f0' }}>
-                                        <div style={{ fontWeight: 700, color: '#475569', fontSize: 12, marginBottom: 6 }}>📋 Genel Değerlendirme</div>
+                                        <div style={{ fontWeight: 700, color: '#475569', fontSize: 12, marginBottom: 6 }}>📋 General Evaluation</div>
                                         <p style={{ margin: 0, color: '#334155', fontSize: 13, lineHeight: 1.6 }}>{app.aiInterviewSummary}</p>
                                     </div>
                                 )}
@@ -262,30 +262,30 @@ function MyApplications() {
             <div className={styles.tabsHeader}>
                 <button className={`${styles.tabBtn} ${activeTab === 'ilanlar' ? styles.active : ''}`}
                     onClick={() => { setActiveTab('ilanlar'); setExpandedCardId(null); }}>
-                    Başvurduğum İlanlar
+                    My Applications
                 </button>
                 <button className={`${styles.tabBtn} ${activeTab === 'sonuclar' ? styles.active : ''}`}
                     onClick={() => { setActiveTab('sonuclar'); setExpandedCardId(null); }}>
-                    Sonuçlarım
+                    My Results
                 </button>
             </div>
 
             <div className={styles.tabContent}>
                 {activeTab === 'ilanlar' && (
                     <div className={styles.listWrapper}>
-                        {loading ? <p className={styles.emptyState}>Yükleniyor...</p> : (
+                        {loading ? <p className={styles.emptyState}>Loading...</p> : (
                             applications.length > 0
                                 ? applications.map(renderCard)
-                                : <p className={styles.emptyState}>Henüz hiçbir ilana başvurmadınız.</p>
+                                : <p className={styles.emptyState}>You haven't applied to any jobs yet.</p>
                         )}
                     </div>
                 )}
                 {activeTab === 'sonuclar' && (
                     <div className={styles.listWrapper}>
-                        {loading ? <p className={styles.emptyState}>Yükleniyor...</p> : (
+                        {loading ? <p className={styles.emptyState}>Loading...</p> : (
                             results.length > 0
                                 ? results.map(renderCard)
-                                : <p className={styles.emptyState}>Sonuçlanmış bir başvurunuz bulunmuyor.</p>
+                                : <p className={styles.emptyState}>You have no concluded applications.</p>
                         )}
                     </div>
                 )}

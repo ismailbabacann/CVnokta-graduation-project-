@@ -50,13 +50,13 @@ function ApplicationForm({ onBack }) {
 
   const validate = () => {
     const err = {};
-    if (!formData.fullName.trim()) err.fullName = 'Ad Soyad zorunludur';
-    if (!formData.email.trim()) err.email = 'Email zorunludur';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) err.email = 'Geçerli email girin';
-    if (!formData.phone.trim()) err.phone = 'Telefon zorunludur';
-    if (!formData.linkedIn.trim()) err.linkedIn = 'LinkedIn zorunludur';
-    if (!formData.currentLocation.trim()) err.currentLocation = 'Konum zorunludur';
-    if (!formData.cvUrl) err.resume = 'CV yüklemesi zorunludur';
+    if (!formData.fullName.trim()) err.fullName = 'Full Name is required';
+    if (!formData.email.trim()) err.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) err.email = 'Enter a valid email';
+    if (!formData.phone.trim()) err.phone = 'Phone is required';
+    if (!formData.linkedIn.trim()) err.linkedIn = 'LinkedIn is required';
+    if (!formData.currentLocation.trim()) err.currentLocation = 'Location is required';
+    if (!formData.cvUrl) err.resume = 'CV upload is required';
 
     setErrors(err);
     return Object.keys(err).length === 0;
@@ -75,7 +75,7 @@ function ApplicationForm({ onBack }) {
 
   const handleCloudinaryUpload = () => {
     if (!window.cloudinary) {
-      console.error("Cloudinary script henüz yüklenmedi.");
+      console.error("Cloudinary script not loaded yet.");
       return;
     }
 
@@ -114,7 +114,7 @@ function ApplicationForm({ onBack }) {
   const parsePdfFromUrl = async (pdfUrl) => {
     try {
       setIsParsing(true);
-      // Cloudinary URL'sindeki PDF'i okuyoruz
+      // Reading the PDF from the Cloudinary URL
       const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
       let text = '';
 
@@ -153,9 +153,9 @@ function ApplicationForm({ onBack }) {
         currentLocation: prev.currentLocation || (locationMatch ? locationMatch[0] : '')
       }));
       
-      alert("CV'niz başarıyla tarandı ve bazı alanlar (Ad Soyad, Email, Telefon, vs.) otomatik dolduruldu!");
+      alert("Your CV has been successfully scanned and some fields (Full Name, Email, Phone, etc.) have been auto-filled!");
     } catch (err) {
-      console.error('PDF form doldurma hatası:', err);
+      console.error('PDF form filling error:', err);
     } finally {
       setIsParsing(false);
     }
@@ -195,8 +195,8 @@ function ApplicationForm({ onBack }) {
         setSubmitted(true);
       }
     } catch (err) {
-      console.error('Başvuru gönderilemedi:', err);
-      setSubmitError(err.response?.data?.message || 'Başvuru sırasında bir hata oluştu.');
+      console.error('Application could not be sent:', err);
+      setSubmitError(err.response?.data?.message || 'An error occurred during the application.');
     } finally {
       setIsSubmitting(false);
     }
@@ -206,10 +206,10 @@ function ApplicationForm({ onBack }) {
     return (
       <div className="form-container">
         <div className="success-message">
-          <h2>✅ Başvurunuz Alındı!</h2>
-          <p><strong>{job?.jobTitle || 'Bu'}</strong> pozisyonuna başvurunuz başarıyla iletildi.</p>
+          <h2>✅ Application Received!</h2>
+          <p>Your application for the <strong>{job?.jobTitle || 'this'}</strong> position has been successfully submitted.</p>
           <button className="btn" onClick={onBack}>
-            ← Ana Sayfaya Dön
+            ← Back to Home
           </button>
         </div>
       </div>
@@ -219,42 +219,42 @@ function ApplicationForm({ onBack }) {
   return (
     <div className="form-container">
       <div className="form-header">
-        <h1>İş Başvurusu</h1>
-        <p>{job?.jobTitle || 'Yükleniyor...'}</p>
+        <h1>Job Application</h1>
+        <p>{job?.jobTitle || 'Loading...'}</p>
         <p className="location">📍 {job?.location || ''}</p>
       </div>
 
       <form className="form-body" onSubmit={handleSubmit}>
-        <FormField label="Ad Soyad" name="fullName" value={formData.fullName} onChange={handleChange} error={errors.fullName} required />
+        <FormField label="Full Name" name="fullName" value={formData.fullName} onChange={handleChange} error={errors.fullName} required />
         <FormField label="Email" name="email" type="email" value={formData.email} onChange={handleChange} error={errors.email} required />
-        <FormField label="Telefon" name="phone" type="tel" value={formData.phone} onChange={handleChange} error={errors.phone} required />
-        <FormField label="Bulunduğunuz Yer" name="currentLocation" value={formData.currentLocation} onChange={handleChange} error={errors.currentLocation} required />
+        <FormField label="Phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} error={errors.phone} required />
+        <FormField label="Current Location" name="currentLocation" value={formData.currentLocation} onChange={handleChange} error={errors.currentLocation} required />
         <FormField label="LinkedIn" name="linkedIn" type="url" value={formData.linkedIn} onChange={handleChange} error={errors.linkedIn} required />
 
         <div className="form-group">
-          <label>CV/Özgeçmiş <span className="required">*</span></label>
+          <label>CV/Resume <span className="required">*</span></label>
           <button
             type="button"
             className="btn file-input-label"
             onClick={handleCloudinaryUpload}
             style={{ width: '100%', padding: '10px', textAlign: 'center', cursor: 'pointer', background: '#f8f9fa', border: '1px dashed #ccc' }}
           >
-            <span></span> {formData.cvOriginalName ? `📄 ${formData.cvOriginalName} (Değiştir)` : '☁️ Cloudinary ile CV Yüklemek İçin Tıklayın'}
+            <span></span> {formData.cvOriginalName ? `📄 ${formData.cvOriginalName} (Change)` : '☁️ Click to Upload CV via Cloudinary'}
           </button>
           {errors.resume && <span className="error-message">{errors.resume}</span>}
         </div>
 
         <div className="form-group">
-          <label>Ön Yazı / Cover Letter</label>
-          <textarea name="coverLetter" value={formData.coverLetter} onChange={handleChange} placeholder="Kendinizden ve bu pozisyon için hedeflerinizden kısaca bahsedin..." />
+          <label>Cover Letter</label>
+          <textarea name="coverLetter" value={formData.coverLetter} onChange={handleChange} placeholder="Briefly describe yourself and your goals for this position..." />
         </div>
 
         {submitError && <div className="error-message" style={{ marginBottom: '10px' }}>{submitError}</div>}
 
         <div className="form-actions">
-          <button type="button" className="btn btn-back" disabled={isSubmitting} onClick={onBack}>← Geri Dön</button>
+          <button type="button" className="btn btn-back" disabled={isSubmitting} onClick={onBack}>← Go Back</button>
           <button type="submit" className="btn btn-submit" disabled={isSubmitting || isParsing}>
-            {isSubmitting ? 'Gönderiliyor...' : '✓ Başvuruyu Gönder'}
+            {isSubmitting ? 'Submitting...' : '✓ Submit Application'}
           </button>
         </div>
       </form>

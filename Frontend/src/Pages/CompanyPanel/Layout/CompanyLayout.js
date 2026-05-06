@@ -38,7 +38,7 @@ function CompanyLayout() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const userName = localStorage.getItem('userName') || 'Değerli İşveren';
+    const userName = localStorage.getItem('userName') || 'Valued Employer';
 
     const handleLogout = () => {
         localStorage.removeItem('jwToken');
@@ -50,12 +50,12 @@ function CompanyLayout() {
     const getPageTitle = () => {
         switch (location.pathname) {
             case '/company': return 'Dashboard';
-            case '/company/jobs': return 'İlanlarım';
-            case '/company/create-job': return 'Yeni İlan Ver';
-            case '/company/candidates': return 'Adaylar';
-            case '/company/best-candidates': return 'En İyi Adaylar';
-            case '/company/help': return 'İşveren Asistanı';
-            default: return 'Şirket Paneli';
+            case '/company/jobs': return 'My Jobs';
+            case '/company/create-job': return 'Post a Job';
+            case '/company/candidates': return 'Candidates';
+            case '/company/best-candidates': return 'Best Candidates';
+            case '/company/help': return 'Employer Assistant';
+            default: return 'Company Panel';
         }
     };
 
@@ -70,7 +70,7 @@ function CompanyLayout() {
                     <span className={styles.logoText}>HR.ai</span>
                 </div>
                 
-                <div className={styles.navLabel}>İşveren Paneli</div>
+                <div className={styles.navLabel}>Employer Panel</div>
                 <nav className={styles.nav}>
                     <NavLink to="/company" end className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}><Icons.Dashboard /></span>
@@ -78,30 +78,30 @@ function CompanyLayout() {
                     </NavLink>
                     <NavLink to="/company/jobs" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}><Icons.Jobs /></span>
-                        <span className={styles.navText}>İlanlarım</span>
+                        <span className={styles.navText}>My Jobs</span>
                     </NavLink>
                     <NavLink to="/company/create-job" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}><Icons.AddJob /></span>
-                        <span className={styles.navText}>Yeni İlan Ver</span>
+                        <span className={styles.navText}>Post a Job</span>
                     </NavLink>
                     <NavLink to="/company/candidates" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}><Icons.Candidates /></span>
-                        <span className={styles.navText}>Aday Havuzu</span>
+                        <span className={styles.navText}>Candidate Pool</span>
                     </NavLink>
                     <NavLink to="/company/best-candidates" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}><Icons.BestCandidates /></span>
-                        <span className={styles.navText}>En İyi Adaylar</span>
+                        <span className={styles.navText}>Best Candidates</span>
                     </NavLink>
                     <NavLink to="/company/help" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}><Icons.Help /></span>
-                        <span className={styles.navText}>İşveren Asistanı</span>
+                        <span className={styles.navText}>Employer Assistant</span>
                     </NavLink>
                 </nav>
 
                 <div className={styles.sidebarBottom}>
                     <button className={styles.logoutBtn} onClick={handleLogout}>
                         <span className={styles.navIcon}><Icons.Logout /></span>
-                        <span className={styles.navText}>Çıkış Yap</span>
+                        <span className={styles.navText}>Logout</span>
                     </button>
                 </div>
             </aside>
@@ -111,13 +111,13 @@ function CompanyLayout() {
                 {/* Top Header */}
                 <header className={styles.topHeader}>
                     <div className={styles.headerLeft}>
-                        <span className={styles.breadcrumb}>Şirket Paneli <span className={styles.separator}>/</span> {getPageTitle()}</span>
+                        <span className={styles.breadcrumb}>Company Panel <span className={styles.separator}>/</span> {getPageTitle()}</span>
                     </div>
                     <div className={styles.headerRight}>
                         <div className={styles.userProfile}>
                             <span className={styles.userName}>
                                 {userName}<br />
-                                <span>İşveren</span>
+                                <span>Employer</span>
                             </span>
                             <div className={styles.avatar}>{userName.charAt(0).toUpperCase()}</div>
                         </div>

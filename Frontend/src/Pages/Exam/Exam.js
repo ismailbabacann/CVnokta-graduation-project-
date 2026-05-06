@@ -3,7 +3,7 @@ import './Exam.css';
 
 const Exam = () => {
   const [questions, setQuestions] = useState([]);
-  const [examInfo, setExamInfo] = useState({ title: 'Yükleniyor...', duration: 0 });
+  const [examInfo, setExamInfo] = useState({ title: 'Loading...', duration: 0 });
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
@@ -21,28 +21,28 @@ const Exam = () => {
       try {
         setLoading(true);
         /*
-        // Gerçek API çağrısı
+        // Real API call
         const token = localStorage.getItem('jwToken');
         const params = new URLSearchParams(window.location.search);
         const examToken = params.get('token');
         const response = await fetch(`/api/v1/Exam/start?token=${examToken}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        if (!response.ok) throw new Error('Sınav verisi alınamadı.');
+        if (!response.ok) throw new Error('Could not fetch exam data.');
         const data = await response.json();
         setQuestions(data.questions);
         setExamInfo({ title: data.title, duration: data.durationInSeconds });
         setTimeLeft(data.durationInSeconds);
         */
 
-        // Mock data — görsel soru örneğiyle
+        // Mock data — with visual question example
         setTimeout(() => {
-          setExamInfo({ title: 'Genel Yetenek Sınavı', duration: 1800 });
+          setExamInfo({ title: 'General Aptitude Exam', duration: 1800 });
           setTimeLeft(1800);
           setQuestions([
             {
               id: 1,
-              text: 'React uygulamasında state yönetimi için aşağıdakilerden hangisi kullanılır?',
+              text: 'Which of the following is used for state management in a React application?',
               type: 'single',
               options: [
                 { id: 'a', text: 'useState' },
@@ -53,10 +53,10 @@ const Exam = () => {
             },
             {
               id: 2,
-              text: 'Aşağıdaki diyagramda hangi tasarım deseni gösterilmektedir?',
+              text: 'Which design pattern is shown in the diagram below?',
               type: 'visual',
               imageUrl: 'https://refactoring.guru/images/patterns/diagrams/observer/structure.png',
-              imageCaption: 'UML Diyagramı',
+              imageCaption: 'UML Diagram',
               options: [
                 { id: 'a', text: 'Singleton' },
                 { id: 'b', text: 'Observer' },
@@ -66,7 +66,7 @@ const Exam = () => {
             },
             {
               id: 3,
-              text: 'API istekleri için hangi React hook\'u genellikle tercih edilir?',
+              text: 'Which React hook is generally preferred for API requests?',
               type: 'single',
               options: [
                 { id: 'a', text: 'useState' },
@@ -77,15 +77,15 @@ const Exam = () => {
             },
             {
               id: 4,
-              text: 'Görselde verilen grafik hangi veri yapısını temsil etmektedir?',
+              text: 'What data structure does the graph shown in the image represent?',
               type: 'visual',
               imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/6n-graf.svg/1200px-6n-graf.svg.png',
-              imageCaption: 'Veri yapısı grafiği',
+              imageCaption: 'Data structure graph',
               options: [
-                { id: 'a', text: 'Yığın (Stack)' },
-                { id: 'b', text: 'Kuyruk (Queue)' },
-                { id: 'c', text: 'Graf (Graph)' },
-                { id: 'd', text: 'Dizi (Array)' },
+                { id: 'a', text: 'Stack' },
+                { id: 'b', text: 'Queue' },
+                { id: 'c', text: 'Graph' },
+                { id: 'd', text: 'Array' },
               ]
             },
           ]);
@@ -158,10 +158,10 @@ const Exam = () => {
   if (loading) return (
     <div className="exam-loading">
       <div className="exam-loading-spinner"></div>
-      <p>Sınav yükleniyor, lütfen bekleyiniz...</p>
+      <p>Loading exam, please wait...</p>
     </div>
   );
-  if (error) return <div className="exam-error">⚠️ Hata: {error}</div>;
+  if (error) return <div className="exam-error">⚠️ Error: {error}</div>;
 
   if (isFinished) return (
     <div className="exam-page-wrapper">
@@ -172,23 +172,23 @@ const Exam = () => {
             <path className="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
           </svg>
         </div>
-        <h2>Sınav Tamamlandı!</h2>
-        <p>Cevaplarınız başarıyla <strong>HR.AI</strong> sistemine kaydedildi.</p>
+        <h2>Exam Completed!</h2>
+        <p>Your answers have been successfully saved to the <strong>HR.AI</strong> system.</p>
         <div className="finished-stats">
           <div className="fstat">
             <span className="fstat-val">{answeredCount}</span>
-            <span className="fstat-lbl">Yanıtlanan</span>
+            <span className="fstat-lbl">Answered</span>
           </div>
           <div className="fstat">
             <span className="fstat-val">{questions.length - answeredCount}</span>
-            <span className="fstat-lbl">Boş Bırakılan</span>
+            <span className="fstat-lbl">Unanswered</span>
           </div>
           <div className="fstat">
             <span className="fstat-val">{flagged.length}</span>
-            <span className="fstat-lbl">İşaretlenen</span>
+            <span className="fstat-lbl">Flagged</span>
           </div>
         </div>
-        <p className="finished-subtext">Sonuçlarınız değerlendirildikten sonra bilgilendirileceksiniz.</p>
+        <p className="finished-subtext">You will be notified after your results are evaluated.</p>
       </div>
     </div>
   );
@@ -223,7 +223,7 @@ const Exam = () => {
         {/* ── Sidebar ─────────────────────────────── */}
         <aside className={`exam-sidebar ${showNav ? 'sidebar-open' : ''}`}>
           <div className="sidebar-header">
-            <span>Soru Gezgini</span>
+            <span>Question Navigator</span>
             <span className="sidebar-progress">{answeredCount}/{questions.length}</span>
           </div>
           <div className="sidebar-grid">
@@ -242,17 +242,17 @@ const Exam = () => {
             })}
           </div>
           <div className="sidebar-legend">
-            <div className="legend-item"><span className="legend-dot answered"></span> Yanıtlandı</div>
-            <div className="legend-item"><span className="legend-dot flagged"></span> İşaretlendi</div>
-            <div className="legend-item"><span className="legend-dot current"></span> Mevcut</div>
-            <div className="legend-item"><span className="legend-dot empty"></span> Boş</div>
+            <div className="legend-item"><span className="legend-dot answered"></span> Answered</div>
+            <div className="legend-item"><span className="legend-dot flagged"></span> Flagged</div>
+            <div className="legend-item"><span className="legend-dot current"></span> Current</div>
+            <div className="legend-item"><span className="legend-dot empty"></span> Empty</div>
           </div>
         </aside>
 
         {/* ── Question Card ─────────────────────────── */}
         <main className="exam-main">
           <button className="sidebar-toggle" onClick={() => setShowNav(!showNav)}>
-            {showNav ? '✕' : '☰ Sorular'}
+            {showNav ? '✕' : '☰ Questions'}
           </button>
 
           <div className="exam-card">
@@ -260,11 +260,11 @@ const Exam = () => {
             <div className="exam-header">
               <div className="exam-header-top">
                 <div className="qmeta">
-                  <span className="qnumber">Soru {currentQuestionIndex + 1} / {questions.length}</span>
-                  {isVisual && <span className="visual-badge">📷 Görsel Soru</span>}
+                  <span className="qnumber">Question {currentQuestionIndex + 1} / {questions.length}</span>
+                  {isVisual && <span className="visual-badge">📷 Visual Question</span>}
                 </div>
-                <button className={`flag-btn ${isFlagged ? 'flagged' : ''}`} onClick={toggleFlag} title="Soruyu İşaretle">
-                  {isFlagged ? '⚑ İşaretlendi' : '⚑ İşaretle'}
+                <button className={`flag-btn ${isFlagged ? 'flagged' : ''}`} onClick={toggleFlag} title="Flag Question">
+                  {isFlagged ? '⚑ Flagged' : '⚑ Flag'}
                 </button>
               </div>
               <div className="progress-bar">
@@ -281,7 +281,7 @@ const Exam = () => {
                   {/* Image Panel */}
                   <div className="visual-image-panel">
                     <div className="visual-image-wrap">
-                      <img src={currentQuestion.imageUrl} alt={currentQuestion.imageCaption || 'Soru görseli'} className="visual-image" />
+                      <img src={currentQuestion.imageUrl} alt={currentQuestion.imageCaption || 'Question image'} className="visual-image" />
                     </div>
                     {currentQuestion.imageCaption && (
                       <div className="visual-caption">{currentQuestion.imageCaption}</div>
@@ -330,23 +330,23 @@ const Exam = () => {
             {/* Footer */}
             <div className="exam-footer">
               <button className="exam-btn secondary" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
-                ← Önceki
+                ← Previous
               </button>
 
               <div className="footer-center">
-                <span className="answered-count">{answeredCount}/{questions.length} yanıtlandı</span>
+                <span className="answered-count">{answeredCount}/{questions.length} answered</span>
                 <button className="exam-btn skip" onClick={handleNext} disabled={isLastQuestion}>
-                  Atla →
+                  Skip →
                 </button>
               </div>
 
               {isLastQuestion ? (
                 <button className="exam-btn primary submit-btn" onClick={handleSubmit} disabled={isSubmitting}>
-                  {isSubmitting ? 'Gönderiliyor...' : '✓ Sınavı Bitir'}
+                  {isSubmitting ? 'Submitting...' : '✓ Finish Exam'}
                 </button>
               ) : (
                 <button className="exam-btn primary" onClick={handleNext}>
-                  Sonraki →
+                  Next →
                 </button>
               )}
             </div>

@@ -100,7 +100,7 @@ function VideoInterview() {
     const validateToken = async () => {
       if (!token) {
         setStatus('invalid');
-        setErrorMsg('Mülakat token bulunamadı.');
+        setErrorMsg('Interview token not found.');
         return;
       }
       try {
@@ -114,11 +114,11 @@ function VideoInterview() {
         const detail = err.response?.data?.detail || err.message;
         setStatus('invalid');
         if (err.response?.status === 409) {
-          setErrorMsg('Bu mülakat daha önce tamamlanmış. Tekrar giriş yapılamaz.');
+          setErrorMsg('This interview has already been completed. You cannot log in again.');
         } else if (err.response?.status === 403) {
-          setErrorMsg('Geçersiz veya süresi dolmuş mülakat linki.');
+          setErrorMsg('Invalid or expired interview link.');
         } else {
-          setErrorMsg(`Mülakat başlatılamadı: ${detail}`);
+          setErrorMsg(`Failed to start interview: ${detail}`);
         }
       }
     };
@@ -195,7 +195,7 @@ function VideoInterview() {
         headers: jwToken ? { Authorization: `Bearer ${jwToken}` } : {}
       });
     } catch (err) {
-      console.error('Mülakat sonuçları kaydedilemedi:', err.message);
+      console.error('Interview results could not be saved:', err.message);
     }
   }, [sessionConfig]);
 
@@ -211,9 +211,9 @@ function VideoInterview() {
         setStatus('ended');
       }
     } catch (err) {
-      console.error('Değerlendirme alınamadı:', err.message);
+      console.error('Failed to retrieve evaluation:', err.message);
       setStatus('ended');
-      setErrorMsg(`Değerlendirme tamamlanamadı: ${err.message}`);
+      setErrorMsg(`Evaluation could not be completed: ${err.message}`);
     }
   }, [saveResultsToBackend]);
 
@@ -416,7 +416,7 @@ function VideoInterview() {
       micStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
       setStatus('error');
-      setErrorMsg('Mikrofon erişimi reddedildi. Mülakat için mikrofon gereklidir.');
+      setErrorMsg('Microphone access denied. Microphone is required for the interview.');
       return;
     }
 
@@ -458,7 +458,7 @@ function VideoInterview() {
 
     ws.onerror = () => {
       setStatus('error');
-      setErrorMsg('AI-NLP sunucusuna bağlanılamadı. AI-NLP çalışıyor mu? (localhost:8000)');
+      setErrorMsg('Failed to connect to AI-NLP server. Is AI-NLP running?');
     };
 
     ws.onclose = () => {
@@ -488,7 +488,7 @@ function VideoInterview() {
   }, [transcript]);
 
   // ── Render ─────────────────────────────────────────────────
-  const candidateName = sessionConfig?.candidate_name || 'Aday';
+  const candidateName = sessionConfig?.candidate_name || 'Candidate';
   const jobTitle = sessionConfig?.job_posting?.job_title || '';
 
   const statusDotClass =
@@ -501,9 +501,9 @@ function VideoInterview() {
     return (
       <div className="vi-screen vi-screen-active vi-center-screen">
         <div className="vi-results-card">
-          <h2>Mülakat Erişim Hatası</h2>
+          <h2>Interview Access Error</h2>
           <p style={{ color: '#ef4444', fontSize: '1.1rem', margin: '1.5rem 0' }}>{errorMsg}</p>
-          <button className="vi-btn-primary" onClick={() => navigate('/')}>🏠 Ana Sayfaya Dön</button>
+          <button className="vi-btn-primary" onClick={() => navigate('/')}>🏠 Return to Home Page</button>
         </div>
       </div>
     );
@@ -515,7 +515,7 @@ function VideoInterview() {
       <div className="vi-screen vi-screen-active vi-center-screen">
         <div className="vi-results-card" style={{ textAlign: 'center' }}>
           <div className="vi-spinner" />
-          <p style={{ marginTop: '1rem' }}>Mülakat bilgileri doğrulanıyor...</p>
+          <p style={{ marginTop: '1rem' }}>Verifying interview details...</p>
         </div>
       </div>
     );
@@ -569,7 +569,7 @@ function VideoInterview() {
           <p className="vi-result-stats">
             Questions: {summary.total_questions_asked || 0} asked, {summary.total_questions_answered || 0} answered
           </p>
-          <button className="vi-btn-primary" onClick={() => navigate('/profile/applications')}>🔙 Başvurularıma Dön</button>
+          <button className="vi-btn-primary" onClick={() => navigate('/profile/applications')}>🔙 Back to My Applications</button>
         </div>
       </div>
     );
@@ -581,9 +581,9 @@ function VideoInterview() {
       <div className="vi-screen vi-screen-active vi-center-screen">
         <div className="vi-results-card" style={{ textAlign: 'center' }}>
           <div className="vi-spinner" />
-          <h3 style={{ marginTop: '1rem', color: '#a78bfa' }}>Mülakatınız Değerlendiriliyor</h3>
+          <h3 style={{ marginTop: '1rem', color: '#a78bfa' }}>Your interview is being evaluated</h3>
           <p style={{ color: '#8888aa', marginTop: '0.5rem' }}>
-            Lütfen bekleyin, AI mülakat sonuçlarınızı analiz ediyor...
+            Please wait, AI is analyzing your interview results...
           </p>
         </div>
       </div>
@@ -597,10 +597,10 @@ function VideoInterview() {
 
       <div className="vi-header">
         <div className="vi-header-left">
-          <span className="vi-logo">CVnokta AI Interview</span>
+          <span className="vi-logo">HR AI Interview</span>
           <div className="vi-status-indicator">
             <span className={`vi-dot ${statusDotClass}`} />
-            <span>{statusText || (status === 'idle' ? `Merhaba ${candidateName}, başlamak için hazır` : '')}</span>
+            <span>{statusText || (status === 'idle' ? `Hello ${candidateName}, ready to start` : '')}</span>
           </div>
         </div>
         <div className="vi-header-right">
@@ -645,7 +645,7 @@ function VideoInterview() {
             <circle cx="68" cy="130" r="3" fill="#a78bfa" opacity="0.7"/>
             <circle cx="172" cy="130" r="3" fill="#a78bfa" opacity="0.7"/>
           </svg>
-          <div className="vi-avatar-label">AI İşe Alım Uzmanı</div>
+          <div className="vi-avatar-label">AI Recruiter</div>
           {jobTitle && <div className="vi-avatar-job">{jobTitle}</div>}
         </div>
 
@@ -658,12 +658,12 @@ function VideoInterview() {
 
         <div className="vi-controls">
           {status === 'idle' && (
-            <button className="vi-btn-primary" onClick={startInterview}>🎯 Mülakatı Başlat</button>
+            <button className="vi-btn-primary" onClick={startInterview}>🎯 Start Interview</button>
           )}
           {status === 'error' && (
             <>
               <p className="vi-error-text">{errorMsg}</p>
-              <button className="vi-btn-primary" onClick={() => navigate('/profile/applications')}>🔙 Başvurularıma Dön</button>
+              <button className="vi-btn-primary" onClick={() => navigate('/profile/applications')}>🔙 Back to My Applications</button>
             </>
           )}
         </div>

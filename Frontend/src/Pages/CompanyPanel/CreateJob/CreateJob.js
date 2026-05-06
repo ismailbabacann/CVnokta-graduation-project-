@@ -91,7 +91,7 @@ function CreateJob() {
 
     const handleGenerateFromAI = async () => {
         if (!aiPrompt.trim()) {
-            alert('Lütfen iş tanımı ile ilgili bir metin girin.');
+            alert('Please enter a description related to the job.');
             return;
         }
 
@@ -135,7 +135,7 @@ function CreateJob() {
             }
         } catch (err) {
             console.error('AI Generation Error:', err);
-            alert('AI ile içerik oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
+            alert('An error occurred while generating content with AI. Please try again.');
         } finally {
             setIsGenerating(false);
         }
@@ -172,7 +172,7 @@ function CreateJob() {
                 requiredQualifications: formData.requiredQualifications,
                 requiredSkills: formData.requiredSkills,
                 benefits: benefitsArray,
-                aiScanEnabled: true,  // ✅ AI CV taraması aktif
+                aiScanEnabled: true,  // ✅ AI CV scanning enabled
                 minMatchScore: 70,
                 autoEmailEnabled: true,
                 saveAsDraft: saveAsDraft
@@ -224,7 +224,7 @@ function CreateJob() {
     const handleCopy = () => {
         const link = `${window.location.origin}/jobs/${createdJobId || 'placeholder'}`;
         navigator.clipboard.writeText(link);
-        alert("Link kopyalandı!");
+        alert("Link copied!");
     };
 
     const resetForm = () => {
@@ -257,7 +257,7 @@ function CreateJob() {
 
                     <div className={styles.linkContainer}>
                         <span className={styles.linkText}>{window.location.origin}/jobs/{createdJobId || 'pending'}</span>
-                        <button className={styles.copyBtn} onClick={handleCopy}>Kopyala</button>
+                        <button className={styles.copyBtn} onClick={handleCopy}>Copy</button>
                     </div>
 
                     <div className={styles.actionButtons}>
@@ -280,7 +280,7 @@ function CreateJob() {
                     <h2 className={styles.title}>{isEditMode ? 'Edit Job Posting' : 'Create New Job Posting'}</h2>
                     <p className={styles.subtitle}>Enter the core details of the job to find the right talent for your company.</p>
                 </div>
-                <button type="button" onClick={() => navigate('/company/jobs')} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer' }}>Geri Dön</button>
+                <button type="button" onClick={() => navigate('/company/jobs')} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer' }}>Go Back</button>
             </div>
 
             <form className={styles.formContainer} onSubmit={(e) => handleSubmit(e, false)}>
@@ -288,14 +288,14 @@ function CreateJob() {
 
                 {/* AI Prompt Section */}
                 <div style={{ backgroundColor: '#eef2ff', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px dashed #6366f1' }}>
-                    <h3 style={{ margin: '0 0 10px 0', color: '#4f46e5' }}>🤖 Yapay Zeka ile İş İlanı Detayı Oluştur (İsteğe Bağlı)</h3>
+                    <h3 style={{ margin: '0 0 10px 0', color: '#4f46e5' }}>🤖 Generate Job Posting Details with AI (Optional)</h3>
                     <p style={{ margin: '0 0 15px 0', fontSize: '14px', color: '#4b5563' }}>
-                        Aradığınız adayın ve işin özelliklerini kısaca yazın (Örn: Fintech şirketi için 3 yıl deneyimli .NET backend developer arıyoruz). Yapay Zeka, tüm formu detaylı şekilde doldursun.
+                        Briefly describe the candidate and job requirements (E.g.: We are looking for a .NET backend developer with 3 years of experience for a Fintech company). AI will fill out the entire form in detail.
                     </p>
                     <textarea 
                         value={aiPrompt}
                         onChange={(e) => setAiPrompt(e.target.value)}
-                        placeholder="İlan hakkında yönergelerinizi yazın..."
+                        placeholder="Write your instructions about the posting..."
                         style={{ width: '100%', minHeight: '80px', padding: '10px', borderRadius: '6px', border: '1px solid #c7d2fe', marginBottom: '10px', fontFamily: 'Inter, sans-serif' }}
                     />
                     <button 
@@ -304,9 +304,9 @@ function CreateJob() {
                         disabled={isGenerating}
                         style={{ padding: '10px 20px', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
                     >
-                        {isGenerating ? 'Yapay Zeka Çalışıyor...' : '✨ Otomatik Doldur'}
+                        {isGenerating ? 'AI Working...' : '✨ Auto-Fill'}
                     </button>
-                    {isGenerating && <span style={{display: 'inline-block', marginLeft: '10px', color: '#4f46e5', fontWeight: '500'}}>Form alanları dolduruluyor...</span>}
+                    {isGenerating && <span style={{display: 'inline-block', marginLeft: '10px', color: '#4f46e5', fontWeight: '500'}}>Filling form fields...</span>}
                 </div>
 
                 {/* Box 1: Basic Info */}
@@ -353,12 +353,12 @@ function CreateJob() {
 
                     <div className={styles.formRow}>
                         <div className={styles.formGroup}>
-                            <label>🌐 Dil Seviyesi (İngilizce)</label>
+                            <label>🌐 Language Level (English)</label>
                             <select name="languageLevel" value={formData.languageLevel} onChange={handleChange} className={styles.select}>
-                                <option value="A2">A2 – Başlangıç</option>
-                                <option value="B1">B1 – Orta</option>
-                                <option value="B2">B2 – Orta Üstü</option>
-                                <option value="C1">C1 – İleri</option>
+                                <option value="A2">A2 – Beginner</option>
+                                <option value="B1">B1 – Intermediate</option>
+                                <option value="B2">B2 – Upper Intermediate</option>
+                                <option value="C1">C1 – Advanced</option>
                             </select>
                         </div>
                     </div>

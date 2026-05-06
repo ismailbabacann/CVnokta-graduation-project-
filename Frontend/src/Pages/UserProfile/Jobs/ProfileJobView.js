@@ -22,7 +22,7 @@ function ProfileJobView() {
                 setError(null);
             } catch (err) {
                 console.error('Error fetching job details:', err);
-                setError('İş ilanı bulunamadı veya bir hata oluştu.');
+                setError('Job posting not found or an error occurred.');
             }
         };
 
@@ -43,7 +43,7 @@ function ProfileJobView() {
                     setHasCv(!!p.cvUrl);
                 }
             } catch (err) {
-                console.error('Aday profili alınamadı:', err);
+                console.error('Could not fetch candidate profile:', err);
             }
         };
 
@@ -62,7 +62,7 @@ function ProfileJobView() {
             const token = localStorage.getItem('jwToken');
             let candidateId = null;
             let email = '';
-            let fullName = localStorage.getItem('userName') || 'Aday';
+            let fullName = localStorage.getItem('userName') || 'Candidate';
 
             if (token) {
                 const payload = JSON.parse(atob(token.split('.')[1]));
@@ -78,76 +78,76 @@ function ProfileJobView() {
                 phone: candidateProfile?.phone || "",
                 location: candidateProfile?.location || "",
                 linkedInProfile: candidateProfile?.linkedInProfile || "",
-                coverLetter: candidateProfile?.summary || "Profilimdeki bilgilerle hızlı başvuru yapıyorum.",
+                coverLetter: candidateProfile?.summary || "Applying quickly with my profile information.",
                 cvUrl: candidateProfile?.cvUrl || "",
                 cvId: candidateProfile?.cvId || null
             };
 
             await axios.post(process.env.REACT_APP_API_BASE_URL + '/api/v1/Applications/public/apply', payloadData);
             
-            alert('Tebrikler! Profilinizdeki mevcut CV ve bilgileriniz kullanılarak başvurunuz başarıyla iletildi. Sürecinizi "Başvurduğum İlanlar" alanından takip edebilirsiniz.');
+            alert('Congratulations! Your application has been successfully submitted using your profile CV and information. You can track your progress from the "My Applications" section.');
             navigate('/profile/applications');
         } catch (err) {
-            console.error('Başvuru hatası:', err);
-            alert('Başvuru sırasında bir hata oluştu veya zaten başvurdunuz.');
+            console.error('Application error:', err);
+            alert('An error occurred during the application or you have already applied.');
         } finally {
             setIsApplying(false);
         }
     };
 
     if (loading) {
-        return <div className={styles.centeredMessage}>Detaylar Yükleniyor...</div>;
+        return <div className={styles.centeredMessage}>Loading Details...</div>;
     }
 
     if (error || !job) {
-        return <div className={`${styles.centeredMessage} ${styles.errorMessage}`}>{error || 'İlan bulunamadı.'}</div>;
+        return <div className={`${styles.centeredMessage} ${styles.errorMessage}`}>{error || 'Posting not found.'}</div>;
     }
 
     return (
         <div className={styles.jobviewContainer}>
             <button className={styles.backBtn} onClick={() => navigate('/profile/jobs')}>
-                ← İlanlara Dön
+                ← Back to Jobs
             </button>
 
             <section className={styles.jobHeader}>
                 <h1>{job.jobTitle}</h1>
-                <p className={styles.jobDepartment}>{job.companyName || 'Şirket Gizli'} - {job.department}</p>
+                <p className={styles.jobDepartment}>{job.companyName || 'Company Confidential'} - {job.department}</p>
                 <div className={styles.jobMeta}>
-                    <span>📍 {job.location || 'Belirtilmedi'}</span>
-                    <span>💼 {job.workType || 'Tam Zamanlı'}</span>
-                    <span>🌍 {job.workModel || 'Hibrit'}</span>
+                    <span>📍 {job.location || 'Not specified'}</span>
+                    <span>💼 {job.workType || 'Full Time'}</span>
+                    <span>🌍 {job.workModel || 'Hybrid'}</span>
                 </div>
             </section>
 
             <section className={styles.jobSection}>
-                <h2>İş Tanımı Hakkında</h2>
-                <p>{job.description || job.aboutRole || 'Detaylı bir ilan metni sisteme henüz girilmemiş.'}</p>
+                <h2>About the Role</h2>
+                <p>{job.description || job.aboutRole || 'A detailed posting description has not been entered yet.'}</p>
             </section>
 
             {job.aboutCompany && (
                 <section className={styles.jobSection}>
-                    <h2>Şirket Hakkında</h2>
+                    <h2>About the Company</h2>
                     <p>{job.aboutCompany}</p>
                 </section>
             )}
 
             {job.responsibilities && (
                 <section className={styles.jobSection}>
-                    <h2>Sorumluluklar</h2>
+                    <h2>Responsibilities</h2>
                     <p>{job.responsibilities}</p>
                 </section>
             )}
 
             {job.requiredQualifications && (
                 <section className={styles.jobSection}>
-                    <h2>Aranan Nitelikler</h2>
+                    <h2>Required Qualifications</h2>
                     <p>{job.requiredQualifications}</p>
                 </section>
             )}
 
             {job.benefits && job.benefits.length > 0 && (
                 <section className={styles.jobSection}>
-                    <h2>Yan Haklar ve Avantajlar</h2>
+                    <h2>Benefits & Perks</h2>
                     <div className={styles.benefitsGrid}>
                         {job.benefits.map((benefit, idx) => (
                             <div key={idx} className={styles.benefitCard}>
@@ -161,7 +161,7 @@ function ProfileJobView() {
             <div className={styles.applyActionBox}>
                 <div className={styles.profileNotice}>
                     <span className={styles.infoIcon}>ℹ️</span>
-                    <p>Sistemde kayıtlı önyazınız, eğitim bilgileriniz ve güncel özgeçmiş dosyanız bu ilan için şirkete doğrudan iletilecektir. Hızlı başvuru işlemini aşağıdan tamamlayabilirsiniz.</p>
+                    <p>Your cover letter, education details, and current CV on file will be directly submitted to the company for this job. You can complete the quick application below.</p>
                 </div>
                 {job.status === 'Active' ? (
                     hasCv ? (
@@ -170,19 +170,19 @@ function ProfileJobView() {
                             onClick={handleFastApply}
                             disabled={isApplying}
                         >
-                            {isApplying ? 'Başvuru İletiliyor...' : 'Profil Bilgilerimle Bu İlana Başvur'}
+                            {isApplying ? 'Submitting Application...' : 'Apply with My Profile'}
                         </button>
                     ) : (
                         <div style={{ textAlign: 'center' }}>
                             <p style={{ color: '#e53e3e', fontSize: '14px', marginBottom: '10px' }}>
-                                ⚠️ İlanlara başvurabilmek için Profil kısmından CV'nizi yüklemelisiniz.
+                                ⚠️ You must upload your CV from the Profile section to apply for jobs.
                             </p>
                             <button 
                                 className={styles.fastApplyBtn} 
                                 style={{backgroundColor: '#cbd5e1', cursor: 'not-allowed', color: '#475569'}}
                                 disabled
                             >
-                                Profil Bilgilerimle Bu İlana Başvur
+                                Apply with My Profile
                             </button>
                         </div>
                     )
@@ -192,7 +192,7 @@ function ProfileJobView() {
                         style={{backgroundColor: '#cbd5e1', cursor: 'not-allowed', color: '#475569'}}
                         disabled
                     >
-                        İlan Kapalıdır (Closed)
+                        Closed
                     </button>
                 )}
             </div>

@@ -116,13 +116,13 @@ function Login({ setUser }) {
                         className={styles.forgotPasswordLink}
                         onClick={() => navigate('/forgot-password')}
                     >
-                        Şifremi Unuttum?
+                        Forgot Password?
                     </span>
                 </div>
 
                 <div className={styles.buttonContainer}>
                     <button type="submit" className={styles.submitBtn} disabled={loading}>
-                        {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
+                        {loading ? 'Logging In...' : 'Log In'}
                     </button>
                 </div>
 
