@@ -1,0 +1,225 @@
+.dashboardContainer {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.welcomeSection h2 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.welcomeSection p {
+    margin: 0;
+    color: #64748b;
+    font-size: 15px;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.statCard {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.statIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.statInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.statLabel {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.statValue {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.contentGrid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 900px) {
+    .contentGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.recentAppsBox, .actionBox {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.boxHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.boxHeader h3, .actionBox h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.viewAllBtn {
+    background: none;
+    border: none;
+    color: #4f46e5;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.viewAllBtn:hover {
+    text-decoration: underline;
+}
+
+.appList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.appItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.appItem:hover {
+    background: #f1f5f9;
+}
+
+.appInfo h4 {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    color: #334155;
+}
+
+.appInfo p {
+    margin: 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.statusBadge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.statusBadge[data-status="SUBMITTED"] { background: #e0f2fe; color: #0369a1; }
+.statusBadge[data-status="IN_PROGRESS"] { background: #fef3c7; color: #b45309; }
+.statusBadge[data-status="HIRED"] { background: #dcfce7; color: #15803d; }
+.statusBadge[data-status="REJECTED"] { background: #fee2e2; color: #b91c1c; }
+
+.emptyState {
+    text-align: center;
+    padding: 30px 0;
+    color: #64748b;
+}
+
+.exploreBtn {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.exploreBtn:hover {
+    background: #4338ca;
+}
+
+.actionList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.actionBtn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+}
+
+.actionBtn:hover {
+    background: #fff;
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.actionIcon {
+    font-size: 24px;
+}
+
+.actionText {
+    display: flex;
+    flex-direction: column;
+}
+
+.actionText strong {
+    font-size: 14px;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.actionText span {
+    font-size: 12px;
+    color: #64748b;
+}

@@ -17,6 +17,9 @@ const Icons = {
     Apps: () => (
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
     ),
+    Dashboard: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+    ),
     Jobs: () => (
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
     ),
@@ -45,6 +48,7 @@ function UserLayout() {
     const getPageTitle = () => {
         switch (location.pathname) {
             case '/profile': 
+            case '/profile/dashboard': return 'Dashboard';
             case '/profile/me': return 'Profilim';
             case '/profile/applications': return 'Başvurduğum İlanlar';
             case '/profile/jobs': return 'Tüm İlanlar';
@@ -66,7 +70,11 @@ function UserLayout() {
                 
                 <div className={styles.navLabel}>Ana Menü</div>
                 <nav className={styles.nav}>
-                    <NavLink to="/profile/me" className={({ isActive }) => isActive || location.pathname === '/profile' ? `${styles.navItem} ${styles.active}` : styles.navItem}>
+                    <NavLink to="/profile/dashboard" className={({ isActive }) => isActive || location.pathname === '/profile' ? `${styles.navItem} ${styles.active}` : styles.navItem}>
+                        <span className={styles.navIcon}><Icons.Dashboard /></span>
+                        <span className={styles.navText}>Dashboard</span>
+                    </NavLink>
+                    <NavLink to="/profile/me" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}><Icons.Profile /></span>
                         <span className={styles.navText}>Profilim</span>
                     </NavLink>

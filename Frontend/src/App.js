@@ -17,6 +17,7 @@ import ForgotPassword from './Pages/ForgotPassword/ForgotPassword.js';
 import ResetPassword from './Pages/ResetPassword/ResetPassword.js';
 import Insights from './Pages/Insights/Insights.js';
 import UserLayout from './Pages/UserProfile/Layout/UserLayout.js';
+import UserDashboard from './Pages/UserProfile/Dashboard/UserDashboard.js';
 import MyProfile from './Pages/UserProfile/MyProfile/MyProfile.js';
 import MyApplications from './Pages/UserProfile/MyApplications/MyApplications.js';
 import ProfileJobs from './Pages/UserProfile/Jobs/ProfileJobs.js';
@@ -78,7 +79,8 @@ function App() {
             <Route path="help" element={<CompanyHelp />} />
           </Route>
           <Route path="/profile" element={<UserLayout />}>
-            <Route index element={<MyProfile />} />
+            <Route index element={<UserDashboard />} />
+            <Route path="dashboard" element={<UserDashboard />} />
             <Route path="me" element={<MyProfile />} />
             <Route path="applications" element={<MyApplications />} />
             <Route path="jobs" element={<ProfileJobs />} />
