@@ -27,8 +27,11 @@ function UserDashboard() {
                     return;
                 }
 
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const candidateId = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || payload.uid || payload.sub;
+
                 // Get candidate's applications
-                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Applications/my`, {
+                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/Applications/my-applications/${candidateId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
@@ -118,7 +121,7 @@ function UserDashboard() {
                                 <div key={index} className={styles.appItem}>
                                     <div className={styles.appInfo}>
                                         <h4>{app.jobTitle || 'Bilinmeyen İlan'}</h4>
-                                        <p>{app.companyName || 'Sistem İlanı'}</p>
+                                        <p>{app.department || 'Sistem İlanı'}</p>
                                     </div>
                                     <div className={styles.appStatus}>
                                         <span className={styles.statusBadge} data-status={app.applicationStatus}>
@@ -131,7 +134,7 @@ function UserDashboard() {
                     ) : (
                         <div className={styles.emptyState}>
                             <p>Henüz bir ilana başvurmadınız.</p>
-                            <button onClick={() => navigate('/jobs')} className={styles.exploreBtn}>İlanları Keşfet</button>
+                            <button onClick={() => navigate('/profile/jobs')} className={styles.exploreBtn}>İlanları Keşfet</button>
                         </div>
                     )}
                 </div>
@@ -146,7 +149,7 @@ function UserDashboard() {
                                 <span>CV'ni ve bilgilerini güncel tut</span>
                             </div>
                         </button>
-                        <button onClick={() => navigate('/jobs')} className={styles.actionBtn}>
+                        <button onClick={() => navigate('/profile/jobs')} className={styles.actionBtn}>
                             <span className={styles.actionIcon}>🔍</span>
                             <div className={styles.actionText}>
                                 <strong>Yeni İlanlar Bul</strong>
