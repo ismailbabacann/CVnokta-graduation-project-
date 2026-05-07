@@ -27,7 +27,7 @@ function JobList() {
                 setError(null);
             } catch (err) {
                 console.error('Error fetching public jobs:', err);
-                setError('There was a problem loading job postings.');
+                setError('İş ilanları yüklenirken bir sorun oluştu.');
             } finally {
                 setLoading(false);
             }
@@ -39,13 +39,13 @@ function JobList() {
     return (
         <div className="job-list-page">
             <div className="job-list-header">
-                <h2>Our Companies Needs You</h2>
+                <h2>Şirketlerimiz Sizi Bekliyor</h2>
             </div>
 
             <div className="job-list">
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '50px', width: '100%', color: '#666' }}>
-                        Loading jobs...
+                        İlanlar yükleniyor...
                     </div>
                 ) : error ? (
                     <div style={{ textAlign: 'center', padding: '50px', width: '100%', color: 'red' }}>
@@ -53,7 +53,7 @@ function JobList() {
                     </div>
                 ) : jobs.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '50px', width: '100%', color: '#666' }}>
-                        There are currently no active job postings.
+                        Şu anda aktif iş ilanı bulunmamaktadır.
                     </div>
                 ) : (
                     jobs.map((job) => (
@@ -65,7 +65,7 @@ function JobList() {
                                 <div className="job-meta">
                                     <span className="job-time-type">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                                        {job.workType || 'Full Time'}
+                                        {job.workType || 'Tam Zamanlı'}
                                     </span>
                                     <h3 className="job-title">{job.jobTitle}</h3>
                                 </div>
@@ -73,19 +73,19 @@ function JobList() {
 
                             <p className="job-description">
                                 {/* The backend might not send a full description in the summary view, fallback to department */}
-                                {job.department ? `${job.department} Department` : 'Review the posting for details.'}
+                                {job.department ? `${job.department} Departmanı` : 'Detaylar için ilanı inceleyin.'}
                             </p>
 
                             <div className="job-card-footer">
                                 <div className="job-location">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 15 4 10a8 8 0 0 1 16 0" /><circle cx="12" cy="10" r="3" /></svg>
-                                    {job.location || 'Not specified'}
+                                    {job.location || 'Belirtilmemiş'}
                                 </div>
                                 <button
                                     className="apply-now-btn"
                                     onClick={() => navigate(`/jobs/${job.id}`)}
                                 >
-                                    Apply Now
+                                    Hemen Başvur
                                 </button>
                             </div>
                         </div>

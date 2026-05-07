@@ -3,7 +3,7 @@ import './Exam.css';
 
 const Exam = () => {
   const [questions, setQuestions] = useState([]);
-  const [examInfo, setExamInfo] = useState({ title: 'Loading...', duration: 0 });
+  const [examInfo, setExamInfo] = useState({ title: 'Yükleniyor...', duration: 0 });
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
@@ -158,10 +158,10 @@ const Exam = () => {
   if (loading) return (
     <div className="exam-loading">
       <div className="exam-loading-spinner"></div>
-      <p>Loading exam, please wait...</p>
+      <p>Sınav yükleniyor, lütfen bekleyin...</p>
     </div>
   );
-  if (error) return <div className="exam-error">⚠️ Error: {error}</div>;
+  if (error) return <div className="exam-error">⚠️ Hata: {error}</div>;
 
   if (isFinished) return (
     <div className="exam-page-wrapper">
@@ -172,23 +172,23 @@ const Exam = () => {
             <path className="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
           </svg>
         </div>
-        <h2>Exam Completed!</h2>
-        <p>Your answers have been successfully saved to the <strong>HR.AI</strong> system.</p>
+        <h2>Sınav Tamamlandı!</h2>
+        <p>Cevaplarınız başarıyla <strong>HR.AI</strong> sistemine kaydedildi.</p>
         <div className="finished-stats">
           <div className="fstat">
             <span className="fstat-val">{answeredCount}</span>
-            <span className="fstat-lbl">Answered</span>
+            <span className="fstat-lbl">Cevaplandı</span>
           </div>
           <div className="fstat">
             <span className="fstat-val">{questions.length - answeredCount}</span>
-            <span className="fstat-lbl">Unanswered</span>
+            <span className="fstat-lbl">Boş</span>
           </div>
           <div className="fstat">
             <span className="fstat-val">{flagged.length}</span>
-            <span className="fstat-lbl">Flagged</span>
+            <span className="fstat-lbl">İşaretli</span>
           </div>
         </div>
-        <p className="finished-subtext">You will be notified after your results are evaluated.</p>
+        <p className="finished-subtext">Sonuçlarınız değerlendirildikten sonra bilgilendirileceksiniz.</p>
       </div>
     </div>
   );
@@ -223,7 +223,7 @@ const Exam = () => {
         {/* ── Sidebar ─────────────────────────────── */}
         <aside className={`exam-sidebar ${showNav ? 'sidebar-open' : ''}`}>
           <div className="sidebar-header">
-            <span>Question Navigator</span>
+            <span>Soru Gezgini</span>
             <span className="sidebar-progress">{answeredCount}/{questions.length}</span>
           </div>
           <div className="sidebar-grid">
@@ -242,17 +242,17 @@ const Exam = () => {
             })}
           </div>
           <div className="sidebar-legend">
-            <div className="legend-item"><span className="legend-dot answered"></span> Answered</div>
-            <div className="legend-item"><span className="legend-dot flagged"></span> Flagged</div>
-            <div className="legend-item"><span className="legend-dot current"></span> Current</div>
-            <div className="legend-item"><span className="legend-dot empty"></span> Empty</div>
+            <div className="legend-item"><span className="legend-dot answered"></span> Cevaplandı</div>
+            <div className="legend-item"><span className="legend-dot flagged"></span> İşaretli</div>
+            <div className="legend-item"><span className="legend-dot current"></span> Geçerli</div>
+            <div className="legend-item"><span className="legend-dot empty"></span> Boş</div>
           </div>
         </aside>
 
         {/* ── Question Card ─────────────────────────── */}
         <main className="exam-main">
           <button className="sidebar-toggle" onClick={() => setShowNav(!showNav)}>
-            {showNav ? '✕' : '☰ Questions'}
+            {showNav ? '✕' : '☰ Sorular'}
           </button>
 
           <div className="exam-card">
@@ -260,11 +260,11 @@ const Exam = () => {
             <div className="exam-header">
               <div className="exam-header-top">
                 <div className="qmeta">
-                  <span className="qnumber">Question {currentQuestionIndex + 1} / {questions.length}</span>
-                  {isVisual && <span className="visual-badge">📷 Visual Question</span>}
+                  <span className="qnumber">Soru {currentQuestionIndex + 1} / {questions.length}</span>
+                  {isVisual && <span className="visual-badge">📷 Görsel Soru</span>}
                 </div>
-                <button className={`flag-btn ${isFlagged ? 'flagged' : ''}`} onClick={toggleFlag} title="Flag Question">
-                  {isFlagged ? '⚑ Flagged' : '⚑ Flag'}
+                <button className={`flag-btn ${isFlagged ? 'flagged' : ''}`} onClick={toggleFlag} title="Soruyu İşaretle">
+                  {isFlagged ? '⚑ İşaretli' : '⚑ İşaretle'}
                 </button>
               </div>
               <div className="progress-bar">
@@ -330,23 +330,23 @@ const Exam = () => {
             {/* Footer */}
             <div className="exam-footer">
               <button className="exam-btn secondary" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
-                ← Previous
+                ← Önceki
               </button>
 
               <div className="footer-center">
-                <span className="answered-count">{answeredCount}/{questions.length} answered</span>
+                <span className="answered-count">{answeredCount}/{questions.length} cevaplandı</span>
                 <button className="exam-btn skip" onClick={handleNext} disabled={isLastQuestion}>
-                  Skip →
+                  Geç →
                 </button>
               </div>
 
               {isLastQuestion ? (
                 <button className="exam-btn primary submit-btn" onClick={handleSubmit} disabled={isSubmitting}>
-                  {isSubmitting ? 'Submitting...' : '✓ Finish Exam'}
+                  {isSubmitting ? 'Gönderiliyor...' : '✓ Sınavı Bitir'}
                 </button>
               ) : (
                 <button className="exam-btn primary" onClick={handleNext}>
-                  Next →
+                  Sonraki →
                 </button>
               )}
             </div>

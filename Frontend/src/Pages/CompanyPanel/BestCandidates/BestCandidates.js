@@ -113,11 +113,11 @@ function CandidateDetailModal({ candidate, onClose }) {
     const finalScore = scorecard?.finalEvaluationScore?.weightedFinalScore  ?? candidate.finalWeightedScore;
 
     const pipelineStages = [
-        { key: 'NLP_REVIEW',           label: 'CV Analysis',     color: '#667eea' },
-        { key: 'ENGLISH_TEST_PENDING', label: 'English Test',    color: '#00b4db' },
-        { key: 'SKILLS_TEST_PENDING',  label: 'Skills Test',     color: '#ed8936' },
-        { key: 'AI_INTERVIEW_PENDING', label: 'AI Interview',    color: '#f5576c' },
-        { key: 'COMPLETED',            label: 'Completed',       color: '#48bb78' },
+        { key: 'NLP_REVIEW',           label: 'CV Analizi',       color: '#667eea' },
+        { key: 'ENGLISH_TEST_PENDING', label: 'İngilizce Testi',  color: '#00b4db' },
+        { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',     color: '#ed8936' },
+        { key: 'AI_INTERVIEW_PENDING', label: 'AI Mülakat',       color: '#f5576c' },
+        { key: 'COMPLETED',            label: 'Tamamlandı',      color: '#48bb78' },
     ];
     const stageOrder = { NLP_REVIEW: 0, ENGLISH_TEST_PENDING: 1, SKILLS_TEST_PENDING: 2, AI_INTERVIEW_PENDING: 3, COMPLETED: 4 };
     const currentStage = candidate.currentPipelineStage || 'NLP_REVIEW';
@@ -126,11 +126,11 @@ function CandidateDetailModal({ candidate, onClose }) {
     const isCompleted  = currentStage === 'COMPLETED';
 
     const TABS = [
-        { id: 'overview',   label: 'Overview' },
-        { id: 'cvanalysis', label: 'CV Analysis' },
-        { id: 'feedback',   label: 'AI Feedback' },
-        { id: 'contact',    label: 'Contact & CV' },
-        { id: 'pipeline',   label: 'Pipeline Status' },
+        { id: 'overview',   label: 'Genel Bakış' },
+        { id: 'cvanalysis', label: 'CV Analizi' },
+        { id: 'feedback',   label: 'AI Değerlendirme' },
+        { id: 'contact',    label: 'İletişim & CV' },
+        { id: 'pipeline',   label: 'Süreç Durumu' },
     ];
 
     return (
@@ -149,12 +149,12 @@ function CandidateDetailModal({ candidate, onClose }) {
                             {(candidate.candidateFullName || '?').charAt(0).toUpperCase()}
                         </div>
                         <div style={{ flex: 1 }}>
-                            <h2 style={{ margin: '0 0 4px 0', fontSize: 24, fontWeight: 800 }}>{candidate.candidateFullName || 'Candidate'}</h2>
+                            <h2 style={{ margin: '0 0 4px 0', fontSize: 24, fontWeight: 800 }}>{candidate.candidateFullName || 'Aday'}</h2>
                             <p style={{ margin: 0, opacity: 0.85, fontSize: 14 }}>{candidate.email || '—'}</p>
                             <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                <span style={{ background: 'rgba(255,255,255,0.25)', borderRadius: 20, padding: '3px 12px', fontSize: 12, fontWeight: 700 }}>#{candidate.rankPosition} Rank</span>
-                                {isRejected && <span style={{ background: '#e53e3e', borderRadius: 20, padding: '3px 12px', fontSize: 12, fontWeight: 700 }}>✕ Rejected</span>}
-                                {isCompleted && <span style={{ background: '#48bb78', borderRadius: 20, padding: '3px 12px', fontSize: 12, fontWeight: 700 }}>✓ Completed</span>}
+                                <span style={{ background: 'rgba(255,255,255,0.25)', borderRadius: 20, padding: '3px 12px', fontSize: 12, fontWeight: 700 }}>#{candidate.rankPosition} Sıralama</span>
+                                {isRejected && <span style={{ background: '#e53e3e', borderRadius: 20, padding: '3px 12px', fontSize: 12, fontWeight: 700 }}>✕ Reddedildi</span>}
+                                {isCompleted && <span style={{ background: '#48bb78', borderRadius: 20, padding: '3px 12px', fontSize: 12, fontWeight: 700 }}>✓ Tamamlandı</span>}
                             </div>
                         </div>
                         {/* Final Score Circle */}
@@ -170,9 +170,9 @@ function CandidateDetailModal({ candidate, onClose }) {
                     <div style={{ display: 'flex', gap: 8, marginTop: 18, flexWrap: 'wrap' }}>
                         {[
                             { label: 'NLP CV',    val: cvScore,    color: '#667eea' },
-                            { label: 'Skills',    val: skillScore, color: '#ed8936' },
-                            { label: 'English',   val: engScore,   color: '#00b4db' },
-                            { label: 'AI Interview', val: aiScore, color: '#f5576c' },
+                            { label: 'Beceri',    val: skillScore, color: '#ed8936' },
+                            { label: 'İngilizce',  val: engScore,   color: '#00b4db' },
+                            { label: 'AI Mülakat', val: aiScore, color: '#f5576c' },
                         ].map(({ label, val, color }) => (
                             <div key={label} style={{ background: 'rgba(255,255,255,0.18)', borderRadius: 10, padding: '6px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 70 }}>
                                 <span style={{ fontSize: 16, fontWeight: 800 }}>{val !== null && val !== undefined ? Number(val).toFixed(0) : '—'}</span>

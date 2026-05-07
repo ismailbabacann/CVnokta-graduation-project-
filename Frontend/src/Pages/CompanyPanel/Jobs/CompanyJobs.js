@@ -644,7 +644,7 @@ function CompanyJobs() {
                                             {/* Threshold setting */}
                                             <div style={{ background: '#f8f9fa', borderRadius: '12px', padding: '18px', marginBottom: '20px' }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                                                    <h4 style={{ margin: 0, fontSize: '14px', color: '#333' }}>⚙️ Pass Threshold</h4>
+                                                    <h4 style={{ margin: 0, fontSize: '14px', color: '#333' }}>⚙️ Geçiş Eşiği</h4>
                                                     <button
                                                         onClick={handleSaveThreshold}
                                                         disabled={thresholdSaving}

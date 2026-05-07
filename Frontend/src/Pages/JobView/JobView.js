@@ -19,7 +19,7 @@ function JobView() {
         setError(null);
       } catch (err) {
         console.error('Error fetching job details:', err);
-        setError('Job posting not found or an error occurred.');
+        setError('İş ilanı bulunamadı veya bir hata oluştu.');
       } finally {
         setLoading(false);
       }
@@ -41,11 +41,11 @@ function JobView() {
   };
 
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: '100px' }}>Loading...</div>;
+    return <div style={{ textAlign: 'center', padding: '100px' }}>Yükleniyor...</div>;
   }
 
   if (error || !job) {
-    return <div style={{ textAlign: 'center', padding: '100px', color: 'red' }}>{error || 'Posting not found.'}</div>;
+    return <div style={{ textAlign: 'center', padding: '100px', color: 'red' }}>{error || 'İlan bulunamadı.'}</div>;
   }
 
   return (
@@ -61,28 +61,28 @@ function JobView() {
       </section>
 
       <section className="job-section">
-        <h2>About Company</h2>
+        <h2>Şirket Hakkında</h2>
         <p style={{ whiteSpace: 'pre-line' }}>{job.aboutCompany}</p>
       </section>
 
       <section className="job-section">
-        <h2>About the Role</h2>
+        <h2>Rol Hakkında</h2>
         <p style={{ whiteSpace: 'pre-line' }}>{job.aboutRole}</p>
       </section>
 
       <section className="job-section">
-        <h2>Responsibilities</h2>
+        <h2>Sorumluluklar</h2>
         <p style={{ whiteSpace: 'pre-line' }}>{job.responsibilities}</p>
       </section>
 
       <section className="job-section">
-        <h2>Required Qualifications</h2>
+        <h2>Aranan Nitelikler</h2>
         <p style={{ whiteSpace: 'pre-line' }}>{job.requiredQualifications}</p>
       </section>
 
       {job.benefits && job.benefits.length > 0 && (
         <section className="job-section">
-          <h2>Benefits</h2>
+          <h2>Yan Haklar</h2>
           <div className="benefits-grid">
             {job.benefits.map((benefit, idx) => (
               <div key={idx} className="benefit-card">
@@ -95,11 +95,11 @@ function JobView() {
 
       {job.status === 'Active' ? (
         <button className="apply-button" onClick={handleApplyClick}>
-          Apply for this Job
+          Bu İlana Başvur
         </button>
       ) : (
         <button className="apply-button" style={{backgroundColor: '#ccc', cursor: 'not-allowed', color: '#666'}} disabled>
-          Closed
+          Kapalı
         </button>
       )}
     </div>

@@ -3,14 +3,14 @@ import styles from './CareerChatbot.module.css';
 
 // Quick question examples
 const QUICK_QUESTIONS = [
-    'What is HR AI?',
-    'When will the interview email arrive?',
-    'How to write a good CV?',
-    'What should I do to avoid being eliminated?',
-    'How is my application process going?',
+    'HR AI nedir?',
+    'Mülakat e-postası ne zaman gelecek?',
+    'İyi bir CV nasıl yazılır?',
+    'Elenmemek için ne yapmalıyım?',
+    'Başvuru sürecim nasıl gidiyor?',
 ];
 
-const BOT_INTRO = 'Hello! 👋 I am the HR AI Career Assistant. I can answer any questions about the application process, CV preparation, interview tips, or platform usage. How can I help you?';
+const BOT_INTRO = 'Merhaba! 👋 Ben HR AI Kariyer Asistanıyım. Başvuru süreci, CV hazırlama, mülakat ipuçları veya platform kullanımı hakkındaki sorularınızı yanıtlayabilirim. Size nasıl yardımcı olabilirim?';
 
 const AI_BASE_URL = process.env.REACT_APP_AI_NLP_BASE_URL || 'https://ozger0202-cvnokta-ai.hf.space';
 const CHATBOT_API_URL = `${AI_BASE_URL}/api/v1/chatbot/chat`;
@@ -75,8 +75,8 @@ function CareerChatbot() {
             setMessages(prev => [...prev, {
                 role: 'assistant',
                 content: isRateLimit
-                    ? '⏳ Too many requests right now. Please wait a few seconds and try again.'
-                    : '❌ A connection error occurred. Please refresh the page and try again.',
+                    ? '⏳ Şu anda çok fazla istek var. Lütfen birkaç saniye bekleyin ve tekrar deneyin.'
+                    : '❌ Bağlantı hatası oluştu. Lütfen sayfayı yenileyin ve tekrar deneyin.',
                 isError: true,
             }]);
         } finally {
@@ -104,8 +104,8 @@ function CareerChatbot() {
             >
                 <span className={styles.toggleIcon}>🤖</span>
                 <div className={styles.toggleText}>
-                    <span className={styles.toggleTitle}>AI Career Assistant</span>
-                    <span className={styles.toggleSubtitle}>Answering your questions</span>
+                    <span className={styles.toggleTitle}>AI Kariyer Asistanı</span>
+                    <span className={styles.toggleSubtitle}>Sorularınızı yanıtlıyorum</span>
                 </div>
                 <span className={`${styles.toggleArrow} ${isOpen ? styles.arrowUp : ''}`}>▾</span>
             </button>
@@ -160,7 +160,7 @@ function CareerChatbot() {
                             ref={inputRef}
                             type="text"
                             className={styles.chatInput}
-                            placeholder="Type your question..."
+                            placeholder="Sorunuzu yazın..."
                             value={inputValue}
                             onChange={e => setInputValue(e.target.value)}
                             onKeyDown={handleKeyDown}
