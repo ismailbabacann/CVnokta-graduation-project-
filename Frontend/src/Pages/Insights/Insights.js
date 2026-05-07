@@ -13,8 +13,8 @@ const CustomBarTooltip = ({ active, payload, label }) => {
     return (
       <div className={styles.customTooltip}>
         <p className={styles.label}>{`${label}`}</p>
-        <p className={styles.intro}>{`Search Count: ${payload[0].value}`}</p>
-        <p className={styles.desc}>Obtained from active job postings in the system.</p>
+        <p className={styles.intro}>{`Arama Sayısı: ${payload[0].value}`}</p>
+        <p className={styles.desc}>Sistemdeki aktif iş ilanlarından elde edilmiştir.</p>
       </div>
     );
   }
@@ -27,7 +27,7 @@ const GenericTooltip = ({ active, payload, label }) => {
       return (
         <div className={styles.customTooltip}>
           <p className={styles.label}>{`${label}`}</p>
-          <p className={styles.intro}>{`Job Posting Count: ${payload[0].value}`}</p>
+          <p className={styles.intro}>{`İş İlanı Sayısı: ${payload[0].value}`}</p>
         </div>
       );
     }
@@ -50,7 +50,7 @@ function Insights() {
         setError(null);
       } catch (err) {
         console.error('Error fetching statistics:', err);
-        setError('An error occurred while loading statistics.');
+        setError('İstatistikler yüklenirken bir hata oluştu.');
       } finally {
         setLoading(false);
       }
@@ -60,11 +60,11 @@ function Insights() {
   }, []);
 
   if (loading) {
-      return <div className={styles.loadingContainer}>Loading Statistics...</div>;
+      return <div className={styles.loadingContainer}>İstatistikler Yükleniyor...</div>;
   }
 
   if (error || !stats) {
-    return <div className={styles.errorContainer}>{error || 'Data not found.'}</div>;
+    return <div className={styles.errorContainer}>{error || 'Veri bulunamadı.'}</div>;
   }
 
   // Formatting dat for charts
@@ -87,9 +87,9 @@ function Insights() {
   return (
     <div className={styles.container}>
       <div className={styles.headerArea}>
-        <h1 className={styles.pageTitle}>Job Market Insights</h1>
+        <h1 className={styles.pageTitle}>İş Piyasası İçgörüleri</h1>
         <p className={styles.pageSubtitle}>
-          Discover the most sought-after skills, popular positions, and location analyses through AI-powered analysis of job postings in the system.
+          Sistemdeki iş ilanlarının yapay zeka destekli analizi ile en çok aranan yetenekleri, popüler pozisyonları ve konum analizlerini keşfedin.
         </p>
       </div>
 
@@ -98,8 +98,8 @@ function Insights() {
         {/* Chart 1: Bar Chart (Skills) */}
         <div className={`${styles.chartCard} ${styles.fullWidth}`}>
           <div className={styles.cardHeader}>
-            <h2 className={styles.chartTitle}>Most In-Demand Skills</h2>
-            <p className={styles.chartDesc}>Data extracted via NLP from job postings in the system, ranked by usage frequency.</p>
+            <h2 className={styles.chartTitle}>En Çok Aranan Yetenekler</h2>
+            <p className={styles.chartDesc}>Sistemdeki iş ilanlarından NLP ile çıkarılan veriler, kullanım sıklığına göre sıralanmıştır.</p>
           </div>
           <div className={styles.chartWrapper}>
             <ResponsiveContainer width="100%" height={350}>
@@ -121,8 +121,8 @@ function Insights() {
         {/* Chart 2: Area Chart (Positions) */}
         <div className={styles.chartCard}>
           <div className={styles.cardHeader}>
-            <h2 className={styles.chartTitle}>Popular Job Positions</h2>
-            <p className={styles.chartDesc}>The most frequently posted job titles by companies on our platform.</p>
+            <h2 className={styles.chartTitle}>Popüler İş Pozisyonları</h2>
+            <p className={styles.chartDesc}>Platformumuzdaki şirketler tarafından en sık yayınlanan iş unvanları.</p>
           </div>
           <div className={styles.chartWrapper}>
             <ResponsiveContainer width="100%" height={300}>
@@ -153,8 +153,8 @@ function Insights() {
         {/* Chart 3: Radar Chart (Locations) */}
         <div className={styles.chartCard}>
           <div className={styles.cardHeader}>
-            <h2 className={styles.chartTitle}>Job Density by City</h2>
-            <p className={styles.chartDesc}>Distribution of job postings by location.</p>
+            <h2 className={styles.chartTitle}>Şehirlere Göre İş Yoğunluğu</h2>
+            <p className={styles.chartDesc}>Konuma göre iş ilanlarının dağılımı.</p>
           </div>
           <div className={styles.chartWrapper}>
             <ResponsiveContainer width="100%" height={300}>
@@ -162,7 +162,7 @@ function Insights() {
                 <PolarGrid stroke="#e2e8f0" />
                 <PolarAngleAxis dataKey="name" tick={{fill: '#4a5568', fontSize: 12, fontWeight: 600}} />
                 <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={false} axisLine={false} />
-                <Radar name="Job Count" dataKey="A" stroke="#f6a96f" fill="#f6a96f" fillOpacity={0.6} />
+                <Radar name="İlan Sayısı" dataKey="A" stroke="#f6a96f" fill="#f6a96f" fillOpacity={0.6} />
                 <Tooltip 
                    contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}}
                 />

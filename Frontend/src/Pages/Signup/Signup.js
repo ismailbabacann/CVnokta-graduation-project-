@@ -36,17 +36,17 @@ function Signup({ setUser }) {
         // Basic validation
         if (!formData.firstName || !formData.lastName || !formData.userName ||
             !formData.email || !formData.password || !formData.confirmPassword) {
-            setError('Please fill in all required fields.');
+            setError('Lütfen tüm zorunlu alanları doldurun.');
             return;
         }
 
         if (formData.password !== formData.confirmPassword) {
-            setError('Passwords do not match.');
+            setError('Şifreler eşleşmiyor.');
             return;
         }
 
         if (formData.password.length < 6) {
-            setError('Password must be at least 6 characters long.');
+            setError('Şifre en az 6 karakter olmalıdır.');
             return;
         }
 
@@ -66,7 +66,7 @@ function Signup({ setUser }) {
             console.log('Registration response:', response.data);
 
             // Successfully registered
-            setSuccess('Successfully signed up! Redirecting to login in 15 seconds...');
+            setSuccess('Başarıyla kayıt olundu! 15 saniye içinde giriş sayfasına yönlendirileceksiniz...');
 
             // The backend returns a string like: "User Registered. Please confirm your account by visiting this URL https://localhost:9001/api/account/confirm-email/?userId=...&code=..."
             // Often, it inserts the Origin (frontend URL) instead of the backend URL.
@@ -108,7 +108,7 @@ function Signup({ setUser }) {
                     setError(JSON.stringify(err.response.data));
                 }
             } else {
-                setError('An error occurred during registration. Please check if the backend is running.');
+                setError('Kayıt sırasında bir hata oluştu. Lütfen sunucunun çalıştığından emin olun.');
             }
         } finally {
             setLoading(false);
@@ -118,7 +118,7 @@ function Signup({ setUser }) {
     return (
         <div className={styles.container}>
             <form className={styles.formContainer} onSubmit={handleSubmit}>
-                <h2 className={styles.title}>Register</h2>
+                <h2 className={styles.title}>Kayıt Ol</h2>
 
                 {error && <div className={styles.error}>{error}</div>}
                 {success && (
@@ -126,10 +126,10 @@ function Signup({ setUser }) {
                         {success}
                         {confirmationLink && (
                             <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#e3f2fd', borderRadius: '4px', border: '1px solid #90caf9' }}>
-                                <strong>Action Required:</strong> Please click the link below to confirm your account so you can login.
+                                <strong>İşlem Gerekli:</strong> Giriş yapabilmeniz için hesabınızı onaylamak üzere aşağıdaki bağlantıya tıklayın.
                                 <br />
                                 <a href={confirmationLink} target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', fontWeight: 'bold', display: 'inline-block', marginTop: '5px' }}>
-                                    Confirm Account Link
+                                    Hesap Onay Bağlantısı
                                 </a>
                             </div>
                         )}
@@ -139,18 +139,18 @@ function Signup({ setUser }) {
                                 onClick={() => navigate('/login')}
                                 style={{ marginTop: '10px', background: 'transparent', border: 'underline', color: '#1b5e20', cursor: 'pointer', textDecoration: 'underline' }}
                             >
-                                I have clicked the link, take me to Login now
+                                Bağlantıya tıkladım, giriş sayfasına git
                             </button>
                         )}
                     </div>
                 )}
 
                 <div className={styles.inputGroup}>
-                    <label className={styles.label}>First Name</label>
+                    <label className={styles.label}>Ad</label>
                     <input
                         type="text"
                         name="firstName"
-                        placeholder="Ex: Abhishek"
+                        placeholder="Örn: Ahmet"
                         className={styles.input}
                         value={formData.firstName}
                         onChange={handleChange}
@@ -158,11 +158,11 @@ function Signup({ setUser }) {
                 </div>
 
                 <div className={styles.inputGroup}>
-                    <label className={styles.label}>Last Name</label>
+                    <label className={styles.label}>Soyad</label>
                     <input
                         type="text"
                         name="lastName"
-                        placeholder="Ex: Sharma"
+                        placeholder="Örn: Yılmaz"
                         className={styles.input}
                         value={formData.lastName}
                         onChange={handleChange}
@@ -170,11 +170,11 @@ function Signup({ setUser }) {
                 </div>
 
                 <div className={styles.inputGroup}>
-                    <label className={styles.label}>Username</label>
+                    <label className={styles.label}>Kullanıcı Adı</label>
                     <input
                         type="text"
                         name="userName"
-                        placeholder="Ex: abhishek_s"
+                        placeholder="Örn: ahmet_y"
                         className={styles.input}
                         value={formData.userName}
                         onChange={handleChange}
@@ -182,11 +182,11 @@ function Signup({ setUser }) {
                 </div>
 
                 <div className={styles.inputGroup}>
-                    <label className={styles.label}>Email</label>
+                    <label className={styles.label}>E-posta</label>
                     <input
                         type="email"
                         name="email"
-                        placeholder="Ex: abhisheksharma@gmail.com"
+                        placeholder="Örn: ahmetyilmaz@gmail.com"
                         className={styles.input}
                         value={formData.email}
                         onChange={handleChange}
@@ -194,11 +194,11 @@ function Signup({ setUser }) {
                 </div>
 
                 <div className={styles.inputGroup}>
-                    <label className={styles.label}>Password</label>
+                    <label className={styles.label}>Şifre</label>
                     <input
                         type="password"
                         name="password"
-                        placeholder="Create strong password"
+                        placeholder="Güçlü bir şifre oluşturun"
                         className={styles.input}
                         value={formData.password}
                         onChange={handleChange}
@@ -206,11 +206,11 @@ function Signup({ setUser }) {
                 </div>
 
                 <div className={styles.inputGroup}>
-                    <label className={styles.label}>Confirm Password</label>
+                    <label className={styles.label}>Şifre Tekrarı</label>
                     <input
                         type="password"
                         name="confirmPassword"
-                        placeholder="Confirm your password"
+                        placeholder="Şifrenizi tekrar girin"
                         className={styles.input}
                         value={formData.confirmPassword}
                         onChange={handleChange}
@@ -218,29 +218,29 @@ function Signup({ setUser }) {
                 </div>
 
                 <div className={styles.inputGroup}>
-                    <label className={styles.label}>User Role</label>
+                    <label className={styles.label}>Kullanıcı Rolü</label>
                     <select
                         name="userRole"
                         className={styles.select}
                         value={formData.userRole}
                         onChange={handleChange}
                     >
-                        <option value="Basic">Job Seeker (Basic)</option>
-                        <option value="HiringManager">Employer (HiringManager)</option>
+                        <option value="Basic">İş Arayan (Aday)</option>
+                        <option value="HiringManager">İşveren (İşe Alım Yöneticisi)</option>
                     </select>
                 </div>
 
                 <button type="submit" className={styles.submitBtn} disabled={loading}>
-                    {loading ? 'Registering...' : 'Register'}
+                    {loading ? 'Kayıt Yapılıyor...' : 'Kayıt Ol'}
                 </button>
 
                 <div className={styles.loginLinkContainer}>
-                    <span className={styles.loginText}>Already registered? </span>
+                    <span className={styles.loginText}>Zaten kayıtlı mısınız? </span>
                     <span
                         className={styles.loginLink}
                         onClick={() => navigate('/login')}
                     >
-                        Login here!
+                        Giriş yapın!
                     </span>
                 </div>
             </form>

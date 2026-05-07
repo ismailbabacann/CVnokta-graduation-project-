@@ -26,7 +26,7 @@ function Login({ setUser }) {
 
         // Basic validation
         if (!formData.email || !formData.password) {
-            setError('Please fill in all required fields.');
+            setError('Lütfen tüm zorunlu alanları doldurun.');
             return;
         }
 
@@ -62,7 +62,7 @@ function Login({ setUser }) {
                     navigate('/');
                 }
             } else {
-                setError('Login failed. Please try again.');
+                setError('Giriş başarısız. Lütfen tekrar deneyin.');
             }
         } catch (err) {
             console.error('Login error:', err);
@@ -71,9 +71,9 @@ function Login({ setUser }) {
             } else if (err.response && err.response.data && err.response.data.Message) {
                 setError(err.response.data.Message);
             } else if (err.response && err.response.status === 401) {
-                setError('Invalid email or password.');
+                setError('Geçersiz e-posta veya şifre.');
             } else {
-                setError('An error occurred during login. Please ensure the backend is running.');
+                setError('Giriş sırasında bir hata oluştu. Lütfen sunucunun çalıştığından emin olun.');
             }
         } finally {
             setLoading(false);
@@ -83,12 +83,12 @@ function Login({ setUser }) {
     return (
         <div className={styles.container}>
             <form className={styles.formContainer} onSubmit={handleSubmit}>
-                <h2 className={styles.title}>Login</h2>
+                <h2 className={styles.title}>Giriş Yap</h2>
 
                 {error && <div className={styles.error}>{error}</div>}
 
                 <div className={styles.inputGroup}>
-                    <label className={styles.label}>Email</label>
+                    <label className={styles.label}>E-posta</label>
                     <input
                         type="email"
                         name="email"
@@ -100,7 +100,7 @@ function Login({ setUser }) {
                 </div>
 
                 <div className={styles.inputGroup}>
-                    <label className={styles.label}>Password</label>
+                    <label className={styles.label}>Şifre</label>
                     <input
                         type="password"
                         name="password"
@@ -116,23 +116,23 @@ function Login({ setUser }) {
                         className={styles.forgotPasswordLink}
                         onClick={() => navigate('/forgot-password')}
                     >
-                        Forgot Password?
+                        Şifremi Unuttum?
                     </span>
                 </div>
 
                 <div className={styles.buttonContainer}>
                     <button type="submit" className={styles.submitBtn} disabled={loading}>
-                        {loading ? 'Logging In...' : 'Log In'}
+                        {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
                     </button>
                 </div>
 
                 <div className={styles.registerLinkContainer}>
-                    <span className={styles.registerText}>New user? </span>
+                    <span className={styles.registerText}>Yeni misiniz? </span>
                     <span
                         className={styles.registerLink}
                         onClick={() => navigate('/signup')}
                     >
-                        Register here!
+                        Kayıt olun!
                     </span>
                 </div>
             </form>

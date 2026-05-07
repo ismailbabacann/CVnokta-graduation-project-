@@ -30,7 +30,7 @@ function ResetPassword() {
                 token: tokenParam
             }));
         } else {
-            setStatus({ type: 'error', message: 'Invalid or missing reset link. Please click the link in your email again.' });
+            setStatus({ type: 'error', message: 'Geçersiz veya eksik sıfırlama bağlantısı. Lütfen e-posta adresinizdeki bağlantıya tekrar tıklayın.' });
         }
     }, [location]);
 
@@ -46,17 +46,17 @@ function ResetPassword() {
         e.preventDefault();
         
         if (!formData.password || !formData.confirmPassword) {
-            setStatus({ type: 'error', message: 'Please fill in all fields.' });
+            setStatus({ type: 'error', message: 'Lütfen tüm alanları doldurun.' });
             return;
         }
 
         if (formData.password !== formData.confirmPassword) {
-            setStatus({ type: 'error', message: 'Passwords do not match.' });
+            setStatus({ type: 'error', message: 'Şifreler eşleşmiyor.' });
             return;
         }
 
         if (formData.password.length < 6) {
-            setStatus({ type: 'error', message: 'Password must be at least 6 characters.' });
+            setStatus({ type: 'error', message: 'Şifre en az 6 karakter olmalıdır.' });
             return;
         }
 
@@ -73,7 +73,7 @@ function ResetPassword() {
 
             setStatus({ 
                 type: 'success', 
-                message: 'Your password has been successfully updated! Redirecting to the login page...' 
+                message: 'Şifreniz başarıyla güncellendi! Giriş sayfasına yönlendiriliyorsunuz...' 
             });
             
             setTimeout(() => {
@@ -85,7 +85,7 @@ function ResetPassword() {
             if (err.response && err.response.data && err.response.data.message) {
                 setStatus({ type: 'error', message: err.response.data.message });
             } else {
-                setStatus({ type: 'error', message: 'An error occurred while resetting the password. Your link may have expired.' });
+                setStatus({ type: 'error', message: 'Şifre sıfırlanırken bir hata oluştu. Bağlantınızın süresi dolmuş olabilir.' });
             }
         } finally {
             setLoading(false);
@@ -95,8 +95,8 @@ function ResetPassword() {
     return (
         <div className={styles.container}>
             <form className={styles.formContainer} onSubmit={handleSubmit}>
-                <h2 className={styles.title}>Set New Password</h2>
-                <p className={styles.subtitle}>Please enter a secure new password with at least 6 characters.</p>
+                <h2 className={styles.title}>Yeni Şifre Belirle</h2>
+                <p className={styles.subtitle}>Lütfen en az 6 karakterden oluşan güvenli bir yeni şifre girin.</p>
 
                 {status.message && (
                     <div className={status.type === 'error' ? styles.error : styles.success}>
@@ -105,7 +105,7 @@ function ResetPassword() {
                 )}
 
                 <div className={styles.inputGroup}>
-                    <label className={styles.label}>New Password</label>
+                    <label className={styles.label}>Yeni Şifre</label>
                     <input
                         type="password"
                         name="password"
@@ -118,7 +118,7 @@ function ResetPassword() {
                 </div>
 
                 <div className={styles.inputGroup}>
-                    <label className={styles.label}>New Password (Again)</label>
+                    <label className={styles.label}>Yeni Şifre (Tekrar)</label>
                     <input
                         type="password"
                         name="confirmPassword"
@@ -136,14 +136,14 @@ function ResetPassword() {
                         className={styles.submitBtn} 
                         disabled={loading || status.type === 'success' || !formData.token}
                     >
-                        {loading ? 'Updating...' : 'Reset My Password'}
+                        {loading ? 'Güncelleniyor...' : 'Şifremi Sıfırla'}
                     </button>
                     <button 
                         type="button" 
                         className={styles.backBtn}
                         onClick={() => navigate('/login')}
                     >
-                        Back to Login
+                        Girişe Dön
                     </button>
                 </div>
             </form>

@@ -36,7 +36,7 @@ function UserLayout() {
     const navigate = useNavigate();
 
     // Get the User's name from localStorage (or fallback)
-    const userName = localStorage.getItem('userName') || 'Valued User';
+    const userName = localStorage.getItem('userName') || 'Değerli Kullanıcı';
 
     const handleLogout = () => {
         localStorage.removeItem('jwToken');
@@ -48,12 +48,12 @@ function UserLayout() {
     const getPageTitle = () => {
         switch (location.pathname) {
             case '/profile': 
-            case '/profile/dashboard': return 'Dashboard';
-            case '/profile/me': return 'My Profile';
-            case '/profile/applications': return 'My Applications';
-            case '/profile/jobs': return 'All Jobs';
-            case '/profile/help': return 'Help Center';
-            default: return 'My Profile';
+            case '/profile/dashboard': return 'Kontrol Paneli';
+            case '/profile/me': return 'Profilim';
+            case '/profile/applications': return 'Başvurularım';
+            case '/profile/jobs': return 'Tüm İlanlar';
+            case '/profile/help': return 'Yardım Merkezi';
+            default: return 'Profilim';
         }
     };
 
@@ -68,34 +68,34 @@ function UserLayout() {
                     <span className={styles.logoText}>HR.ai</span>
                 </div>
                 
-                <div className={styles.navLabel}>Main Menu</div>
+                <div className={styles.navLabel}>Ana Menü</div>
                 <nav className={styles.nav}>
                     <NavLink to="/profile/dashboard" className={({ isActive }) => isActive || location.pathname === '/profile' ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}><Icons.Dashboard /></span>
-                        <span className={styles.navText}>Dashboard</span>
+                        <span className={styles.navText}>Kontrol Paneli</span>
                     </NavLink>
                     <NavLink to="/profile/me" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}><Icons.Profile /></span>
-                        <span className={styles.navText}>My Profile</span>
+                        <span className={styles.navText}>Profilim</span>
                     </NavLink>
                     <NavLink to="/profile/applications" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}><Icons.Apps /></span>
-                        <span className={styles.navText}>My Applications</span>
+                        <span className={styles.navText}>Başvurularım</span>
                     </NavLink>
                     <NavLink to="/profile/jobs" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}><Icons.Jobs /></span>
-                        <span className={styles.navText}>All Jobs</span>
+                        <span className={styles.navText}>Tüm İlanlar</span>
                     </NavLink>
                     <NavLink to="/profile/help" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
                         <span className={styles.navIcon}><Icons.Help /></span>
-                        <span className={styles.navText}>Help Center</span>
+                        <span className={styles.navText}>Yardım Merkezi</span>
                     </NavLink>
                 </nav>
 
                 <div className={styles.sidebarBottom}>
                     <button className={styles.logoutBtn} onClick={handleLogout}>
                         <span className={styles.navIcon}><Icons.Logout /></span>
-                        <span className={styles.navText}>Logout</span>
+                        <span className={styles.navText}>Çıkış Yap</span>
                     </button>
                 </div>
             </aside>
@@ -105,13 +105,13 @@ function UserLayout() {
                 {/* Top Header */}
                 <header className={styles.topHeader}>
                     <div className={styles.headerLeft}>
-                        <span className={styles.breadcrumb}>My Account <span className={styles.separator}>/</span> {getPageTitle()}</span>
+                        <span className={styles.breadcrumb}>Hesabım <span className={styles.separator}>/</span> {getPageTitle()}</span>
                     </div>
                     <div className={styles.headerRight}>
                         <div className={styles.userProfile}>
                             <span className={styles.userName}>
                                 {userName}<br />
-                                <span>Candidate User</span>
+                                <span>Aday</span>
                             </span>
                             <div className={styles.avatar}>{userName.charAt(0).toUpperCase()}</div>
                         </div>

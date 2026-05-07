@@ -55,7 +55,7 @@ function CompanyCandidates() {
 
     const handleGenerateTest = async () => {
         if (!testContext.trim()) {
-            alert("Please enter the test context (question details).");
+            alert("Lütfen test bağlamını (soru detaylarını) girin.");
             return;
         }
         try {
@@ -71,7 +71,7 @@ function CompanyCandidates() {
             }
         } catch(err) {
             console.error("Test generate error:", err);
-            alert("An error occurred while generating the test.");
+            alert("Test oluşturulurken bir hata oluştu.");
         } finally {
             setTestLoading(false);
         }
@@ -79,7 +79,7 @@ function CompanyCandidates() {
 
     const handleSendMeeting = async () => {
         if (!meetingData.meetingTitle || !meetingData.scheduledDate || !meetingData.meetingLink) {
-            alert("Please fill in all interview fields.");
+            alert("Lütfen tüm mülakat alanlarını doldurun.");
             return;
         }
         try {
@@ -97,11 +97,11 @@ function CompanyCandidates() {
                  headers: { Authorization: `Bearer ${token}` }
             });
             
-            alert("Interview successfully created and sent to the candidate and your account.");
+            alert("Mülakat başarıyla oluşturuldu ve adaya ve hesabınıza gönderildi.");
             setIsMeetingModalOpen(false);
         } catch(err) {
             console.error("Meeting invite error:", err);
-            alert("An error occurred while sending the interview invitation.");
+            alert("Mülakat daveti gönderilirken bir hata oluştu.");
         } finally {
             setMeetingLoading(false);
         }
@@ -110,7 +110,7 @@ function CompanyCandidates() {
     const handleRejectCand = async () => {
         if (!selectedCandidate || !selectedCandidate.applicationId) return;
         
-        if (!window.confirm('Are you sure you want to reject this candidate? This action cannot be undone.')) return;
+        if (!window.confirm('Bu adayı reddetmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) return;
 
         try {
             const token = localStorage.getItem('jwToken');
@@ -121,12 +121,12 @@ function CompanyCandidates() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             
-            alert('Candidate successfully rejected.');
+            alert('Aday başarıyla reddedildi.');
             setCandidates(prev => prev.filter(c => c.applicationId !== selectedCandidate.applicationId));
             closeModal();
         } catch(err) {
             console.error('Reject candidate error:', err);
-            alert('An error occurred while rejecting the candidate.');
+            alert('Aday reddedilirken bir hata oluştu.');
         }
     };
 
@@ -134,15 +134,15 @@ function CompanyCandidates() {
         if (!selectedCandidate || !selectedCandidate.applicationId) return;
 
         const stageLabels = {
-            NLP_REVIEW:           'CV Analysis → English Test',
-            ENGLISH_TEST_PENDING: 'English Test → Skills Test',
-            SKILLS_TEST_PENDING:  'Skills Test → AI Interview',
-            AI_INTERVIEW_PENDING: 'AI Interview → Completed',
+            NLP_REVIEW:           'CV Analizi → İngilizce Testi',
+            ENGLISH_TEST_PENDING: 'İngilizce Testi → Beceri Testi',
+            SKILLS_TEST_PENDING:  'Beceri Testi → AI Mülakat',
+            AI_INTERVIEW_PENDING: 'AI Mülakat → Tamamlandı',
         };
         const currentStage = selectedCandidate.currentPipelineStage;
-        const label = stageLabels[currentStage] || 'next stage';
+        const label = stageLabels[currentStage] || 'sonraki aşama';
 
-        if (!window.confirm(`Are you sure you want to advance this candidate to "${label}"?`)) return;
+        if (!window.confirm(`Bu adayı "${label}" aşamasına ilerletmek istediğinize emin misiniz?`)) return;
 
         try {
             const token = localStorage.getItem('jwToken');
@@ -151,12 +151,12 @@ function CompanyCandidates() {
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            alert('✅ Candidate successfully advanced to the next stage.');
+            alert('✅ Aday başarıyla sonraki aşamaya ilerletildi.');
             // Refresh list and close modal
             setCandidates(prev => prev.filter(c => c.applicationId !== selectedCandidate.applicationId));
             closeModal();
         } catch(err) {
-            const msg = err.response?.data?.message || 'An error occurred.';
+            const msg = err.response?.data?.message || 'Bir hata oluştu.';
             alert(`❌ Error: ${msg}`);
         }
     };
@@ -247,8 +247,8 @@ function CompanyCandidates() {
             {/* Header Area */}
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.title}>Candidate Pool</h1>
-                    <p className={styles.subtitle}>Review and prioritize your candidates by AI match (NLP) score.</p>
+                    <h1 className={styles.title}>Aday Havuzu</h1>
+                    <p className={styles.subtitle}>Adaylarınızı AI eşleşme (NLP) puanına göre inceleyin ve önceliklendirin.</p>
                 </div>
             </div>
 
@@ -257,21 +257,21 @@ function CompanyCandidates() {
                 <div className={styles.statCard}>
                     <div className={`${styles.iconBg} ${styles.blueBg}`}>👥</div>
                     <div className={styles.statInfo}>
-                        <span className={styles.statLabel}>Total Candidate Pool</span>
+                        <span className={styles.statLabel}>Toplam Aday Havuzu</span>
                         <span className={styles.statValue}>{statsLoading ? '...' : stats.totalCandidates}</span>
                     </div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.iconBg} ${styles.greenBg}`}>📅</div>
                     <div className={styles.statInfo}>
-                        <span className={styles.statLabel}>Today's Applications</span>
+                        <span className={styles.statLabel}>Bugünkü Başvurular</span>
                         <span className={styles.statValue}>{statsLoading ? '...' : stats.newApplicationsToday}</span>
                     </div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.iconBg} ${styles.purpleBg}`}>🧠</div>
                     <div className={styles.statInfo}>
-                        <span className={styles.statLabel}>Avg. AI Match Score</span>
+                        <span className={styles.statLabel}>Ort. AI Eşleşme Puanı</span>
                         <span className={styles.statValue}>{statsLoading ? '...' : `%${stats.averageNlpScore}`}</span>
                     </div>
                 </div>
@@ -282,7 +282,7 @@ function CompanyCandidates() {
                 <div className={styles.tableControls}>
                     <input 
                         type="text" 
-                        placeholder="Search candidate name or position..." 
+                        placeholder="Aday adı veya pozisyon ara..." 
                         className={styles.searchInput}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -293,10 +293,10 @@ function CompanyCandidates() {
                             value={filterJobId}
                             onChange={(e) => setFilterJobId(e.target.value)}
                         >
-                            <option value="All">Filter: All Postings</option>
+                            <option value="All">Filtre: Tüm İlanlar</option>
                             {companyJobs.map(job => (
                                 <option key={job.jobId || job.id} value={job.jobId || job.id}>
-                                    Posting: {job.jobTitle}
+                                    İlan: {job.jobTitle}
                                 </option>
                             ))}
                         </select>
@@ -305,9 +305,9 @@ function CompanyCandidates() {
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
                         >
-                            <option value="nlpscoredesc">Sort: Highest NLP Score</option>
-                            <option value="nlpscoreasc">Sort: Lowest NLP Score</option>
-                            <option value="datedesc">Sort: Most Recent Application</option>
+                            <option value="nlpscoredesc">Sırala: En Yüksek NLP Puanı</option>
+                            <option value="nlpscoreasc">Sırala: En Düşük NLP Puanı</option>
+                            <option value="datedesc">Sırala: En Son Başvuru</option>
                         </select>
                     </div>
                 </div>
@@ -315,22 +315,22 @@ function CompanyCandidates() {
                 <table className={styles.table}>
                     <thead>
                         <tr>
-                            <th>CANDIDATE INFO</th>
-                            <th>APPLIED POSITION</th>
-                            <th>APPLICATION DATE</th>
-                            <th>AI (NLP) SCORE</th>
-                            <th>ACTION</th>
+                            <th>ADAY BİLGİSİ</th>
+                            <th>BAŞVURULAN POZİSYON</th>
+                            <th>BAŞVURU TARİHİ</th>
+                            <th>AI (NLP) PUANI</th>
+                            <th>İŞLEM</th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading && (
-                            <tr><td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>Loading candidate pool...</td></tr>
+                            <tr><td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>Aday havuzu yükleniyor...</td></tr>
                         )}
                         {!loading && error && (
                             <tr><td colSpan="6" style={{ textAlign: "center", padding: "20px", color: "red" }}>{error}</td></tr>
                         )}
                         {!loading && !error && filteredCandidates.length === 0 && (
-                            <tr><td colSpan="6" style={{ textAlign: "center", padding: "20px", color: "#666" }}>No candidates found matching your search criteria.</td></tr>
+                            <tr><td colSpan="6" style={{ textAlign: "center", padding: "20px", color: "#666" }}>Arama kriterlerinize uygun aday bulunamadı.</td></tr>
                         )}
                         {!loading && !error && filteredCandidates.map(cand => (
                             <tr key={cand.applicationId}>
@@ -348,26 +348,26 @@ function CompanyCandidates() {
                                 </td>
                                 <td>
                                     <div className={styles.dateText}>
-                                        {new Date(cand.applicationDate).toLocaleDateString('en-US')}
+                                        {new Date(cand.applicationDate).toLocaleDateString('tr-TR')}
                                     </div>
                                 </td>
                                 <td>
                                     <div className={styles.nlpWrapper}>
                                         <span className={`${styles.nlpScoreBadge} ${cand.nlpMatchScore >= 90 ? styles.scoreHigh : cand.nlpMatchScore >= 75 ? styles.scoreMedium : styles.scoreLow}`}>
-                                            %{cand.nlpMatchScore} Match
+                                            %{cand.nlpMatchScore} Eşleşme
                                         </span>
                                         {cand.nlpMatchScore >= 90 && <span className={styles.sparkle}>✨</span>}
                                     </div>
                                 </td>
                                 <td>
-                                    <button className={styles.actionBtn} onClick={() => openModal(cand)}>Review Application</button>
+                                    <button className={styles.actionBtn} onClick={() => openModal(cand)}>Başvuruyu İncele</button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
                 <div className={styles.pagination}>
-                    <span>Total {filteredCandidates.length} candidates in the system</span>
+                    <span>Sistemde toplam {filteredCandidates.length} aday</span>
                 </div>
             </div>
 
@@ -386,7 +386,7 @@ function CompanyCandidates() {
                                     <h2 style={{ margin: '0 0 5px 0', fontSize: '28px' }}>{selectedCandidate.firstName} {selectedCandidate.lastName}</h2>
                                     <p style={{ margin: 0, opacity: 0.9, fontSize: '15px' }}>{selectedCandidate.appliedPosition} (ID: #{selectedCandidate.candidateDisplayId})</p>
                                     <div style={{ marginTop: '10px', display: 'inline-block', padding: '4px 12px', borderRadius: '20px', background: 'rgba(255,255,255,0.2)', fontSize: '14px', fontWeight: '500' }}>
-                                        {selectedCandidate.nlpMatchScore >= 75 ? '🌟 High Match :' : '📉 Match Score :'} %{selectedCandidate.nlpMatchScore}
+                                        {selectedCandidate.nlpMatchScore >= 75 ? '🌟 Yüksek Eşleşme :' : '📉 Eşleşme Puanı :'} %{selectedCandidate.nlpMatchScore}
                                     </div>
                                 </div>
                             </div>
@@ -399,17 +399,17 @@ function CompanyCandidates() {
                                 <div>
                                     <div style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', height: '100%' }}>
                                         <h4 style={{ color: '#475569', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <span role="img" aria-label="contact">📱</span> Contact Information
+                                            <span role="img" aria-label="contact">📱</span> İletişim Bilgileri
                                         </h4>
                                         <div style={{ color: '#334155', lineHeight: '1.8' }}>
-                                            <p style={{ margin: '10px 0' }}><strong>✉️ Email:</strong> <a href={`mailto:${selectedCandidate.email}`} style={{color: '#4f46e5', textDecoration: 'none'}}>{selectedCandidate.email || 'Not specified'}</a></p>
-                                            <p style={{ margin: '10px 0' }}><strong>📞 Phone:</strong> {selectedCandidate.phone || 'Not specified'}</p>
+                                            <p style={{ margin: '10px 0' }}><strong>✉️ E-posta:</strong> <a href={`mailto:${selectedCandidate.email}`} style={{color: '#4f46e5', textDecoration: 'none'}}>{selectedCandidate.email || 'Belirtilmemiş'}</a></p>
+                                            <p style={{ margin: '10px 0' }}><strong>📞 Telefon:</strong> {selectedCandidate.phone || 'Belirtilmemiş'}</p>
                                             <p style={{ margin: '10px 0' }}>
                                                 <strong>🔗 LinkedIn:</strong> {selectedCandidate.linkedInProfile ? (
-                                                    <a href={selectedCandidate.linkedInProfile} target="_blank" rel="noopener noreferrer" style={{color: '#4f46e5', textDecoration: 'none'}}>View Profile</a>
-                                                ) : 'Not specified'}
+                                                    <a href={selectedCandidate.linkedInProfile} target="_blank" rel="noopener noreferrer" style={{color: '#4f46e5', textDecoration: 'none'}}>Profili Görüntüle</a>
+                                                ) : 'Belirtilmemiş'}
                                             </p>
-                                            <p style={{ margin: '10px 0' }}><strong>📍 Location:</strong> {selectedCandidate.location || 'Not specified'}</p>
+                                            <p style={{ margin: '10px 0' }}><strong>📍 Konum:</strong> {selectedCandidate.location || 'Belirtilmemiş'}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -418,10 +418,10 @@ function CompanyCandidates() {
                                 <div>
                                     <div style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', height: '100%' }}>
                                         <h4 style={{ color: '#475569', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <span role="img" aria-label="letter">✍️</span> Cover Letter / Goals
+                                            <span role="img" aria-label="letter">✍️</span> Ön Yazı / Hedefler
                                         </h4>
                                         <div style={{ background: '#f1f5f9', padding: '15px', borderRadius: '8px', minHeight: '120px', whiteSpace: 'pre-wrap', color: '#475569', fontStyle: 'italic', fontSize: '14px', lineHeight: '1.6' }}>
-                                            "{selectedCandidate.coverLetter || 'The candidate did not provide a cover letter for this application.'}"
+                                            "{selectedCandidate.coverLetter || 'Aday bu başvuru için ön yazı sağlamadı.'}"
                                         </div>
                                     </div>
                                 </div>
@@ -431,16 +431,16 @@ function CompanyCandidates() {
                             {selectedCandidate.currentPipelineStage && (
                                 <div style={{ marginTop: '20px', background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                                     <h4 style={{ color: '#475569', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        📊 Pipeline Status
+                                        📊 Pipeline Durumu
                                     </h4>
                                     {(() => {
                                         const stage = selectedCandidate.currentPipelineStage;
                                         const stages = [
-                                            { key: 'NLP_REVIEW',           label: 'CV Analysis',     icon: '🔍', color: '#667eea' },
-                                            { key: 'ENGLISH_TEST_PENDING', label: 'English Test',    icon: '🇬🇧', color: '#00b4db' },
-                                            { key: 'SKILLS_TEST_PENDING',  label: 'Skills Test',     icon: '📝', color: '#ed8936' },
-                                            { key: 'AI_INTERVIEW_PENDING', label: 'AI Interview',    icon: '🤖', color: '#f5576c' },
-                                            { key: 'COMPLETED',            label: 'Completed',       icon: '🎉', color: '#48bb78' },
+                                            { key: 'NLP_REVIEW',           label: 'CV Analizi',       icon: '🔍', color: '#667eea' },
+                                            { key: 'ENGLISH_TEST_PENDING', label: 'İngilizce Testi',  icon: '🇬🇧', color: '#00b4db' },
+                                            { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',     icon: '📝', color: '#ed8936' },
+                                            { key: 'AI_INTERVIEW_PENDING', label: 'AI Mülakat',      icon: '🤖', color: '#f5576c' },
+                                            { key: 'COMPLETED',            label: 'Tamamlandı',      icon: '🎉', color: '#48bb78' },
                                         ];
                                         const order = { 
                                             NLP_REVIEW: 0,
@@ -487,7 +487,7 @@ function CompanyCandidates() {
                                                 </div>
                                                 {rejected && selectedCandidate.rejectionReason && (
                                                     <div style={{ background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', color: '#c53030' }}>
-                                                        <strong>Rejection reason:</strong> {selectedCandidate.rejectionReason}
+                                                        <strong>Red nedeni:</strong> {selectedCandidate.rejectionReason}
                                                     </div>
                                                 )}
                                             </div>
@@ -504,14 +504,14 @@ function CompanyCandidates() {
                                        onClick={(e) => {
                                            if (!selectedCandidate.cvUrl.startsWith('http') && !selectedCandidate.cvUrl.startsWith('//')) {
                                                e.preventDefault();
-                                               alert("The CV link in the database is not a valid web address (doesn't start with http). Therefore it cannot be opened.\nLink: " + selectedCandidate.cvUrl);
+                                               alert("Veritabanındaki CV bağlantısı geçerli bir web adresi değil (http ile başlamıyor). Bu nedenle açılamıyor.\nBağlantı: " + selectedCandidate.cvUrl);
                                            }
                                        }}
                                        style={{ ...cvBtnStyle, backgroundColor: '#cbd5e1', color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        📄 View CV
+                                        📄 CV'yi Görüntüle
                                     </a>
                                 ) : (
-                                    <span style={{ color: '#94a3b8', padding: '12px', display: 'flex', alignItems: 'center' }}>No CV uploaded.</span>
+                                    <span style={{ color: '#94a3b8', padding: '12px', display: 'flex', alignItems: 'center' }}>CV yüklenmemiş.</span>
                                 )}
                                 
                                 {/* Manual Advance Button */}
@@ -520,16 +520,16 @@ function CompanyCandidates() {
                                         style={{ ...cvBtnStyle, backgroundColor: '#22c55e', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
                                         onClick={handleAdvancePipeline}
                                     >
-                                        ⏭️ Advance to Next Stage
+                                        ⏭️ Sonraki Aşamaya İlerlet
                                     </button>
                                 )}
 
                                 <button style={{ ...cvBtnStyle, backgroundColor: '#ec4899', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setIsMeetingModalOpen(true)}>
-                                    📅 Schedule Interview
+                                    📅 Mülakat Planla
                                 </button>
                                 
                                 <button style={{ ...cvBtnStyle, backgroundColor: '#ef4444', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={handleRejectCand}>
-                                    ❌ Reject Candidate
+                                    ❌ Adayı Reddet
                                 </button>
                             </div>
                         </div>
@@ -542,16 +542,16 @@ function CompanyCandidates() {
                 <div style={{...modalOverlayStyle, zIndex: 1010}}>
                     <div style={{...modalContentStyle, width: '700px'}}>
                         <div style={modalHeaderStyle}>
-                            <h2 style={{ margin: 0, color: '#4f46e5' }}>🤖 Generate AI Expertise Test</h2>
+                            <h2 style={{ margin: 0, color: '#4f46e5' }}>🤖 AI Uzmanlık Testi Oluştur</h2>
                             <button onClick={() => setIsTestModalOpen(false)} style={closeBtnStyle}>X</button>
                         </div>
                         <div style={modalBodyStyle}>
-                            <p style={{marginBottom: '15px', color: '#666'}}>Write the context and expectations for the test you want to send to the candidate for evaluation.</p>
+                            <p style={{marginBottom: '15px', color: '#666'}}>Adaya değerlendirme için göndermek istediğiniz testin bağlamını ve beklentilerini yazın.</p>
                             
                             <textarea 
                                 value={testContext}
                                 onChange={e => setTestContext(e.target.value)}
-                                placeholder="E.g.: This job requires basic English communication and C# skills, prepare 3 questions."
+                                placeholder="Örn: Bu pozisyon temel İngilizce iletişim ve C# becerisi gerektiriyor, 3 soru hazırla."
                                 style={{ width: '100%', minHeight: '80px', padding: '10px', borderRadius: '6px', border: '1px solid #c7d2fe', marginBottom: '15px', fontFamily: 'Inter, sans-serif' }}
                             />
                             
@@ -560,21 +560,21 @@ function CompanyCandidates() {
                                 disabled={testLoading}
                                 style={{ padding: '10px 20px', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', marginBottom: '20px' }}
                             >
-                                {testLoading ? 'AI Preparing Test...' : '✨ Generate Questions'}
+                                {testLoading ? 'AI Testi Hazırlıyor...' : '✨ Soruları Oluştur'}
                             </button>
 
                             {generatedTest && (
                                 <div style={{ backgroundColor: '#f8f9fc', padding: '20px', borderRadius: '8px', border: '1px solid #eef0f4' }}>
-                                    <h3 style={{marginTop: 0, color: '#333'}}>{generatedTest.title || 'Generated Test'}</h3>
+                                    <h3 style={{marginTop: 0, color: '#333'}}>{generatedTest.title || 'Oluşturulan Test'}</h3>
                                     <p style={{color: '#666', marginBottom: '20px'}}>{generatedTest.description}</p>
                                     
                                     {generatedTest.questions?.map((q, idx) => (
                                         <div key={idx} style={{marginBottom: '20px'}}>
-                                            <div style={{fontWeight: 'bold', marginBottom: '10px'}}>Question {idx + 1}: {q.questionText}</div>
+                                            <div style={{fontWeight: 'bold', marginBottom: '10px'}}>Soru {idx + 1}: {q.questionText}</div>
                                             <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '10px'}}>
                                                 {q.options?.map((opt, oIdx) => (
                                                     <div key={oIdx} style={{padding: '8px', backgroundColor: '#fff', borderRadius: '4px', border: opt === q.correctAnswer ? '1px solid #2ecc71' : '1px solid #ddd'}}>
-                                                        {opt} {opt === q.correctAnswer && <span style={{color: '#2ecc71', fontWeight: 'bold', marginLeft: '10px'}}>✓ Correct</span>}
+                                                        {opt} {opt === q.correctAnswer && <span style={{color: '#2ecc71', fontWeight: 'bold', marginLeft: '10px'}}>✓ Doğru</span>}
                                                     </div>
                                                 ))}
                                             </div>
@@ -582,10 +582,10 @@ function CompanyCandidates() {
                                     ))}
                                     
                                     <button 
-                                        onClick={() => { alert('Test successfully assigned to candidate!'); setIsTestModalOpen(false); }}
+                                        onClick={() => { alert('Test başarıyla adaya atandı!'); setIsTestModalOpen(false); }}
                                         style={{ padding: '10px 20px', backgroundColor: '#2ecc71', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', width: '100%', marginTop: '10px' }}
                                     >
-                                        Send to Candidate
+                                        Adaya Gönder
                                     </button>
                                 </div>
                             )}
@@ -599,25 +599,25 @@ function CompanyCandidates() {
                 <div style={{...modalOverlayStyle, zIndex: 1010}}>
                     <div style={{...modalContentStyle, width: '500px'}}>
                         <div style={modalHeaderStyle}>
-                            <h2 style={{ margin: 0, color: '#e67e22' }}>📅 Create Interview Invitation</h2>
+                            <h2 style={{ margin: 0, color: '#e67e22' }}>📅 Mülakat Daveti Oluştur</h2>
                             <button onClick={() => setIsMeetingModalOpen(false)} style={closeBtnStyle}>X</button>
                         </div>
                         <div style={modalBodyStyle}>
-                            <p style={{marginBottom: '20px', color: '#666'}}>Schedule a meeting for candidate <strong>{selectedCandidate.firstName} {selectedCandidate.lastName}</strong>.</p>
+                            <p style={{marginBottom: '20px', color: '#666'}}><strong>{selectedCandidate.firstName} {selectedCandidate.lastName}</strong> adayı için görüşme planlayın.</p>
                             
                             <div style={{marginBottom: '15px'}}>
-                                <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>Interview Title *</label>
+                                <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>Mülakat Başlığı *</label>
                                 <input 
                                     type="text" 
                                     value={meetingData.meetingTitle}
                                     onChange={e => setMeetingData({...meetingData, meetingTitle: e.target.value})}
-                                    placeholder="E.g.: Final Interview - Backend"
+                                    placeholder="Örn: Final Mülakat - Backend"
                                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}
                                 />
                             </div>
 
                             <div style={{marginBottom: '15px'}}>
-                                <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>Date and Time *</label>
+                                <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>Tarih ve Saat *</label>
                                 <input 
                                     type="datetime-local" 
                                     value={meetingData.scheduledDate}
@@ -627,7 +627,7 @@ function CompanyCandidates() {
                             </div>
 
                             <div style={{marginBottom: '15px'}}>
-                                <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>Meeting Link (Meet / Zoom / Teams) *</label>
+                                <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>Toplantı Bağlantısı (Meet / Zoom / Teams) *</label>
                                 <input 
                                     type="url" 
                                     value={meetingData.meetingLink}
@@ -638,15 +638,15 @@ function CompanyCandidates() {
                             </div>
 
                             <div style={{marginBottom: '20px'}}>
-                                <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>Meeting Type</label>
+                                <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>Toplantı Türü</label>
                                 <select 
                                     value={meetingData.meetingType}
                                     onChange={e => setMeetingData({...meetingData, meetingType: e.target.value})}
                                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}
                                 >
-                                    <option value="HR_SCREENING">HR Screening</option>
-                                    <option value="TECHNICAL_INTERVIEW">Technical Interview</option>
-                                    <option value="FINAL_INTERVIEW">Final Interview</option>
+                                    <option value="HR_SCREENING">İK Ön Görüşme</option>
+                                    <option value="TECHNICAL_INTERVIEW">Teknik Mülakat</option>
+                                    <option value="FINAL_INTERVIEW">Final Mülakat</option>
                                 </select>
                             </div>
 
@@ -655,7 +655,7 @@ function CompanyCandidates() {
                                 disabled={meetingLoading}
                                 style={{ padding: '12px 20px', backgroundColor: '#e67e22', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', width: '100%' }}
                             >
-                                {meetingLoading ? 'Sending...' : 'Create & Send Invitation'}
+                                {meetingLoading ? 'Gönderiliyor...' : 'Oluştur & Davet Gönder'}
                             </button>
                         </div>
                     </div>

@@ -4,11 +4,11 @@ import styles from './MyApplications.module.css';
 
 // ── Pipeline stage config ────────────────────────────────────────────────────
 const PIPELINE_STAGES = [
-    { key: 'NLP_REVIEW',           label: 'CV Analysis',      icon: '🔍' },
-    { key: 'ENGLISH_TEST_PENDING', label: 'English Test',     icon: '🇬🇧' },
-    { key: 'SKILLS_TEST_PENDING',  label: 'Skills Test',      icon: '📝' },
-    { key: 'AI_INTERVIEW_PENDING', label: 'AI Interview',     icon: '🤖' },
-    { key: 'COMPLETED',            label: 'Completed',        icon: '🎉' },
+    { key: 'NLP_REVIEW',           label: 'CV Analizi',      icon: '🔍' },
+    { key: 'ENGLISH_TEST_PENDING', label: 'İngilizce Testi', icon: '🇬🇧' },
+    { key: 'SKILLS_TEST_PENDING',  label: 'Beceri Testi',    icon: '📝' },
+    { key: 'AI_INTERVIEW_PENDING', label: 'AI Mülakat',      icon: '🤖' },
+    { key: 'COMPLETED',            label: 'Tamamlandı',      icon: '🎉' },
 ];
 
 const STAGE_ORDER = {
@@ -94,7 +94,7 @@ function PipelineStepper({ stage, rejectionReason }) {
                 <p style={{ color: msgInfo.color }}>{msgInfo.text}</p>
                 {rejected && rejectionReason && (
                     <p className={styles.rejectionDetail}>
-                        <strong>Detail:</strong> {rejectionReason}
+                        <strong>Detay:</strong> {rejectionReason}
                     </p>
                 )}
             </div>
@@ -167,13 +167,13 @@ function MyApplications() {
         const completed  = app.stage === 'COMPLETED';
 
         let badgeClass = styles.statusPending;
-        let badgeLabel = 'Under Review';
-        if (rejected)       { badgeClass = styles.statusDanger;  badgeLabel = 'Eliminated'; }
-        else if (completed) { badgeClass = styles.statusSuccess; badgeLabel = 'Completed'; }
-        else if (app.stage === 'ENGLISH_TEST_PENDING')  { badgeLabel = 'English Test'; }
-        else if (app.stage === 'SKILLS_TEST_PENDING')   { badgeLabel = 'Skills Test'; }
-        else if (app.stage === 'AI_INTERVIEW_PENDING')  { badgeLabel = 'AI Interview'; }
-        else if (app.stage === 'NLP_REVIEW')            { badgeLabel = 'CV Analysis'; }
+        let badgeLabel = 'İncelemede';
+        if (rejected)       { badgeClass = styles.statusDanger;  badgeLabel = 'Elendi'; }
+        else if (completed) { badgeClass = styles.statusSuccess; badgeLabel = 'Tamamlandı'; }
+        else if (app.stage === 'ENGLISH_TEST_PENDING')  { badgeLabel = 'İngilizce Testi'; }
+        else if (app.stage === 'SKILLS_TEST_PENDING')   { badgeLabel = 'Beceri Testi'; }
+        else if (app.stage === 'AI_INTERVIEW_PENDING')  { badgeLabel = 'AI Mülakat'; }
+        else if (app.stage === 'NLP_REVIEW')            { badgeLabel = 'CV Analizi'; }
 
         return (
             <div key={app.id} className={`${styles.card} ${isExpanded ? styles.cardExpanded : ''}`} onClick={() => toggleCard(app.id)}>
@@ -197,7 +197,7 @@ function MyApplications() {
                 {isExpanded && (
                     <div className={styles.cardBody} onClick={e => e.stopPropagation()}>
                         <hr className={styles.divider} />
-                        <h4 className={styles.stepperHeader}>Process Details</h4>
+                        <h4 className={styles.stepperHeader}>Süreç Detayları</h4>
                         <PipelineStepper stage={app.stage} rejectionReason={app.rejectionReason} />
                         {app.stage === 'AI_INTERVIEW_PENDING' && app.interviewToken && (
                             <div style={{ marginTop: '16px', textAlign: 'center' }}>
@@ -208,7 +208,7 @@ function MyApplications() {
                                     className={styles.interviewBtn}
                                     onClick={e => e.stopPropagation()}
                                 >
-                                    🤖 Go to AI Interview
+                                    🤖 AI Mülakat'a Git
                                 </a>
                             </div>
                         )}
@@ -222,7 +222,7 @@ function MyApplications() {
                                     style={{ background: 'linear-gradient(135deg, #00b4db, #0083b0)' }}
                                     onClick={e => e.stopPropagation()}
                                 >
-                                    📝 Start Exam
+                                    📝 Sınava Başla
                                 </a>
                             </div>
                         )}
@@ -310,30 +310,30 @@ function MyApplications() {
             <div className={styles.tabsHeader}>
                 <button className={`${styles.tabBtn} ${activeTab === 'ilanlar' ? styles.active : ''}`}
                     onClick={() => { setActiveTab('ilanlar'); setExpandedCardId(null); }}>
-                    My Applications
+                    Başvurularım
                 </button>
                 <button className={`${styles.tabBtn} ${activeTab === 'sonuclar' ? styles.active : ''}`}
                     onClick={() => { setActiveTab('sonuclar'); setExpandedCardId(null); }}>
-                    My Results
+                    Sonuçlarım
                 </button>
             </div>
 
             <div className={styles.tabContent}>
                 {activeTab === 'ilanlar' && (
                     <div className={styles.listWrapper}>
-                        {loading ? <p className={styles.emptyState}>Loading...</p> : (
+                        {loading ? <p className={styles.emptyState}>Yükleniyor...</p> : (
                             applications.length > 0
                                 ? applications.map(renderCard)
-                                : <p className={styles.emptyState}>You haven't applied to any jobs yet.</p>
+                                : <p className={styles.emptyState}>Henüz hiçbir işe başvurmadınız.</p>
                         )}
                     </div>
                 )}
                 {activeTab === 'sonuclar' && (
                     <div className={styles.listWrapper}>
-                        {loading ? <p className={styles.emptyState}>Loading...</p> : (
+                        {loading ? <p className={styles.emptyState}>Yükleniyor...</p> : (
                             results.length > 0
                                 ? results.map(renderCard)
-                                : <p className={styles.emptyState}>You have no concluded applications.</p>
+                                : <p className={styles.emptyState}>Sonuçlanan başvurunuz bulunmuyor.</p>
                         )}
                     </div>
                 )}

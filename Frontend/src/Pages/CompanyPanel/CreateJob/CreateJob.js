@@ -91,7 +91,7 @@ function CreateJob() {
 
     const handleGenerateFromAI = async () => {
         if (!aiPrompt.trim()) {
-            alert('Please enter a description related to the job.');
+            alert('Lütfen işle ilgili bir açıklama girin.');
             return;
         }
 
@@ -135,7 +135,7 @@ function CreateJob() {
             }
         } catch (err) {
             console.error('AI Generation Error:', err);
-            alert('An error occurred while generating content with AI. Please try again.');
+            alert('Yapay zeka ile içerik oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
         } finally {
             setIsGenerating(false);
         }
@@ -149,7 +149,7 @@ function CreateJob() {
         try {
             const token = localStorage.getItem('jwToken');
             if (!token) {
-                setError('You must be logged in to create a job posting.');
+                setError('İş ilanı oluşturmak için giriş yapmış olmalısınız.');
                 setLoading(false);
                 return;
             }
@@ -210,11 +210,11 @@ function CreateJob() {
             if (err.response && err.response.data && err.response.data.Message) {
                 setError(err.response.data.Message);
             } else if (err.response && err.response.status === 401) {
-                setError("You are unauthorized. Please try logging in again.");
+                setError("Yetkisiz işlem. Lütfen tekrar giriş yapmayı deneyin.");
             } else if (err.response && err.response.status === 403) {
-                setError("You do not have permission to create job postings. Hiring Manager role required.");
+                setError("İş ilanı oluşturma izniniz yok. İşe Alım Yöneticisi rolü gereklidir.");
             } else {
-                setError('An error occurred while creating the job posting.');
+                setError('İş ilanı oluşturulurken bir hata meydana geldi.');
             }
         } finally {
             setLoading(false);
@@ -224,7 +224,7 @@ function CreateJob() {
     const handleCopy = () => {
         const link = `${window.location.origin}/jobs/${createdJobId || 'placeholder'}`;
         navigator.clipboard.writeText(link);
-        alert("Link copied!");
+        alert("Bağlantı kopyalandı!");
     };
 
     const resetForm = () => {
@@ -250,14 +250,14 @@ function CreateJob() {
             <div className={styles.container}>
                 <div className={styles.successCard}>
                     <div className={styles.successIcon}>✓</div>
-                    <h2 className={styles.successTitle}>{isEditMode ? 'Job Posting Successfully Updated!' : 'Job Posting Successfully Created!'}</h2>
+                    <h2 className={styles.successTitle}>{isEditMode ? 'İş İlanı Başarıyla Güncellendi!' : 'İş İlanı Başarıyla Oluşturuldu!'}</h2>
                     <p className={styles.successText}>
-                        You can now share this posting with candidates and start collecting applications.
+                        Artık bu ilanı adaylarla paylaşabilir ve başvuruları toplamaya başlayabilirsiniz.
                     </p>
 
                     <div className={styles.linkContainer}>
                         <span className={styles.linkText}>{window.location.origin}/jobs/{createdJobId || 'pending'}</span>
-                        <button className={styles.copyBtn} onClick={handleCopy}>Copy</button>
+                        <button className={styles.copyBtn} onClick={handleCopy}>Kopyala</button>
                     </div>
 
                     <div className={styles.actionButtons}>
@@ -265,7 +265,7 @@ function CreateJob() {
                             className={styles.newJobBtn}
                             onClick={resetForm}
                         >
-                            Create New Posting
+                            Yeni İlan Oluştur
                         </button>
                     </div>
                 </div>
@@ -277,10 +277,10 @@ function CreateJob() {
         <div className={styles.container}>
             <div className={styles.header}>
                 <div>
-                    <h2 className={styles.title}>{isEditMode ? 'Edit Job Posting' : 'Create New Job Posting'}</h2>
-                    <p className={styles.subtitle}>Enter the core details of the job to find the right talent for your company.</p>
+                    <h2 className={styles.title}>{isEditMode ? 'İş İlanını Düzenle' : 'Yeni İş İlanı Oluştur'}</h2>
+                    <p className={styles.subtitle}>Şirketiniz için doğru yeteneği bulmak adına işin temel detaylarını girin.</p>
                 </div>
-                <button type="button" onClick={() => navigate('/company/jobs')} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer' }}>Go Back</button>
+                <button type="button" onClick={() => navigate('/company/jobs')} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer' }}>Geri Dön</button>
             </div>
 
             <form className={styles.formContainer} onSubmit={(e) => handleSubmit(e, false)}>
@@ -288,14 +288,14 @@ function CreateJob() {
 
                 {/* AI Prompt Section */}
                 <div style={{ backgroundColor: '#eef2ff', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px dashed #6366f1' }}>
-                    <h3 style={{ margin: '0 0 10px 0', color: '#4f46e5' }}>🤖 Generate Job Posting Details with AI (Optional)</h3>
+                    <h3 style={{ margin: '0 0 10px 0', color: '#4f46e5' }}>🤖 Yapay Zeka ile İş İlanı Detayları Oluştur (İsteğe Bağlı)</h3>
                     <p style={{ margin: '0 0 15px 0', fontSize: '14px', color: '#4b5563' }}>
-                        Briefly describe the candidate and job requirements (E.g.: We are looking for a .NET backend developer with 3 years of experience for a Fintech company). AI will fill out the entire form in detail.
+                        Adayı ve iş gereksinimlerini kısaca açıklayın (Örn: Finansal teknoloji şirketi için 3 yıl deneyimli .NET backend geliştiricisi arıyoruz). Yapay Zeka formun tamamını detaylı bir şekilde dolduracaktır.
                     </p>
                     <textarea 
                         value={aiPrompt}
                         onChange={(e) => setAiPrompt(e.target.value)}
-                        placeholder="Write your instructions about the posting..."
+                        placeholder="İlanla ilgili talimatlarınızı yazın..."
                         style={{ width: '100%', minHeight: '80px', padding: '10px', borderRadius: '6px', border: '1px solid #c7d2fe', marginBottom: '10px', fontFamily: 'Inter, sans-serif' }}
                     />
                     <button 
@@ -304,61 +304,61 @@ function CreateJob() {
                         disabled={isGenerating}
                         style={{ padding: '10px 20px', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
                     >
-                        {isGenerating ? 'AI Working...' : '✨ Auto-Fill'}
+                        {isGenerating ? 'AI Çalışıyor...' : '✨ Otomatik Doldur'}
                     </button>
-                    {isGenerating && <span style={{display: 'inline-block', marginLeft: '10px', color: '#4f46e5', fontWeight: '500'}}>Filling form fields...</span>}
+                    {isGenerating && <span style={{display: 'inline-block', marginLeft: '10px', color: '#4f46e5', fontWeight: '500'}}>Form alanları dolduruluyor...</span>}
                 </div>
 
                 {/* Box 1: Basic Info */}
                 <div className={styles.box}>
                     <div className={styles.boxHeader}>
                         <span className={styles.icon}>ℹ️</span>
-                        <h3>Basic Information</h3>
+                        <h3>Temel Bilgiler</h3>
                     </div>
                     <div className={styles.formGroup}>
-                        <label>Job Title</label>
-                        <input name="jobTitle" value={formData.jobTitle} onChange={handleChange} required type="text" placeholder="Ex: Senior Software Engineer" className={styles.input} />
+                        <label>İş Başlığı</label>
+                        <input name="jobTitle" value={formData.jobTitle} onChange={handleChange} required type="text" placeholder="Örn: Kıdemli Yazılım Mühendisi" className={styles.input} />
                     </div>
 
                     <div className={styles.formRow}>
                         <div className={styles.formGroup}>
-                            <label>Department</label>
-                            <input name="department" value={formData.department} onChange={handleChange} required type="text" placeholder="Ex: Engineering" className={styles.input} />
+                            <label>Departman</label>
+                            <input name="department" value={formData.department} onChange={handleChange} required type="text" placeholder="Örn: Mühendislik" className={styles.input} />
                         </div>
                         <div className={styles.formGroup}>
-                            <label>Location</label>
-                            <input name="location" value={formData.location} onChange={handleChange} required type="text" placeholder="Ex: Istanbul / Maslak" className={styles.input} />
+                            <label>Konum</label>
+                            <input name="location" value={formData.location} onChange={handleChange} required type="text" placeholder="Örn: İstanbul / Maslak" className={styles.input} />
                         </div>
                     </div>
 
                     <div className={styles.formRow}>
                         <div className={styles.formGroup}>
-                            <label>Work Type</label>
+                            <label>Çalışma Türü</label>
                             <select name="workType" value={formData.workType} onChange={handleChange} className={styles.select}>
-                                <option value="FullTime">Full Time</option>
-                                <option value="PartTime">Part Time</option>
-                                <option value="Contract">Contract</option>
-                                <option value="Internship">Internship</option>
+                                <option value="FullTime">Tam Zamanlı</option>
+                                <option value="PartTime">Yarı Zamanlı</option>
+                                <option value="Contract">Sözleşmeli</option>
+                                <option value="Internship">Staj</option>
                             </select>
                         </div>
                         <div className={styles.formGroup}>
-                            <label>Work Model</label>
+                            <label>Çalışma Modeli</label>
                             <select name="workModel" value={formData.workModel} onChange={handleChange} className={styles.select}>
-                                <option value="Remote">Remote</option>
-                                <option value="Hybrid">Hybrid</option>
-                                <option value="OnSite">On-Site</option>
+                                <option value="Remote">Uzaktan</option>
+                                <option value="Hybrid">Hibrit</option>
+                                <option value="OnSite">Ofisten</option>
                             </select>
                         </div>
                     </div>
 
                     <div className={styles.formRow}>
                         <div className={styles.formGroup}>
-                            <label>🌐 Language Level (English)</label>
+                            <label>🌐 Dil Seviyesi (İngilizce)</label>
                             <select name="languageLevel" value={formData.languageLevel} onChange={handleChange} className={styles.select}>
-                                <option value="A2">A2 – Beginner</option>
-                                <option value="B1">B1 – Intermediate</option>
-                                <option value="B2">B2 – Upper Intermediate</option>
-                                <option value="C1">C1 – Advanced</option>
+                                <option value="A2">A2 – Başlangıç</option>
+                                <option value="B1">B1 – Orta</option>
+                                <option value="B2">B2 – İleri Orta</option>
+                                <option value="C1">C1 – İleri</option>
                             </select>
                         </div>
                     </div>
@@ -368,41 +368,41 @@ function CreateJob() {
                 <div className={styles.box}>
                     <div className={styles.boxHeader}>
                         <span className={styles.icon}>📄</span>
-                        <h3>Content Details</h3>
+                        <h3>İçerik Detayları</h3>
                     </div>
 
                     <div className={styles.formGroup}>
-                        <label>About Company</label>
-                        <textarea name="aboutCompany" value={formData.aboutCompany} onChange={handleChange} required placeholder="Talk about your company's vision, culture, and purpose..." className={styles.textarea}></textarea>
+                        <label>Şirket Hakkında</label>
+                        <textarea name="aboutCompany" value={formData.aboutCompany} onChange={handleChange} required placeholder="Şirketinizin vizyonundan, kültüründen ve amacından bahsedin..." className={styles.textarea}></textarea>
                     </div>
 
                     <div className={styles.formGroup}>
-                        <label>About Role</label>
-                        <textarea name="aboutRole" value={formData.aboutRole} onChange={handleChange} required placeholder="What will be the candidate's position within the company? What is their main objective?" className={styles.textarea}></textarea>
+                        <label>Rol Hakkında</label>
+                        <textarea name="aboutRole" value={formData.aboutRole} onChange={handleChange} required placeholder="Adayın şirket içindeki konumu ne olacak? Temel amacı nedir?" className={styles.textarea}></textarea>
                     </div>
 
                     <div className={styles.formGroup}>
-                        <label>Responsibilities</label>
-                        <textarea name="responsibilities" value={formData.responsibilities} onChange={handleChange} required placeholder="• Write down daily job responsibilities..." className={styles.richTextarea}></textarea>
+                        <label>Sorumluluklar</label>
+                        <textarea name="responsibilities" value={formData.responsibilities} onChange={handleChange} required placeholder="• Günlük iş sorumluluklarını yazın..." className={styles.richTextarea}></textarea>
                     </div>
 
                     <div className={styles.formGroup}>
-                        <label>Required Qualifications</label>
-                        <textarea name="requiredQualifications" value={formData.requiredQualifications} onChange={handleChange} required placeholder="• Educational background, years of experience, technical skills..." className={styles.richTextarea}></textarea>
+                        <label>Aranan Nitelikler</label>
+                        <textarea name="requiredQualifications" value={formData.requiredQualifications} onChange={handleChange} required placeholder="• Eğitim geçmişi, deneyim süresi, teknik beceriler..." className={styles.richTextarea}></textarea>
                     </div>
 
                     <div className={styles.formGroup}>
-                        <label>Benefits & Perks (Separate by comma or new line)</label>
-                        <textarea name="benefits" value={formData.benefits} onChange={handleChange} placeholder="Private health insurance, flexible working hours, meal card..." className={styles.richTextarea}></textarea>
+                        <label>Yan Haklar ve Avantajlar (Virgül veya yeni satır ile ayırın)</label>
+                        <textarea name="benefits" value={formData.benefits} onChange={handleChange} placeholder="Özel sağlık sigortası, esnek çalışma saatleri, yemek kartı..." className={styles.richTextarea}></textarea>
                     </div>
                 </div>
 
                 <div className={styles.submitRow}>
                     <button type="button" onClick={(e) => handleSubmit(e, true)} className={styles.saveDraftBtn} disabled={loading}>
-                        {loading ? 'Saving...' : 'Save as Draft'}
+                        {loading ? 'Kaydediliyor...' : 'Taslak Olarak Kaydet'}
                     </button>
                     <button type="submit" className={styles.publishBtn} disabled={loading}>
-                        {loading ? 'Publishing...' : (isEditMode ? 'Update Job' : 'Publish Job')}
+                        {loading ? 'Yayınlanıyor...' : (isEditMode ? 'İlanı Güncelle' : 'İlanı Yayınla')}
                     </button>
                 </div>
             </form>

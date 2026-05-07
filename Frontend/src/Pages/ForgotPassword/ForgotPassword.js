@@ -13,7 +13,7 @@ function ForgotPassword() {
         e.preventDefault();
         
         if (!email) {
-            setStatus({ type: 'error', message: 'Please enter your email address.' });
+            setStatus({ type: 'error', message: 'Lütfen e-posta adresinizi girin.' });
             return;
         }
 
@@ -27,7 +27,7 @@ function ForgotPassword() {
 
             setStatus({ 
                 type: 'success', 
-                message: 'A password reset link has been sent to your email address. (Development: Check the console or Backend logs.)' 
+                message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. (Geliştirme: Konsol veya Backend loglarını kontrol edin.)' 
             });
             
             // In a real app we might redirect to login immediately, but here we want them to read the message and find the link.
@@ -40,7 +40,7 @@ function ForgotPassword() {
             if (err.response && err.response.data && err.response.data.message) {
                 setStatus({ type: 'error', message: err.response.data.message });
             } else {
-                setStatus({ type: 'error', message: 'An error occurred. Make sure your account is registered in the system.' });
+                setStatus({ type: 'error', message: 'Bir hata oluştu. Hesabınızın sistemde kayıtlı olduğundan emin olun.' });
             }
         } finally {
             setLoading(false);
@@ -50,8 +50,8 @@ function ForgotPassword() {
     return (
         <div className={styles.container}>
             <form className={styles.formContainer} onSubmit={handleSubmit}>
-                <h2 className={styles.title}>Forgot Password</h2>
-                <p className={styles.subtitle}>Enter the email address associated with your account, and we'll send you a password reset link.</p>
+                <h2 className={styles.title}>Şifremi Unuttum</h2>
+                <p className={styles.subtitle}>Hesabınıza bağlı e-posta adresini girin, size şifre sıfırlama bağlantısı gönderelim.</p>
 
                 {status.message && (
                     <div className={status.type === 'error' ? styles.error : styles.success}>
@@ -60,7 +60,7 @@ function ForgotPassword() {
                 )}
 
                 <div className={styles.inputGroup}>
-                    <label className={styles.label}>Your Email Address</label>
+                    <label className={styles.label}>E-posta Adresiniz</label>
                     <input
                         type="email"
                         placeholder="example@company.com"
@@ -77,14 +77,14 @@ function ForgotPassword() {
                         className={styles.submitBtn} 
                         disabled={loading || status.type === 'success'}
                     >
-                        {loading ? 'Sending...' : 'Send Reset Link'}
+                        {loading ? 'Gönderiliyor...' : 'Sıfırlama Bağlantısı Gönder'}
                     </button>
                     <button 
                         type="button" 
                         className={styles.backBtn}
                         onClick={() => navigate('/login')}
                     >
-                        Back to Login
+                        Girişe Dön
                     </button>
                 </div>
             </form>
