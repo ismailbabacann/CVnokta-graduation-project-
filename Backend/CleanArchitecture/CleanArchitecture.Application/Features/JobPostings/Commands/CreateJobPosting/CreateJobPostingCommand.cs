@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CleanArchitecture.Core.Features.JobPostings.Commands.CreateJobPosting
 {
@@ -83,15 +84,18 @@ namespace CleanArchitecture.Core.Features.JobPostings.Commands.CreateJobPosting
         private readonly IGenericRepositoryAsync<JobPosting> _jobPostingRepository;
         private readonly IMapper _mapper;
         private readonly IAuthenticatedUserService _authenticatedUserService;
+        private readonly Microsoft.Extensions.DependencyInjection.IServiceScopeFactory _serviceScopeFactory;
 
         public CreateJobPostingCommandHandler(
             IGenericRepositoryAsync<JobPosting> jobPostingRepository,
             IMapper mapper,
-            IAuthenticatedUserService authenticatedUserService)
+            IAuthenticatedUserService authenticatedUserService,
+            Microsoft.Extensions.DependencyInjection.IServiceScopeFactory serviceScopeFactory)
         {
             _jobPostingRepository = jobPostingRepository;
             _mapper = mapper;
             _authenticatedUserService = authenticatedUserService;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         public async Task<CreateJobPostingResponse> Handle(CreateJobPostingCommand request, CancellationToken cancellationToken)
@@ -112,6 +116,41 @@ namespace CleanArchitecture.Core.Features.JobPostings.Commands.CreateJobPosting
             jobPosting.HiringManagerId = Guid.Parse(_authenticatedUserService.UserId);
 
             await _jobPostingRepository.AddAsync(jobPosting);
+
+            // Extract stats if the job is being published immediately
+            if (!request.SaveAsDraft)
+            {
+                var title = jobPosting.JobTitle;
+                var reqSkills = jobPosting.RequiredSkills;
+                var loc = jobPosting.Location;
+                var resp = jobPosting.Responsibilities;
+                var reqQual = jobPosting.RequiredQualifications;
+
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        using var scope = _serviceScopeFactory.CreateScope();
+                        var aiService = scope.ServiceProvider.GetRequiredService<CleanArchitecture.Application.Interfaces.IAiJobPostingGenerationService>();
+                        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+                        var stats = await aiService.ExtractJobStatsAsync(title, reqSkills, loc, resp, reqQual);
+
+                        if (stats.Skills?.Count > 0)
+                            await mediator.Send(new CleanArchitecture.Core.Features.MarketStats.Commands.UpdateSkillStats.UpdateSkillStatsCommand { Skills = stats.Skills });
+
+                        if (stats.Positions?.Count > 0)
+                            await mediator.Send(new CleanArchitecture.Core.Features.MarketStats.Commands.UpdatePositionStats.UpdatePositionStatsCommand { Positions = stats.Positions });
+
+                        if (stats.Locations?.Count > 0)
+                            await mediator.Send(new CleanArchitecture.Core.Features.MarketStats.Commands.UpdateLocationStats.UpdateLocationStatsCommand { Locations = stats.Locations });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Stats Extraction Background Task Failed] {ex.Message}");
+                    }
+                });
+            }
 
             return new CreateJobPostingResponse
             {
