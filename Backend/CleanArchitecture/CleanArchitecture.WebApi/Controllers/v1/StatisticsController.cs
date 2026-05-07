@@ -109,5 +109,29 @@ namespace CleanArchitecture.WebApi.Controllers.v1
         {
             return Ok(await Mediator.Send(new GetTopMarketStatsQuery { TopN = topN }));
         }
+
+        /// <summary>
+        /// Mevcut tüm istatistik verilerini siler.
+        /// Sistemdeki eski/bozuk istatistik verilerini temizlemek için kullanılır.
+        /// </summary>
+        [HttpDelete("reset")]
+        [Authorize(Roles = "SuperAdmin")]
+        [ProducesResponseType(typeof(object), 200)]
+        public async Task<IActionResult> Reset([FromServices] CleanArchitecture.Infrastructure.Contexts.ApplicationDbContext dbContext)
+        {
+            try
+            {
+                dbContext.MarketSkillStats.RemoveRange(dbContext.MarketSkillStats);
+                dbContext.MarketPositionStats.RemoveRange(dbContext.MarketPositionStats);
+                dbContext.MarketLocationStats.RemoveRange(dbContext.MarketLocationStats);
+                await dbContext.SaveChangesAsync();
+                
+                return Ok(new { Message = "İstatistik verileri başarıyla sıfırlandı. Ekranı yenileyebilirsiniz." });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { Message = "Sıfırlama sırasında hata oluştu.", Error = ex.Message });
+            }
+        }
     }
 }

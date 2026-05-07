@@ -741,6 +741,12 @@
              <param name="topN">Kaç adet kayıt döneceği (varsayılan: 10)</param>
              <returns>En çok kullanılan yetenek, pozisyon ve şehir listeleri</returns>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.v1.StatisticsController.Reset(CleanArchitecture.Infrastructure.Contexts.ApplicationDbContext)">
+            <summary>
+            Mevcut tüm istatistik verilerini siler.
+            Sistemdeki eski/bozuk istatistik verilerini temizlemek için kullanılır.
+            </summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.v1.VideoInterviewsController.Sync(CleanArchitecture.Core.Features.VideoInterviews.Commands.SyncVideoInterview.SyncVideoInterviewCommand)">
              <summary>
              Dış sistem tarafından yönetilen video mülakat verisini backend'e aktarır (Sync / Webhook).

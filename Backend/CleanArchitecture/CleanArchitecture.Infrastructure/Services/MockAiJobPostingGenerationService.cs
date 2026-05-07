@@ -81,5 +81,31 @@ namespace CleanArchitecture.Infrastructure.Services
             // Do nothing in mock
             return Task.CompletedTask;
         }
+
+        public Task<JobStatsExtractionResult> ExtractJobStatsAsync(string jobTitle, string requiredSkills, string location, string responsibilities = null, string requiredQualifications = null)
+        {
+            var result = new JobStatsExtractionResult();
+            
+            // Mock skills
+            if (!string.IsNullOrWhiteSpace(requiredSkills))
+            {
+                foreach (var s in requiredSkills.Split(new[] { ',', ';' }, System.StringSplitOptions.RemoveEmptyEntries))
+                {
+                    result.Skills.Add(s.Trim());
+                }
+            }
+            else
+            {
+                result.Skills.AddRange(new[] { "C#", ".NET Core", "SQL Server" });
+            }
+
+            // Mock position
+            result.Positions.Add(!string.IsNullOrWhiteSpace(jobTitle) ? jobTitle.Trim() : "Backend Developer");
+
+            // Mock location
+            result.Locations.Add(!string.IsNullOrWhiteSpace(location) ? location.Split('/')[0].Trim() : "Istanbul");
+
+            return Task.FromResult(result);
+        }
     }
 }

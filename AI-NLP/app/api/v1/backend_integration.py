@@ -326,3 +326,131 @@ async def analyze_test_results(request: AnalyzeTestRequest):
         logger.error("Dual test feedback generation failed: %s", exc)
 
     return original_result
+
+
+# ── Job Stats Extraction ─────────────────────────────────────────────
+
+
+class ExtractJobStatsRequest(BaseModel):
+    """Input from backend when a job posting is published."""
+    model_config = ConfigDict(populate_by_name=True)
+
+    job_title: str = Field(..., alias="jobTitle", description="İş ilanı başlığı")
+    required_skills: Optional[str] = Field(None, alias="requiredSkills", description="Virgülle ayrılmış beceri listesi")
+    location: Optional[str] = Field(None, alias="location", description="Şehir / Konum")
+    responsibilities: Optional[str] = Field(None, alias="responsibilities", description="Sorumluluklar metni")
+    required_qualifications: Optional[str] = Field(None, alias="requiredQualifications", description="Gerekli nitelikler metni")
+
+
+class ExtractJobStatsResponse(BaseModel):
+    """Extracted stats ready to be upserted into Market*Stat tables."""
+    model_config = ConfigDict(populate_by_name=True)
+
+    skills: List[str] = Field(default_factory=list)
+    positions: List[str] = Field(default_factory=list)
+    locations: List[str] = Field(default_factory=list)
+
+
+def _fallback_extract(request: ExtractJobStatsRequest) -> ExtractJobStatsResponse:
+    """
+    Simple rule-based extraction used when OpenAI is not available.
+    - skills: comma-split from requiredSkills field
+    - positions: the job title itself
+    - locations: the location field (split on '/' or ',')
+    """
+    skills: List[str] = []
+    positions: List[str] = []
+    locations: List[str] = []
+
+    # Skills — parse comma/semicolon separated list from requiredSkills
+    if request.required_skills:
+        raw_skills = [s.strip() for s in request.required_skills.replace(";", ",").split(",")]
+        skills = [s for s in raw_skills if s and len(s) <= 60]
+
+    # Position — use the job title directly
+    if request.job_title:
+        positions = [request.job_title.strip()]
+
+    # Location — split on '/', ',', or '-'
+    if request.location:
+        import re
+        parts = re.split(r"[/,\-]", request.location)
+        locations = [p.strip() for p in parts if p.strip() and len(p.strip()) >= 2]
+
+    return ExtractJobStatsResponse(skills=skills, positions=positions, locations=locations)
+
+
+@router.post("/extract-job-stats", response_model=ExtractJobStatsResponse)
+async def extract_job_stats(request: ExtractJobStatsRequest):
+    """
+    Extract skills, positions and locations from a published job posting.
+
+    Called by the .NET backend when a job posting is published (Status → Active).
+    The extracted data is upserted into Market*Stat tables for the statistics dashboard.
+
+    Uses LLM when available, falls back to simple text parsing otherwise.
+    """
+    settings = get_settings()
+
+    # ── LLM Path ─────────────────────────────────────────────────────
+    if settings.openai_api_key:
+        combined_text = f"""
+İş Başlığı: {request.job_title}
+Konum: {request.location or 'Belirtilmemiş'}
+Gerekli Beceriler: {request.required_skills or 'Belirtilmemiş'}
+Sorumluluklar: {request.responsibilities or ''}
+Gerekli Nitelikler: {request.required_qualifications or ''}
+""".strip()
+
+        system_prompt = """Sen bir insan kaynakları analitiği asistanısın.
+Sana verilen iş ilanı metninden aşağıdaki bilgileri JSON formatında çıkar:
+- skills: İş ilanında geçen somut teknik beceriler ve araçlar (ör: Python, Java, SQL, Docker). Maksimum 15 madde. Kısa ve öz (max 40 karakter).
+- positions: İş unvanı/pozisyon adı. Genellikle 1-2 madde.
+- locations: Şehir isimleri (ör: İstanbul, Ankara). Ülke veya ilçe adı değil.
+
+Sadece JSON döndür, başka hiçbir şey yok:
+{"skills": [...], "positions": [...], "locations": [...]}"""
+
+        service = OpenAIService()
+        try:
+            result = await service.generate_json(system_prompt, combined_text)
+            extracted_skills = result.get("skills", [])
+            extracted_positions = result.get("positions", [])
+            extracted_locations = result.get("locations", [])
+
+            # Validate and clean
+            if isinstance(extracted_skills, list):
+                extracted_skills = [str(s).strip() for s in extracted_skills if s and len(str(s).strip()) <= 80]
+            else:
+                extracted_skills = []
+
+            if isinstance(extracted_positions, list):
+                extracted_positions = [str(p).strip() for p in extracted_positions if p and len(str(p).strip()) <= 120]
+            else:
+                extracted_positions = []
+
+            if isinstance(extracted_locations, list):
+                extracted_locations = [str(loc).strip() for loc in extracted_locations if loc and len(str(loc).strip()) <= 80]
+            else:
+                extracted_locations = []
+
+            logger.info(
+                "Job stats extracted via LLM — skills: %d, positions: %d, locations: %d",
+                len(extracted_skills), len(extracted_positions), len(extracted_locations)
+            )
+
+            return ExtractJobStatsResponse(
+                skills=extracted_skills,
+                positions=extracted_positions,
+                locations=extracted_locations,
+            )
+        except Exception as exc:
+            logger.warning("LLM extraction failed, using fallback: %s", exc)
+
+    # ── Fallback Path ─────────────────────────────────────────────────
+    result = _fallback_extract(request)
+    logger.info(
+        "Job stats extracted via fallback — skills: %d, positions: %d, locations: %d",
+        len(result.skills), len(result.positions), len(result.locations)
+    )
+    return result

@@ -56,7 +56,10 @@ namespace CleanArchitecture.Infrastructure.Services
             return JsonSerializer.Deserialize<GeneratedExamDto>(responseString, options);
         }
 
-        public async Task<ExamFeedbackResult> GetExamFeedbackAsync(Guid applicationId, string jobTitle, int totalQuestions, int correctAnswers, decimal score, bool passed, List<CleanArchitecture.Core.Features.Exams.Commands.SubmitExam.QuestionResultDto> results)
+        public async Task<ExamFeedbackResult> GetExamFeedbackAsync(
+            Guid applicationId, string jobTitle, int totalQuestions, int correctAnswers,
+            decimal score, bool passed,
+            List<CleanArchitecture.Core.Features.Exams.Commands.SubmitExam.QuestionResultDto> results)
         {
             var payload = new
             {
@@ -104,7 +107,9 @@ namespace CleanArchitecture.Infrastructure.Services
             };
         }
 
-        public async Task AnalyzeCvAsync(Guid applicationId, string cvFilePath, CleanArchitecture.Core.Entities.JobPosting jobPosting, Guid stageId, Guid cvId)
+        public async Task AnalyzeCvAsync(
+            Guid applicationId, string cvFilePath,
+            CleanArchitecture.Core.Entities.JobPosting jobPosting, Guid stageId, Guid cvId)
         {
             var payload = new
             {
@@ -124,16 +129,95 @@ namespace CleanArchitecture.Infrastructure.Services
 
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
             
-            // Fire-and-forget: we don't wait for the analysis to finish here because it calls back v1/cvanalysis/save-score
+            // Fire-and-forget: we don't wait for the analysis to finish here
             try
             {
                 await _httpClient.PostAsync("cv/analyze", content);
             }
             catch (Exception ex)
             {
-                // Log or handle error - here we just ignore to not block the application submission
                 Console.WriteLine($"CV Analysis trigger failed: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Calls the AI NLP /backend/extract-job-stats endpoint to extract skills, positions and
+        /// locations from a published job posting. Falls back to local text parsing on failure.
+        /// </summary>
+        public async Task<JobStatsExtractionResult> ExtractJobStatsAsync(
+            string jobTitle,
+            string requiredSkills,
+            string location,
+            string responsibilities = null,
+            string requiredQualifications = null)
+        {
+            try
+            {
+                var payload = new
+                {
+                    jobTitle = jobTitle,
+                    requiredSkills = requiredSkills,
+                    location = location,
+                    responsibilities = responsibilities,
+                    requiredQualifications = requiredQualifications
+                };
+
+                var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                var content = new StringContent(JsonSerializer.Serialize(payload, options), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("backend/extract-job-stats", content);
+
+                if (!response.IsSuccessStatusCode)
+                    return FallbackExtract(jobTitle, requiredSkills, location);
+
+                var responseString = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<JobStatsExtractionResult>(responseString,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                return result ?? FallbackExtract(jobTitle, requiredSkills, location);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Stats] AI extraction failed, using fallback: {ex.Message}");
+                return FallbackExtract(jobTitle, requiredSkills, location);
+            }
+        }
+
+        /// <summary>
+        /// Local fallback: parses comma-separated skills and splits location by '/', ',' or '-'.
+        /// </summary>
+        private static JobStatsExtractionResult FallbackExtract(string jobTitle, string requiredSkills, string location)
+        {
+            var result = new JobStatsExtractionResult();
+
+            // Skills — split by comma/semicolon
+            if (!string.IsNullOrWhiteSpace(requiredSkills))
+            {
+                result.Skills = new List<string>();
+                foreach (var s in requiredSkills.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var trimmed = s.Trim();
+                    if (!string.IsNullOrWhiteSpace(trimmed) && trimmed.Length <= 60)
+                        result.Skills.Add(trimmed);
+                }
+            }
+
+            // Position — job title
+            if (!string.IsNullOrWhiteSpace(jobTitle))
+                result.Positions = new List<string> { jobTitle.Trim() };
+
+            // Location — split by '/' or ','
+            if (!string.IsNullOrWhiteSpace(location))
+            {
+                result.Locations = new List<string>();
+                foreach (var loc in location.Split(new[] { '/', ',', '-' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var trimmed = loc.Trim();
+                    if (!string.IsNullOrWhiteSpace(trimmed) && trimmed.Length >= 2)
+                        result.Locations.Add(trimmed);
+                }
+            }
+
+            return result;
         }
     }
 }
