@@ -22,7 +22,7 @@ function ProfileJobView() {
                 setError(null);
             } catch (err) {
                 console.error('Error fetching job details:', err);
-                setError('Job posting not found or an error occurred.');
+                setError('İş ilanı bulunamadı veya bir hata oluştu.');
             }
         };
 
@@ -78,76 +78,76 @@ function ProfileJobView() {
                 phone: candidateProfile?.phone || "",
                 location: candidateProfile?.location || "",
                 linkedInProfile: candidateProfile?.linkedInProfile || "",
-                coverLetter: candidateProfile?.summary || "Applying quickly with my profile information.",
+                coverLetter: candidateProfile?.summary || "Profil bilgilerimle hızlı başvuru yapıyorum.",
                 cvUrl: candidateProfile?.cvUrl || "",
                 cvId: candidateProfile?.cvId || null
             };
 
             await axios.post(process.env.REACT_APP_API_BASE_URL + '/api/v1/Applications/public/apply', payloadData);
             
-            alert('Congratulations! Your application has been successfully submitted using your profile CV and information. You can track your progress from the "My Applications" section.');
+            alert('Tebrikler! Profilinizdeki CV ve bilgiler kullanılarak başvurunuz başarıyla gönderildi. Sürecinizi "Başvurularım" bölümünden takip edebilirsiniz.');
             navigate('/profile/applications');
         } catch (err) {
             console.error('Application error:', err);
-            alert('An error occurred during the application or you have already applied.');
+            alert('Başvuru sırasında bir hata oluştu veya daha önce başvurdunuz.');
         } finally {
             setIsApplying(false);
         }
     };
 
     if (loading) {
-        return <div className={styles.centeredMessage}>Loading Details...</div>;
+        return <div className={styles.centeredMessage}>Detaylar Yükleniyor...</div>;
     }
 
     if (error || !job) {
-        return <div className={`${styles.centeredMessage} ${styles.errorMessage}`}>{error || 'Posting not found.'}</div>;
+        return <div className={`${styles.centeredMessage} ${styles.errorMessage}`}>{error || 'İlan bulunamadı.'}</div>;
     }
 
     return (
         <div className={styles.jobviewContainer}>
             <button className={styles.backBtn} onClick={() => navigate('/profile/jobs')}>
-                ← Back to Jobs
+                ← İlanlara Dön
             </button>
 
             <section className={styles.jobHeader}>
                 <h1>{job.jobTitle}</h1>
-                <p className={styles.jobDepartment}>{job.companyName || 'Company Confidential'} - {job.department}</p>
+                <p className={styles.jobDepartment}>{job.companyName || 'Gizli Şirket'} - {job.department}</p>
                 <div className={styles.jobMeta}>
-                    <span>📍 {job.location || 'Not specified'}</span>
-                    <span>💼 {job.workType || 'Full Time'}</span>
-                    <span>🌍 {job.workModel || 'Hybrid'}</span>
+                    <span>📍 {job.location || 'Belirtilmemiş'}</span>
+                    <span>💼 {job.workType || 'Tam Zamanlı'}</span>
+                    <span>🌍 {job.workModel || 'Hibrit'}</span>
                 </div>
             </section>
 
             <section className={styles.jobSection}>
-                <h2>About the Role</h2>
-                <p>{job.description || job.aboutRole || 'A detailed posting description has not been entered yet.'}</p>
+                <h2>Rol Hakkında</h2>
+                <p>{job.description || job.aboutRole || 'Detaylı ilan açıklaması henüz girilmemiş.'}</p>
             </section>
 
             {job.aboutCompany && (
                 <section className={styles.jobSection}>
-                    <h2>About the Company</h2>
+                    <h2>Şirket Hakkında</h2>
                     <p>{job.aboutCompany}</p>
                 </section>
             )}
 
             {job.responsibilities && (
                 <section className={styles.jobSection}>
-                    <h2>Responsibilities</h2>
+                    <h2>Sorumluluklar</h2>
                     <p>{job.responsibilities}</p>
                 </section>
             )}
 
             {job.requiredQualifications && (
                 <section className={styles.jobSection}>
-                    <h2>Required Qualifications</h2>
+                    <h2>Aranan Nitelikler</h2>
                     <p>{job.requiredQualifications}</p>
                 </section>
             )}
 
             {job.benefits && job.benefits.length > 0 && (
                 <section className={styles.jobSection}>
-                    <h2>Benefits & Perks</h2>
+                    <h2>Yan Haklar & Avantajlar</h2>
                     <div className={styles.benefitsGrid}>
                         {job.benefits.map((benefit, idx) => (
                             <div key={idx} className={styles.benefitCard}>
@@ -161,7 +161,7 @@ function ProfileJobView() {
             <div className={styles.applyActionBox}>
                 <div className={styles.profileNotice}>
                     <span className={styles.infoIcon}>ℹ️</span>
-                    <p>Your cover letter, education details, and current CV on file will be directly submitted to the company for this job. You can complete the quick application below.</p>
+                    <p>Sistemdeki ön yazınız, eğitim bilgileriniz ve mevcut CV'niz bu iş için doğrudan şirkete iletilecektir. Aşağıdan hızlı başvuruyu tamamlayabilirsiniz.</p>
                 </div>
                 {job.status === 'Active' ? (
                     hasCv ? (
@@ -170,19 +170,19 @@ function ProfileJobView() {
                             onClick={handleFastApply}
                             disabled={isApplying}
                         >
-                            {isApplying ? 'Submitting Application...' : 'Apply with My Profile'}
+                            {isApplying ? 'Başvuru Gönderiliyor...' : 'Profilimle Başvur'}
                         </button>
                     ) : (
                         <div style={{ textAlign: 'center' }}>
                             <p style={{ color: '#e53e3e', fontSize: '14px', marginBottom: '10px' }}>
-                                ⚠️ You must upload your CV from the Profile section to apply for jobs.
+                                ⚠️ İşlere başvurabilmek için Profil bölümünden CV'nizi yüklemelisiniz.
                             </p>
                             <button 
                                 className={styles.fastApplyBtn} 
                                 style={{backgroundColor: '#cbd5e1', cursor: 'not-allowed', color: '#475569'}}
                                 disabled
                             >
-                                Apply with My Profile
+                                Profilimle Başvur
                             </button>
                         </div>
                     )
@@ -192,7 +192,7 @@ function ProfileJobView() {
                         style={{backgroundColor: '#cbd5e1', cursor: 'not-allowed', color: '#475569'}}
                         disabled
                     >
-                        Closed
+                        Kapalı
                     </button>
                 )}
             </div>

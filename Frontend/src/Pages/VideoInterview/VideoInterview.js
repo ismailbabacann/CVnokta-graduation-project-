@@ -501,9 +501,9 @@ function VideoInterview() {
     return (
       <div className="vi-screen vi-screen-active vi-center-screen">
         <div className="vi-results-card">
-          <h2>Interview Access Error</h2>
+          <h2>Mülakat Erişim Hatası</h2>
           <p style={{ color: '#ef4444', fontSize: '1.1rem', margin: '1.5rem 0' }}>{errorMsg}</p>
-          <button className="vi-btn-primary" onClick={() => navigate('/')}>🏠 Return to Home Page</button>
+          <button className="vi-btn-primary" onClick={() => navigate('/')}>🏠 Ana Sayfaya Dön</button>
         </div>
       </div>
     );
@@ -515,7 +515,7 @@ function VideoInterview() {
       <div className="vi-screen vi-screen-active vi-center-screen">
         <div className="vi-results-card" style={{ textAlign: 'center' }}>
           <div className="vi-spinner" />
-          <p style={{ marginTop: '1rem' }}>Verifying interview details...</p>
+          <p style={{ marginTop: '1rem' }}>Mülakat detayları doğrulanıyor...</p>
         </div>
       </div>
     );
@@ -525,21 +525,21 @@ function VideoInterview() {
   if (status === 'ended' && summary) {
     const overall = Math.round(summary.overall_interview_score || 0);
     const scores = [
-      { key: 'average_confidence_score', label: 'Confidence' },
-      { key: 'job_match_score', label: 'Job Match' },
-      { key: 'experience_alignment_score', label: 'Experience' },
-      { key: 'communication_score', label: 'Communication' },
-      { key: 'technical_knowledge_score', label: 'Technical' },
+      { key: 'average_confidence_score', label: 'Özgüven' },
+      { key: 'job_match_score', label: 'İş Uyumu' },
+      { key: 'experience_alignment_score', label: 'Deneyim' },
+      { key: 'communication_score', label: 'İletişim' },
+      { key: 'technical_knowledge_score', label: 'Teknik' },
     ];
     return (
       <div className="vi-screen vi-screen-active vi-center-screen">
         <div className="vi-results-card">
-          <h2>Interview Evaluation</h2>
+          <h2>Mülakat Değerlendirmesi</h2>
           <div className="vi-overall-score">
             <div className="vi-score-value">{overall}</div>
-            <div className="vi-score-label-text">Overall Score / 100</div>
+            <div className="vi-score-label-text">Genel Skor / 100</div>
             <span className={`vi-badge ${summary.is_passed ? 'pass' : 'fail'}`}>
-              {summary.is_passed ? 'PASSED' : 'NEEDS IMPROVEMENT'}
+              {summary.is_passed ? 'BAŞARILI' : 'GELİŞİM GEREKİYOR'}
             </span>
           </div>
           <div className="vi-score-grid">
@@ -551,25 +551,25 @@ function VideoInterview() {
             ))}
           </div>
           <div className="vi-summary-section">
-            <h3>Summary</h3>
+            <h3>Özet</h3>
             <p>{summary.summary_text || '-'}</p>
           </div>
           <div className="vi-summary-section">
-            <h3>Strengths</h3>
+            <h3>Güçlü Yönler</h3>
             <p>{Array.isArray(summary.strengths) ? summary.strengths.join(', ') : (summary.strengths || '-')}</p>
           </div>
           <div className="vi-summary-section">
-            <h3>Areas for Improvement</h3>
+            <h3>Gelişim Alanları</h3>
             <p>{Array.isArray(summary.weaknesses) ? summary.weaknesses.join(', ') : (summary.weaknesses || '-')}</p>
           </div>
           <div className="vi-summary-section">
-            <h3>Recommendations</h3>
+            <h3>Öneriler</h3>
             <p>{Array.isArray(summary.recommendations) ? summary.recommendations.join(', ') : (summary.recommendations || '-')}</p>
           </div>
           <p className="vi-result-stats">
-            Questions: {summary.total_questions_asked || 0} asked, {summary.total_questions_answered || 0} answered
+            Sorular: {summary.total_questions_asked || 0} soruldu, {summary.total_questions_answered || 0} cevaplandı
           </p>
-          <button className="vi-btn-primary" onClick={() => navigate('/profile/applications')}>🔙 Back to My Applications</button>
+          <button className="vi-btn-primary" onClick={() => navigate('/profile/applications')}>🔙 Başvurularıma Dön</button>
         </div>
       </div>
     );
@@ -581,9 +581,9 @@ function VideoInterview() {
       <div className="vi-screen vi-screen-active vi-center-screen">
         <div className="vi-results-card" style={{ textAlign: 'center' }}>
           <div className="vi-spinner" />
-          <h3 style={{ marginTop: '1rem', color: '#a78bfa' }}>Your interview is being evaluated</h3>
+          <h3 style={{ marginTop: '1rem', color: '#a78bfa' }}>Mülakatınız değerlendiriliyor</h3>
           <p style={{ color: '#8888aa', marginTop: '0.5rem' }}>
-            Please wait, AI is analyzing your interview results...
+            Lütfen bekleyin, Yapay Zeka mülakat sonuçlarınızı analiz ediyor...
           </p>
         </div>
       </div>
@@ -600,13 +600,13 @@ function VideoInterview() {
           <span className="vi-logo">HR AI Interview</span>
           <div className="vi-status-indicator">
             <span className={`vi-dot ${statusDotClass}`} />
-            <span>{statusText || (status === 'idle' ? `Hello ${candidateName}, ready to start` : '')}</span>
+            <span>{statusText || (status === 'idle' ? `Merhaba ${candidateName}, başlamaya hazır mısın` : '')}</span>
           </div>
         </div>
         <div className="vi-header-right">
           <span className="vi-timer">{timer}</span>
           {(status === 'active' || status === 'connecting') && (
-            <button className="vi-btn-end" onClick={endInterview}>End Interview</button>
+            <button className="vi-btn-end" onClick={endInterview}>Mülakatı Bitir</button>
           )}
         </div>
       </div>
@@ -645,36 +645,36 @@ function VideoInterview() {
             <circle cx="68" cy="130" r="3" fill="#a78bfa" opacity="0.7"/>
             <circle cx="172" cy="130" r="3" fill="#a78bfa" opacity="0.7"/>
           </svg>
-          <div className="vi-avatar-label">AI Recruiter</div>
+          <div className="vi-avatar-label">Yapay Zeka İK</div>
           {jobTitle && <div className="vi-avatar-job">{jobTitle}</div>}
         </div>
 
         {SHOW_LIVE_TRANSCRIPT && (
           <div className="vi-question-bubble">
-            <div className="vi-question-label">Live Transcript</div>
+            <div className="vi-question-label">Canlı Döküm</div>
             <div className="vi-question-text">{liveText}</div>
           </div>
         )}
 
         <div className="vi-controls">
           {status === 'idle' && (
-            <button className="vi-btn-primary" onClick={startInterview}>🎯 Start Interview</button>
+            <button className="vi-btn-primary" onClick={startInterview}>🎯 Mülakata Başla</button>
           )}
           {status === 'error' && (
             <>
               <p className="vi-error-text">{errorMsg}</p>
-              <button className="vi-btn-primary" onClick={() => navigate('/profile/applications')}>🔙 Back to My Applications</button>
+              <button className="vi-btn-primary" onClick={() => navigate('/profile/applications')}>🔙 Başvurularıma Dön</button>
             </>
           )}
         </div>
       </div>
 
       <div className="vi-transcript-panel">
-        <div className="vi-transcript-header">Conversation</div>
+        <div className="vi-transcript-header">Konuşma</div>
         <div className="vi-transcript-body" ref={transcriptBodyRef}>
           {transcript.map((t, i) => (
             <div key={i} className={`vi-transcript-entry ${t.role === 'assistant' ? 'assistant' : 'user'}`}>
-              <div className="vi-transcript-role">{t.role === 'assistant' ? 'AI' : 'You'}</div>
+              <div className="vi-transcript-role">{t.role === 'assistant' ? 'AI' : 'Sen'}</div>
               <div className="vi-transcript-text">{t.text}</div>
             </div>
           ))}
@@ -683,7 +683,7 @@ function VideoInterview() {
 
       <div className="vi-webcam-container">
         <video ref={webcamRef} autoPlay muted playsInline />
-        <div className="vi-webcam-label">You</div>
+        <div className="vi-webcam-label">Sen</div>
       </div>
     </div>
   );

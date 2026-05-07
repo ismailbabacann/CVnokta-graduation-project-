@@ -58,21 +58,21 @@ const AlreadyCompletedScreen = ({ examTitle, submittedAt, onGoHome }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 24 }}>
       <div className="already-completed-card">
         <div className="already-icon">📋</div>
-        <h2>You Have Already Completed This Exam</h2>
+        <h2>Bu Sınavı Zaten Tamamladınız</h2>
         <p style={{ color: '#64748b', margin: '8px 0 4px' }}>
           <strong>{examTitle}</strong>
         </p>
         {submittedAt && (
           <p style={{ color: '#94a3b8', fontSize: 14, margin: '4px 0 24px' }}>
-            Submitted: {new Date(submittedAt).toLocaleString('en-US')}
+            Gönderildi: {new Date(submittedAt).toLocaleString('tr-TR')}
           </p>
         )}
         <div className="already-info-box">
-          <p>Each exam can only be taken <strong>once</strong>. This page cannot be accessed again.</p>
-          <p style={{ marginTop: 8 }}>You will be notified by email after your results are evaluated.</p>
+          <p>Her sınav sadece <strong>bir kez</strong> yapılabilir. Bu sayfaya tekrar erişilemez.</p>
+          <p style={{ marginTop: 8 }}>Sonuçlarınız değerlendirildikten sonra e-posta ile bilgilendirileceksiniz.</p>
         </div>
         <button className="exam-btn primary" onClick={onGoHome} style={{ marginTop: 24, width: '100%' }}>
-          ← Back to Home
+          ← Ana Sayfaya Dön
         </button>
       </div>
     </div>
@@ -228,7 +228,7 @@ const ExamTake = () => {
   if (status === 'loading') return (
     <div className="exam-loading">
       <div className="exam-loading-spinner" />
-      <p>Loading exam...</p>
+      <p>Sınav yükleniyor...</p>
     </div>
   );
 
@@ -246,10 +246,10 @@ const ExamTake = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
         <div className="already-completed-card">
           <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
-          <h2 style={{ color: '#e94560' }}>Access Error</h2>
+          <h2 style={{ color: '#e94560' }}>Erişim Hatası</h2>
           <p style={{ color: '#666' }}>{errorMsg}</p>
           <button className="exam-btn primary" onClick={() => navigate('/')} style={{ marginTop: 20, width: '100%' }}>
-            ← Back to Home
+            ← Ana Sayfaya Dön
           </button>
         </div>
       </div>
@@ -268,27 +268,27 @@ const ExamTake = () => {
               <path className="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
             </svg>
           </div>
-          <h2>Exam Completed!</h2>
-          <p>Your answers have been saved to the <strong>hr.ai</strong> system.</p>
-          {usedMock && <p style={{ color: '#f59e0b', fontSize: 13 }}>ℹ️ Ran in simulation mode.</p>}
+          <h2>Sınav Tamamlandı!</h2>
+          <p>Cevaplarınız <strong>hr.ai</strong> sistemine kaydedildi.</p>
+          {usedMock && <p style={{ color: '#f59e0b', fontSize: 13 }}>ℹ️ Simülasyon modunda çalıştırıldı.</p>}
           <div className="finished-stats">
-            <div className="fstat"><span className="fstat-val">{answered}</span><span className="fstat-lbl">Answered</span></div>
-            <div className="fstat"><span className="fstat-val">{questions.length - answered}</span><span className="fstat-lbl">Empty</span></div>
-            <div className="fstat"><span className="fstat-val">{flagged.length}</span><span className="fstat-lbl">Flagged</span></div>
+            <div className="fstat"><span className="fstat-val">{answered}</span><span className="fstat-lbl">Cevaplandı</span></div>
+            <div className="fstat"><span className="fstat-val">{questions.length - answered}</span><span className="fstat-lbl">Boş</span></div>
+            <div className="fstat"><span className="fstat-val">{flagged.length}</span><span className="fstat-lbl">İşaretli</span></div>
           </div>
-          <p className="finished-subtext">You will be notified by email after your results are evaluated.</p>
+          <p className="finished-subtext">Sonuçlarınız değerlendirildikten sonra e-posta ile bilgilendirileceksiniz.</p>
           <button className="exam-btn primary" onClick={() => navigate('/')} style={{ marginTop: 20, width: '100%' }}>
-            ← Back to Home
+            ← Ana Sayfaya Dön
           </button>
         </div>
       </div>
     );
   }
 
-  if (!questions.length) return <div className="exam-loading"><p>Questions could not be loaded.</p></div>;
+  if (!questions.length) return <div className="exam-loading"><p>Sorular yüklenemedi.</p></div>;
 
   const q            = questions[currentIdx];
-  if (!q) return <div className="exam-loading"><p>Loading question...</p></div>;
+  if (!q) return <div className="exam-loading"><p>Soru yükleniyor...</p></div>;
   const options      = parseOptions(q.optionsJson);
   const selectedOpt  = answers[q.questionId];
   const isFlagged    = flagged.includes(q.questionId);
@@ -323,7 +323,7 @@ const ExamTake = () => {
         {/* ── Sidebar ─────────────────────────────────────── */}
         <aside className={`exam-sidebar ${showNav ? 'sidebar-open' : ''}`}>
           <div className="sidebar-header">
-            <span>Question Navigator</span>
+            <span>Soru Gezgini</span>
             <span className="sidebar-progress">{answeredCount}/{questions.length}</span>
           </div>
           <div className="sidebar-grid">
@@ -341,34 +341,34 @@ const ExamTake = () => {
             })}
           </div>
           <div className="sidebar-legend">
-            <div className="legend-item"><span className="legend-dot answered" />&nbsp;Answered</div>
-            <div className="legend-item"><span className="legend-dot flagged" />&nbsp;Flagged</div>
-            <div className="legend-item"><span className="legend-dot current" />&nbsp;Current</div>
-            <div className="legend-item"><span className="legend-dot empty" />&nbsp;Empty</div>
+            <div className="legend-item"><span className="legend-dot answered" />&nbsp;Cevaplandı</div>
+            <div className="legend-item"><span className="legend-dot flagged" />&nbsp;İşaretli</div>
+            <div className="legend-item"><span className="legend-dot current" />&nbsp;Geçerli</div>
+            <div className="legend-item"><span className="legend-dot empty" />&nbsp;Boş</div>
           </div>
         </aside>
 
         {/* ── Main ────────────────────────────────────────── */}
         <main className="exam-main">
           <button className="sidebar-toggle" onClick={() => setShowNav(!showNav)}>
-            {showNav ? '✕' : '☰ Questions'}
+            {showNav ? '✕' : '☰ Sorular'}
           </button>
 
           <div className="exam-card">
             <div className="exam-header">
               <div className="exam-header-top">
                 <div className="qmeta">
-                  <span className="qnumber">Question {currentIdx + 1} / {questions.length}</span>
+                  <span className="qnumber">Soru {currentIdx + 1} / {questions.length}</span>
                   <span style={{ fontSize: 12, color: '#64748b', marginLeft: 8 }}>
-                    {q.questionType === 'multiple_choice' ? '🔘 Multiple Choice' :
-                     q.questionType === 'true_false'      ? '✅ True/False' :
-                                                            '✍️ Open Ended'}
-                    &nbsp;· {q.points} pts
+                    {q.questionType === 'multiple_choice' ? '🔘 Çoktan Seçmeli' :
+                     q.questionType === 'true_false'      ? '✅ Doğru/Yanlış' :
+                                                            '✍️ Açık Uçlu'}
+                    &nbsp;· {q.points} puan
                   </span>
                 </div>
                 <button className={`flag-btn ${isFlagged ? 'flagged' : ''}`}
                   onClick={() => toggleFlag(q.questionId)}>
-                  {isFlagged ? '⚑ Flagged' : '⚑ Flag'}
+                  {isFlagged ? '⚑ İşaretli' : '⚑ İşaretle'}
                 </button>
               </div>
               <div className="progress-bar">
@@ -399,12 +399,12 @@ const ExamTake = () => {
                   <textarea
                     className="open-ended-textarea"
                     rows={8}
-                    placeholder="Write your answer here..."
+                    placeholder="Cevabınızı buraya yazın..."
                     value={answers[q.questionId] ?? ''}
                     onChange={e => handleText(q.questionId, e.target.value)}
                   />
                   <div style={{ textAlign: 'right', fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
-                    {(answers[q.questionId] ?? '').length} characters
+                    {(answers[q.questionId] ?? '').length} karakter
                   </div>
                 </div>
               )}
@@ -412,18 +412,18 @@ const ExamTake = () => {
 
             <div className="exam-footer">
               <button className="exam-btn secondary" onClick={handlePrev} disabled={currentIdx === 0}>
-                ← Previous
+                ← Önceki
               </button>
               <div className="footer-center">
-                <span className="answered-count">{answeredCount}/{questions.length} answered</span>
-                <button className="exam-btn skip" onClick={handleNext} disabled={isLast}>Skip →</button>
+                <span className="answered-count">{answeredCount}/{questions.length} cevaplandı</span>
+                <button className="exam-btn skip" onClick={handleNext} disabled={isLast}>Geç →</button>
               </div>
               {isLast ? (
                 <button className="exam-btn primary submit-btn" onClick={handleSubmit} disabled={isSubmitting}>
-                  {isSubmitting ? 'Submitting...' : '✓ Finish Exam'}
+                  {isSubmitting ? 'Gönderiliyor...' : '✓ Sınavı Bitir'}
                 </button>
               ) : (
-                <button className="exam-btn primary" onClick={handleNext}>Next →</button>
+                <button className="exam-btn primary" onClick={handleNext}>Sonraki →</button>
               )}
             </div>
           </div>

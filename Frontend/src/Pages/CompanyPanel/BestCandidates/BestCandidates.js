@@ -62,7 +62,7 @@ function CandidateDetailModal({ candidate, onClose }) {
 
     const handleSendMeeting = async () => {
         if (!meetingData.meetingTitle || !meetingData.scheduledDate || !meetingData.meetingLink) {
-            alert('Please fill in all interview fields.');
+            alert('Lütfen tüm mülakat alanlarını doldurun.');
             return;
         }
         try {
@@ -77,17 +77,17 @@ function CandidateDetailModal({ candidate, onClose }) {
                 meetingLink: meetingData.meetingLink,
                 meetingType: meetingData.meetingType
             }, { headers: { Authorization: `Bearer ${token}` } });
-            alert('Interview invitation successfully created and sent to the candidate.');
+            alert('Mülakat daveti başarıyla oluşturuldu ve adaya gönderildi.');
             setIsMeetingOpen(false);
         } catch (e) {
-            alert('An error occurred while sending the interview invitation.');
+            alert('Mülakat daveti gönderilirken bir hata oluştu.');
         } finally {
             setMeetingLoading(false);
         }
     };
 
     const handleReject = async () => {
-        if (!window.confirm('Are you sure you want to reject this candidate?')) return;
+        if (!window.confirm('Bu adayı reddetmek istediğinize emin misiniz?')) return;
         try {
             setRejectLoading(true);
             const token = localStorage.getItem('jwToken');
@@ -95,10 +95,10 @@ function CandidateDetailModal({ candidate, onClose }) {
                 applicationIds: [candidate.applicationId],
                 newStatus: 'Rejected'
             }, { headers: { Authorization: `Bearer ${token}` } });
-            alert('Candidate successfully rejected and notification email sent.');
+            alert('Aday başarıyla reddedildi ve bildirim e-postası gönderildi.');
             onClose();
         } catch (e) {
-            alert('An error occurred during the rejection process.');
+            alert('Red işlemi sırasında bir hata oluştu.');
         } finally {
             setRejectLoading(false);
         }
@@ -199,26 +199,26 @@ function CandidateDetailModal({ candidate, onClose }) {
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '60px 0', color: '#888' }}>
                             <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
-                            <p>Loading details...</p>
+                            <p>Detaylar yükleniyor...</p>
                         </div>
                     ) : (
                         <>
                             {/* ═══ TAB: Overview ═══ */}
                             {activeTab === 'overview' && (
                                 <div>
-                                    <h3 style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>Score Summary</h3>
+                                    <h3 style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>Puan Özeti</h3>
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 24 }}>
                                         {[
-                                            { label: 'CV Analysis', val: cvScore, color: '#667eea' },
-                                            { label: 'Skills Test', val: skillScore, color: '#ed8936' },
-                                            { label: 'English Test', val: engScore, color: '#00b4db' },
-                                            { label: 'AI Interview', val: aiScore, color: '#f5576c' },
-                                            { label: 'Final Score', val: finalScore, color: '#764ba2' },
+                                            { label: 'CV Analizi', val: cvScore, color: '#667eea' },
+                                            { label: 'Beceri Testi', val: skillScore, color: '#ed8936' },
+                                            { label: 'İngilizce Testi', val: engScore, color: '#00b4db' },
+                                            { label: 'AI Mülakat', val: aiScore, color: '#f5576c' },
+                                            { label: 'Final Puanı', val: finalScore, color: '#764ba2' },
                                         ].map(({ label, val, color }) => (
                                             <div key={label} style={{ background: '#fafafa', borderRadius: 10, padding: '14px 16px', borderLeft: `3px solid ${color}`, border: `1px solid #f0f0f0`, borderLeftWidth: 3, borderLeftColor: color }}>
                                                 <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>{label}</div>
                                                 <div style={{ fontSize: 24, fontWeight: 800, color }}>
-                                                    {val !== null && val !== undefined ? Number(val).toFixed(1) : <span style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 500 }}>Pending</span>}
+                                                    {val !== null && val !== undefined ? Number(val).toFixed(1) : <span style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 500 }}>Bekliyor</span>}
                                                 </div>
                                             </div>
                                         ))}
@@ -230,17 +230,17 @@ function CandidateDetailModal({ candidate, onClose }) {
                                         if (!cvFb || (!cvFb.strengths?.length && !cvFb.weaknesses?.length && !cvFb.overall)) return null;
                                         return (
                                             <div style={{ marginTop: 4 }}>
-                                                <h3 style={{ margin: '0 0 12px 0', color: '#1e293b', fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>HR Feedback</h3>
+                                                <h3 style={{ margin: '0 0 12px 0', color: '#1e293b', fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>İK Geri Bildirimi</h3>
                                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
                                                     {cvFb.strengths?.length > 0 && (
                                                         <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '14px', border: '1px solid #bbf7d0' }}>
-                                                            <div style={{ fontSize: 11, color: '#15803d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Strengths</div>
+                                                            <div style={{ fontSize: 11, color: '#15803d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Güçlü Yönler</div>
                                                             <ul style={{ margin: 0, paddingLeft: 16 }}>{cvFb.strengths.map((s, i) => <li key={i} style={{ color: '#166534', fontSize: 13, lineHeight: 1.6 }}>{s}</li>)}</ul>
                                                         </div>
                                                     )}
                                                     {cvFb.weaknesses?.length > 0 && (
                                                         <div style={{ background: '#fff1f2', borderRadius: 10, padding: '14px', border: '1px solid #fecdd3' }}>
-                                                            <div style={{ fontSize: 11, color: '#be123c', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Areas for Improvement</div>
+                                                            <div style={{ fontSize: 11, color: '#be123c', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Gelişim Alanları</div>
                                                             <ul style={{ margin: 0, paddingLeft: 16 }}>{cvFb.weaknesses.map((s, i) => <li key={i} style={{ color: '#9f1239', fontSize: 13, lineHeight: 1.6 }}>{s}</li>)}</ul>
                                                         </div>
                                                     )}
@@ -255,13 +255,13 @@ function CandidateDetailModal({ candidate, onClose }) {
                             {/* ═══ TAB: CV Analizi ═══ */}
                             {activeTab === 'cvanalysis' && (
                                 <div>
-                                    <h3 style={{ margin: '0 0 20px 0', color: '#1e293b', fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>CV Analysis Details</h3>
+                                    <h3 style={{ margin: '0 0 20px 0', color: '#1e293b', fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>CV Analizi Detayları</h3>
 
 
                                     {/* Matched Skills */}
                                     {scorecard?.cvAnalysisResult?.matchedSkills?.length > 0 && (
                                         <div style={{ marginBottom: 16 }}>
-                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Matched Skills</div>
+                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Eşleşen Beceriler</div>
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                                                 {scorecard.cvAnalysisResult.matchedSkills.map((s, i) => (
                                                     <span key={i} style={{ background: '#d1fae5', color: '#065f46', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600 }}>{s}</span>
@@ -273,7 +273,7 @@ function CandidateDetailModal({ candidate, onClose }) {
                                     {/* Missing Skills */}
                                     {scorecard?.cvAnalysisResult?.missingSkills?.length > 0 && (
                                         <div style={{ marginBottom: 20 }}>
-                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Missing Skills</div>
+                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Eksik Beceriler</div>
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                                                 {scorecard.cvAnalysisResult.missingSkills.map((s, i) => (
                                                     <span key={i} style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600 }}>{s}</span>
@@ -285,14 +285,14 @@ function CandidateDetailModal({ candidate, onClose }) {
                                     {/* CV Summary */}
                                     {scorecard?.cvAnalysisResult?.summary && (
                                         <div style={{ background: '#f8fafc', borderRadius: 10, padding: '16px', border: '1px solid #e2e8f0' }}>
-                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>CV Analysis Summary</div>
+                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>CV Analizi Özeti</div>
                                             <p style={{ margin: 0, color: '#334155', fontSize: 13, lineHeight: 1.7 }}>{scorecard.cvAnalysisResult.summary}</p>
                                         </div>
                                     )}
 
                                     {!scorecard?.cvAnalysisResult && (
                                         <div style={{ textAlign: 'center', padding: '60px 0', color: '#94a3b8' }}>
-                                            <p>CV analysis has not been completed yet.</p>
+                                            <p>CV analizi henüz tamamlanmadı.</p>
                                         </div>
                                     )}
                                 </div>
@@ -306,25 +306,25 @@ function CandidateDetailModal({ candidate, onClose }) {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                                                 <div style={{ background: '#f0fdf4', borderRadius: 12, padding: '16px', border: '1px solid #bbf7d0' }}>
-                                                    <div style={{ fontSize: 11, color: '#15803d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Strengths</div>
+                                                    <div style={{ fontSize: 11, color: '#15803d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Güçlü Yönler</div>
                                                     <p style={{ margin: 0, color: '#15803d', fontSize: 13, lineHeight: 1.7 }}>{scorecard.aiInterviewSummary.strengths || '—'}</p>
                                                 </div>
                                                 <div style={{ background: '#fff1f2', borderRadius: 12, padding: '16px', border: '1px solid #fecdd3' }}>
-                                                    <div style={{ fontSize: 11, color: '#be123c', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Areas for Improvement</div>
+                                                    <div style={{ fontSize: 11, color: '#be123c', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Gelişim Alanları</div>
                                                     <p style={{ margin: 0, color: '#be123c', fontSize: 13, lineHeight: 1.7 }}>{scorecard.aiInterviewSummary.weaknesses || '—'}</p>
                                                 </div>
                                             </div>
 
                                             {scorecard.aiInterviewSummary.overallFeedback && (
                                                 <div style={{ background: '#faf5ff', borderRadius: 12, padding: '16px', border: '1px solid #e9d5ff' }}>
-                                                    <div style={{ fontSize: 11, color: '#6b21a8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Overall AI Assessment</div>
+                                                    <div style={{ fontSize: 11, color: '#6b21a8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Genel AI Değerlendirmesi</div>
                                                     <p style={{ margin: 0, color: '#7c3aed', fontSize: 13, lineHeight: 1.7 }}>{scorecard.aiInterviewSummary.overallFeedback}</p>
                                                 </div>
                                             )}
 
                                             {scorecard.aiInterviewSummary.recommendation && (
                                                 <div style={{ background: '#fffbeb', borderRadius: 12, padding: '16px', border: '1px solid #fde68a' }}>
-                                                    <div style={{ fontSize: 11, color: '#92400e', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>AI Recommendation</div>
+                                                    <div style={{ fontSize: 11, color: '#92400e', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>AI Önerisi</div>
                                                     <p style={{ margin: 0, color: '#78350f', fontSize: 13, lineHeight: 1.7 }}>{scorecard.aiInterviewSummary.recommendation}</p>
                                                 </div>
                                             )}
@@ -332,14 +332,14 @@ function CandidateDetailModal({ candidate, onClose }) {
                                             {/* AI Interview Q&A */}
                                             {scorecard?.aiInterviewQas?.length > 0 && (
                                                 <div>
-                                                    <h4 style={{ margin: '0 0 12px 0', color: '#1e293b', fontSize: 14 }}>🎙️ Interview Q&A</h4>
+                                                    <h4 style={{ margin: '0 0 12px 0', color: '#1e293b', fontSize: 14 }}>🎙️ Mülakat Soru & Cevap</h4>
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                                                         {scorecard.aiInterviewQas.map((qa, i) => (
                                                             <div key={i} style={{ background: '#f8fafc', borderRadius: 10, padding: '14px', border: '1px solid #e2e8f0' }}>
                                                                 <div style={{ fontWeight: 700, color: '#334155', marginBottom: 6, fontSize: 13 }}>S{i + 1}: {qa.question}</div>
-                                                                <div style={{ color: '#475569', fontSize: 13, lineHeight: 1.6, paddingLeft: 12, borderLeft: '3px solid #764ba2' }}>{qa.answer || <em style={{ color: '#94a3b8' }}>No answer</em>}</div>
+                                                                <div style={{ color: '#475569', fontSize: 13, lineHeight: 1.6, paddingLeft: 12, borderLeft: '3px solid #764ba2' }}>{qa.answer || <em style={{ color: '#94a3b8' }}>Cevap yok</em>}</div>
                                                                 {qa.aiScore !== null && qa.aiScore !== undefined && (
-                                                                    <div style={{ marginTop: 6, fontSize: 12, color: '#764ba2', fontWeight: 700 }}>AI Score: {Number(qa.aiScore).toFixed(1)}</div>
+                                                                    <div style={{ marginTop: 6, fontSize: 12, color: '#764ba2', fontWeight: 700 }}>AI Puanı: {Number(qa.aiScore).toFixed(1)}</div>
                                                                 )}
                                                             </div>
                                                         ))}
@@ -350,7 +350,7 @@ function CandidateDetailModal({ candidate, onClose }) {
                                     ) : (
                                         <div style={{ textAlign: 'center', padding: '60px 0', color: '#94a3b8' }}>
                                             <div style={{ fontSize: 40, marginBottom: 12 }}>🤖</div>
-                                            <p>No AI interview data available yet.</p>
+                                            <p>Henüz AI mülakat verisi bulunmuyor.</p>
                                         </div>
                                     )}
                                 </div>
@@ -362,15 +362,15 @@ function CandidateDetailModal({ candidate, onClose }) {
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                                         {/* Contact */}
                                         <div style={{ background: '#f8fafc', borderRadius: 12, padding: '18px', border: '1px solid #e2e8f0' }}>
-                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Contact Information</div>
+                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>İletişim Bilgileri</div>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: '#475569', lineHeight: 1.8 }}>
-                                                <div><strong>Email:</strong>{' '}
+                                                <div><strong>E-posta:</strong>{' '}
                                                     {candidate.email ? <a href={`mailto:${candidate.email}`} style={{ color: '#4f46e5' }}>{candidate.email}</a> : '—'}
                                                 </div>
-                                                <div><strong>Location:</strong> {candidate.location || '—'}</div>
+                                                <div><strong>Konum:</strong> {candidate.location || '—'}</div>
                                                 <div><strong>LinkedIn:</strong>{' '}
                                                     {candidate.linkedInProfile
-                                                        ? <a href={candidate.linkedInProfile} target="_blank" rel="noopener noreferrer" style={{ color: '#4f46e5' }}>View Profile</a>
+                                                        ? <a href={candidate.linkedInProfile} target="_blank" rel="noopener noreferrer" style={{ color: '#4f46e5' }}>Profili Görüntüle</a>
                                                         : '—'}
                                                 </div>
                                             </div>
@@ -378,9 +378,9 @@ function CandidateDetailModal({ candidate, onClose }) {
 
                                         {/* Cover Letter */}
                                         <div style={{ background: '#f8fafc', borderRadius: 12, padding: '18px', border: '1px solid #e2e8f0' }}>
-                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Cover Letter</div>
+                                            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Ön Yazı</div>
                                             <div style={{ background: '#fff', borderRadius: 8, padding: '14px', minHeight: 120, fontSize: 13, color: '#475569', fontStyle: 'italic', lineHeight: 1.7, border: '1px solid #e2e8f0' }}>
-                                                "{candidate.coverLetter || 'The candidate did not provide a cover letter for this application.'}"
+                                                "{candidate.coverLetter || 'Aday bu başvuru için ön yazı sağlamadı.'}"
                                             </div>
                                         </div>
                                     </div>
@@ -388,12 +388,12 @@ function CandidateDetailModal({ candidate, onClose }) {
                                     {/* CV download */}
                                     <div style={{ background: '#f0f9ff', borderRadius: 12, padding: '18px', border: '1px solid #bae6fd', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <div>
-                                            <h4 style={{ margin: '0 0 4px 0', color: '#0369a1', fontSize: 14 }}>📄 Resume (CV)</h4>
-                                            <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>Access the CV file uploaded by the candidate</p>
+                                            <h4 style={{ margin: '0 0 4px 0', color: '#0369a1', fontSize: 14 }}>📄 Özgeçmiş (CV)</h4>
+                                            <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>Aday tarafından yüklenen CV dosyasına erişin</p>
                                         </div>
                                         {candidate.cvUrl
-                                            ? <a href={candidate.cvUrl} target="_blank" rel="noopener noreferrer" style={{ background: '#0369a1', color: '#fff', padding: '10px 20px', borderRadius: 8, textDecoration: 'none', fontWeight: 700, fontSize: 13 }}>📄 Download / View CV</a>
-                                            : <span style={{ color: '#94a3b8', fontSize: 13 }}>No CV uploaded</span>}
+                                            ? <a href={candidate.cvUrl} target="_blank" rel="noopener noreferrer" style={{ background: '#0369a1', color: '#fff', padding: '10px 20px', borderRadius: 8, textDecoration: 'none', fontWeight: 700, fontSize: 13 }}>📄 CV'yi İndir / Görüntüle</a>
+                                            : <span style={{ color: '#94a3b8', fontSize: 13 }}>CV yüklenmemiş</span>}
                                     </div>
                                 </div>
                             )}
@@ -401,7 +401,7 @@ function CandidateDetailModal({ candidate, onClose }) {
                             {/* ═══ TAB: Pipeline ═══ */}
                             {activeTab === 'pipeline' && (
                                 <div>
-                                    <h3 style={{ margin: '0 0 20px 0', color: '#1e293b', fontSize: 16 }}>📈 Application Pipeline Status</h3>
+                                    <h3 style={{ margin: '0 0 20px 0', color: '#1e293b', fontSize: 16 }}>📈 Başvuru Süreci Durumu</h3>
 
                                     {/* Timeline */}
                                     <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 24 }}>
@@ -432,7 +432,7 @@ function CandidateDetailModal({ candidate, onClose }) {
 
                                     {isRejected && candidate.rejectionReason && (
                                         <div style={{ background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 10, padding: '14px 18px', color: '#c53030', fontSize: 13 }}>
-                                            <strong>Rejection Reason:</strong> {candidate.rejectionReason}
+                                            <strong>Red Nedeni:</strong> {candidate.rejectionReason}
                                         </div>
                                     )}
                                 </div>
@@ -447,22 +447,22 @@ function CandidateDetailModal({ candidate, onClose }) {
                         {candidate.cvUrl && (
                             <a href={candidate.cvUrl} target="_blank" rel="noopener noreferrer"
                                style={{ padding: '9px 18px', background: '#334155', color: '#fff', borderRadius: 8, textDecoration: 'none', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
-                                📄 View CV
+                                📄 CV'yi Görüntüle
                             </a>
                         )}
                         <button onClick={() => setIsMeetingOpen(true)}
                                 style={{ padding: '9px 18px', background: '#ec4899', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>
-                            📅 Schedule Interview
+                            📅 Mülakat Planla
                         </button>
                     </div>
                     <div style={{ display: 'flex', gap: 10 }}>
                         <button onClick={handleReject} disabled={rejectLoading}
                                 style={{ padding: '9px 18px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>
-                            {rejectLoading ? 'Processing...' : '❌ Reject Candidate'}
+                            {rejectLoading ? 'İşleniyor...' : '❌ Adayı Reddet'}
                         </button>
                         <button onClick={onClose}
                                 style={{ padding: '9px 18px', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>
-                            Close
+                            Kapat
                         </button>
                     </div>
                 </div>
@@ -474,14 +474,14 @@ function CandidateDetailModal({ candidate, onClose }) {
                      onClick={() => setIsMeetingOpen(false)}>
                     <div style={{ background: '#fff', borderRadius: 14, width: 480, padding: '28px', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}
                          onClick={e => e.stopPropagation()}>
-                        <h3 style={{ margin: '0 0 20px 0', color: '#e67e22', fontSize: 16 }}>📅 Create Interview Invitation</h3>
+                        <h3 style={{ margin: '0 0 20px 0', color: '#e67e22', fontSize: 16 }}>📅 Mülakat Daveti Oluştur</h3>
                         <p style={{ margin: '0 0 20px 0', color: '#64748b', fontSize: 13 }}>
-                            Schedule a meeting for <strong>{candidate.candidateFullName}</strong>.
+                            Şu aday için görüşme planlayın: <strong>{candidate.candidateFullName}</strong>.
                         </p>
                         {[
-                            { label: 'Interview Title *', key: 'meetingTitle', type: 'text', placeholder: 'E.g.: Final Interview - Backend' },
-                            { label: 'Date and Time *', key: 'scheduledDate', type: 'datetime-local', placeholder: '' },
-                            { label: 'Meeting Link (Meet/Zoom/Teams) *', key: 'meetingLink', type: 'url', placeholder: 'https://meet.google.com/...' },
+                            { label: 'Mülakat Başlığı *', key: 'meetingTitle', type: 'text', placeholder: 'Örn: Final Mülakat - Backend' },
+                            { label: 'Tarih ve Saat *', key: 'scheduledDate', type: 'datetime-local', placeholder: '' },
+                            { label: 'Toplantı Bağlantısı (Meet/Zoom/Teams) *', key: 'meetingLink', type: 'url', placeholder: 'https://meet.google.com/...' },
                         ].map(({ label, key, type, placeholder }) => (
                             <div key={key} style={{ marginBottom: 14 }}>
                                 <label style={{ display: 'block', marginBottom: 5, fontWeight: 700, fontSize: 13, color: '#334155' }}>{label}</label>
@@ -491,22 +491,22 @@ function CandidateDetailModal({ candidate, onClose }) {
                             </div>
                         ))}
                         <div style={{ marginBottom: 20 }}>
-                            <label style={{ display: 'block', marginBottom: 5, fontWeight: 700, fontSize: 13, color: '#334155' }}>Meeting Type</label>
+                            <label style={{ display: 'block', marginBottom: 5, fontWeight: 700, fontSize: 13, color: '#334155' }}>Toplantı Türü</label>
                             <select value={meetingData.meetingType} onChange={e => setMeetingData({ ...meetingData, meetingType: e.target.value })}
                                     style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13 }}>
-                                <option value="HR_SCREENING">HR Screening</option>
-                                <option value="TECHNICAL_INTERVIEW">Technical Interview</option>
-                                <option value="FINAL_INTERVIEW">Final Interview</option>
+                                <option value="HR_SCREENING">İK Ön Görüşme</option>
+                                <option value="TECHNICAL_INTERVIEW">Teknik Mülakat</option>
+                                <option value="FINAL_INTERVIEW">Final Mülakat</option>
                             </select>
                         </div>
                         <div style={{ display: 'flex', gap: 10 }}>
                             <button onClick={handleSendMeeting} disabled={meetingLoading}
                                     style={{ flex: 1, padding: '12px', background: '#e67e22', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
-                                {meetingLoading ? 'Sending...' : '📨 Create & Send Invitation'}
+                                {meetingLoading ? 'Gönderiliyor...' : '📨 Oluştur & Davet Gönder'}
                             </button>
                             <button onClick={() => setIsMeetingOpen(false)}
                                     style={{ flex: 0, padding: '12px 18px', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
-                                Cancel
+                                İptal
                             </button>
                         </div>
                     </div>
@@ -519,19 +519,19 @@ function CandidateDetailModal({ candidate, onClose }) {
 // ─── Podium Card ─────────────────────────────────────────────────────────────
 
 function PodiumCard({ candidate, medal, rank, onClick }) {
-    if (!candidate) return <div className={`${styles.podiumSlot} ${styles.empty}`}><span className={styles.emptyLabel}>No candidate</span></div>;
+    if (!candidate) return <div className={`${styles.podiumSlot} ${styles.empty}`}><span className={styles.emptyLabel}>Aday yok</span></div>;
     const score = candidate.finalWeightedScore ?? candidate.cvAnalysisScore ?? 0;
     return (
         <div className={`${styles.podiumCard} ${styles[`rank${rank}`]}`} onClick={() => onClick(candidate)}>
             <div className={styles.medal}>{medal}</div>
             <div className={styles.podiumAvatar}>{(candidate.candidateFullName || '?').charAt(0).toUpperCase()}</div>
-            <div className={styles.podiumName}>{candidate.candidateFullName || 'Candidate'}</div>
+            <div className={styles.podiumName}>{candidate.candidateFullName || 'Aday'}</div>
             <div className={styles.podiumScore}>{Number(score).toFixed(1)}</div>
-            <div className={styles.podiumScoreLbl}>Final Score</div>
+            <div className={styles.podiumScoreLbl}>Final Puanı</div>
             <div className={styles.podiumMini}>
                 <span>NLP: <b>{candidate.cvAnalysisScore !== null && candidate.cvAnalysisScore !== undefined ? Number(candidate.cvAnalysisScore).toFixed(0) : '—'}</b></span>
-                <span>Skills: <b>{candidate.skillsTestScore !== null && candidate.skillsTestScore !== undefined ? Number(candidate.skillsTestScore).toFixed(0) : '—'}</b></span>
-                <span>Eng: <b>{candidate.englishTestScore !== null && candidate.englishTestScore !== undefined ? Number(candidate.englishTestScore).toFixed(0) : '—'}</b></span>
+                <span>Beceri: <b>{candidate.skillsTestScore !== null && candidate.skillsTestScore !== undefined ? Number(candidate.skillsTestScore).toFixed(0) : '—'}</b></span>
+                <span>İng: <b>{candidate.englishTestScore !== null && candidate.englishTestScore !== undefined ? Number(candidate.englishTestScore).toFixed(0) : '—'}</b></span>
                 <span>AI: <b>{candidate.aiInterviewScore !== null && candidate.aiInterviewScore !== undefined ? Number(candidate.aiInterviewScore).toFixed(0) : '—'}</b></span>
             </div>
         </div>
@@ -595,8 +595,8 @@ export default function BestCandidates() {
         <div className={styles.page}>
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.title}>🏆 Best Candidates</h1>
-                    <p className={styles.subtitle}>Review the top-scoring candidates for your job posting.</p>
+                    <h1 className={styles.title}>🏆 En İyi Adaylar</h1>
+                    <p className={styles.subtitle}>İş ilanınız için en yüksek puan alan adayları inceleyin.</p>
                 </div>
                 {!jobsLoading && (
                     <select className={styles.jobSelect} value={selectedJobId} onChange={e => setSelectedJobId(e.target.value)}>
@@ -610,13 +610,13 @@ export default function BestCandidates() {
             {rankLoading ? (
                 <div className={styles.loadingFull}>
                     <div className={styles.spinner} />
-                    <p>Loading rankings...</p>
+                    <p>Sıralamalar yükleniyor...</p>
                 </div>
             ) : rankings.length === 0 ? (
                 <div className={styles.emptyState}>
                     <span>🎯</span>
-                    <h3>No evaluations have been completed for this posting yet.</h3>
-                    <p>Candidates will appear here as they complete their assessments.</p>
+                    <h3>Bu ilan için henüz hiçbir değerlendirme tamamlanmadı.</h3>
+                    <p>Adaylar değerlendirmelerini tamamladıkça burada görünecekler.</p>
                 </div>
             ) : (
                 <>
@@ -630,19 +630,19 @@ export default function BestCandidates() {
                     {/* Full ranking table */}
                     {rankings.length > 0 && (
                         <div className={styles.tableSection}>
-                            <h2 className={styles.tableTitle}>Full Rankings</h2>
+                            <h2 className={styles.tableTitle}>Tüm Sıralama</h2>
                             <div className={styles.tableWrap}>
                                 <table className={styles.table}>
                                     <thead>
                                         <tr>
                                             <th>#</th>
-                                            <th>Candidate</th>
+                                            <th>Aday</th>
                                             <th>NLP CV</th>
-                                            <th>Skills</th>
-                                            <th>English</th>
-                                            <th>AI Interview</th>
+                                            <th>Beceri</th>
+                                            <th>İngilizce</th>
+                                            <th>AI Mülakat</th>
                                             <th>Final</th>
-                                            <th>Details</th>
+                                            <th>Detaylar</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -653,7 +653,7 @@ export default function BestCandidates() {
                                                     <div className={styles.candCell}>
                                                         <div className={styles.miniAvatar}>{(c.candidateFullName || '?').charAt(0)}</div>
                                                         <div>
-                                                            <div className={styles.candName}>{c.candidateFullName || 'Candidate'}</div>
+                                                            <div className={styles.candName}>{c.candidateFullName || 'Aday'}</div>
                                                             <div className={styles.candEmail}>{c.email || '—'}</div>
                                                         </div>
                                                     </div>
@@ -665,7 +665,7 @@ export default function BestCandidates() {
                                                 <td><ScoreBadge score={c.finalWeightedScore} /></td>
                                                 <td>
                                                     <button className={styles.detailBtn} onClick={() => setDetailCandidate(c)}>
-                                                        Review →
+                                                        İncele →
                                                     </button>
                                                 </td>
                                             </tr>
